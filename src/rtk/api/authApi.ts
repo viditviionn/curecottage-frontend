@@ -8,13 +8,14 @@ export interface User {
   firstName: string;
   lastName: string;
   dateOfBirth: string;
-  profileImageUrl: string;
+  profileImageUrl: string | null;
   role: string;
   isEmailVerified: boolean;
   isPhoneVerified: boolean;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  hostDetails?: unknown | null;
 }
 
 export interface LoginRequest {
@@ -51,9 +52,26 @@ export interface SignupResponse {
   };
 }
 
+export interface ProfileResponse {
+  success: boolean;
+  message: string;
+  data: {
+    user: User;
+  };
+}
+
 export const authApi = createApi({
   reducerPath: "authApi",
-  baseQuery: fetchBaseQuery({ baseUrl: API_BASE_URL }),
+  baseQuery: fetchBaseQuery({
+    baseUrl: API_BASE_URL,
+    prepareHeaders: (headers) => {
+      const token = localStorage.getItem("auth_token");
+      if (token) {
+        headers.set("authorization", `Bearer ${token}`);
+      }
+      return headers;
+    },
+  }),
   endpoints: (builder) => ({
     login: builder.mutation<LoginResponse, LoginRequest>({
       query: (credentials) => ({
@@ -69,7 +87,11 @@ export const authApi = createApi({
         body: userData,
       }),
     }),
+    userProfile: builder.query<User, void>({
+      query: () => "/auth/profile",
+      transformResponse: (response: ProfileResponse) => response.data.user,
+    }),
   }),
 });
 
-export const { useLoginMutation, useSignupMutation } = authApi;
+export const { useLoginMutation, useSignupMutation, useUserProfileQuery } = authApi;

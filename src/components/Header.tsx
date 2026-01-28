@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Shield, Heart, Menu, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSelector, useDispatch } from 'react-redux';
@@ -21,6 +21,7 @@ const Header = ({ activePage = 'health-homes' }: HeaderProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [open, setOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
 
@@ -84,7 +85,7 @@ const Header = ({ activePage = 'health-homes' }: HeaderProps) => {
           {/* Desktop Auth Buttons - shows on lg screens and up */}
           <div className="hidden lg:flex items-center space-x-4 flex-shrink-0">
             {isAuthenticated ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 relative">
                 <div className="bg-primary/10 p-2 rounded-full cursor-pointer"
                 onClick={(e) => {
                 e.stopPropagation();
@@ -92,7 +93,6 @@ const Header = ({ activePage = 'health-homes' }: HeaderProps) => {
     }}>
                   <User className="h-5 w-5 text-primary" />
                 </div>
-                  {/* <span className="text-sm font-medium">{user?.firstName} {user?.lastName}</span> */}
                   {open && (
     <>
       <button
@@ -104,18 +104,36 @@ const Header = ({ activePage = 'health-homes' }: HeaderProps) => {
 
       {/* Dropdown */}
       <div
-        className="absolute top-16 right-10 z-50 bg-white shadow-md p-4 rounded-lg"
+        className="absolute top-16 right-0 z-50 bg-white shadow-md p-4 rounded-lg min-w-[200px]"
         onClick={(e) => e.stopPropagation()} 
       >
-        <span className="text-sm font-medium">
-          {user?.firstName} {user?.lastName}
-        </span>
+        <div className="mb-3 pb-3 border-b">
+          <span className="text-sm font-medium block capitalize">
+            {user?.firstName} {user?.lastName}
+          </span>
+          <span className="text-xs text-muted-foreground">{user?.email}</span>
+        </div>
 
-        <div className="mt-2">
+        <div className="space-y-1">
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => dispatch(logout())}
+            className="w-full justify-start"
+            onClick={() => {
+              navigate('/profile');
+              setOpen(false);
+            }}
+          >
+            Profile
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start"
+            onClick={() => {
+              dispatch(logout());
+              setOpen(false);
+            }}
           >
             Logout
           </Button>
@@ -187,6 +205,13 @@ const Header = ({ activePage = 'health-homes' }: HeaderProps) => {
                         </div>
                         <span className="text-lg font-medium">{user?.firstName} {user?.lastName}</span>
                       </div>
+                      <Link
+                        to="/profile"
+                        onClick={() => setIsOpen(false)}
+                        className="text-lg py-2 px-4 rounded-lg text-foreground hover:bg-muted transition-colors"
+                      >
+                        Profile
+                      </Link>
                       <Button 
                         className="flex items-center gap-2 text-lg py-2 px-4 rounded-lg text-foreground hover:bg-primary/20 transition-colors" 
                         size="lg"

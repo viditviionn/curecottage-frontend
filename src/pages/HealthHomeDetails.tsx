@@ -1,345 +1,490 @@
-import React from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, MapPin, Star, Users, Calendar, Phone, Heart, Wifi, Car, Utensils, Wind, Bed, Bath, Home, ChevronLeft, ChevronRight, Shield } from 'lucide-react';
-import Header from '@/components/Header';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import React from "react";
+import { useParams } from "react-router-dom";
+import {
+  MapPin,
+  Star,
+  Users,
+  Calendar,
+  Phone,
+  Heart,
+  Shield,
+} from "lucide-react";
+import Header from "@/components/Header";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import { useGetPropertyByIdQuery } from "@/rtk/api/showproperty";
+import { toast } from "sonner";
+
+const fallbackImg =
+  "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=1200&h=600&fit=crop";
 
 const HealthHomeDetails = () => {
   const { id } = useParams();
-  
-  // Health homes data - matching Index.tsx data structure
-  const healthHomesData = {
-    "1": {
-      name: "Manipal Home Care Center",
-      location: "Old Airport Road, Bangalore",
-      city: "Bangalore",
-      rating: 4.8,
-      reviewCount: 156,
-      pricePerDay: 2500,
-      capacity: 15,
-      availableFrom: "2025-01-20",
-      image: "https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=500&h=300&fit=crop",
-      images: [
-        "https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=500&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=500&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=500&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1512678080530-7760d81faba6?w=500&h=300&fit=crop"
-      ],
-      services: ["Post-Operative Care", "24/7 Nursing", "Physiotherapy", "Medication Management", "Wound Dressing"],
-      facilities: ["ICU Setup", "Medical Equipment", "Trained Nurses", "Doctor Visits", "Emergency Support"],
-      description: "Premier health home affiliated with Manipal Hospital, offering comprehensive post-operative care with skilled nursing staff and modern medical facilities.",
-      phone: "+91-80-2502-4444",
-      specialties: ["Cardiac Recovery", "Orthopedic Care", "Neurological Rehabilitation"],
-      distanceFromHospital: "1.2 km",
-      nearestHospital: "Manipal Hospital Old Airport Road"
-    },
-    "2": {
-      name: "Apollo Home Recovery Center",
-      location: "Bannerghatta Road, Bangalore",
-      city: "Bangalore",
-      rating: 4.7,
-      reviewCount: 203,
-      pricePerDay: 2200,
-      capacity: 20,
-      availableFrom: "2025-01-18",
-      image: "https://images.unsplash.com/photo-1551884170-09fb70a3a2ed?w=500&h=300&fit=crop",
-      images: [
-        "https://images.unsplash.com/photo-1551884170-09fb70a3a2ed?w=500&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=500&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=500&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1512678080530-7760d81faba6?w=500&h=300&fit=crop"
-      ],
-      services: ["Surgical Recovery", "Chronic Care", "Rehabilitation", "Nutrition Support", "Family Counseling"],
-      facilities: ["Oxygen Support", "Mobility Aids", "Therapeutic Equipment", "Dining Services", "Wi-Fi"],
-      description: "Associated with Apollo Hospital, providing specialized care for patients requiring extended recovery periods with family-like environment.",
-      phone: "+91-80-2631-2345",
-      specialties: ["Cancer Recovery", "Geriatric Care", "Post-Surgical Rehabilitation"],
-      distanceFromHospital: "0.8 km",
-      nearestHospital: "Apollo Hospital Bannerghatta"
-    },
-    "3": {
-      name: "Fortis Wellness Home",
-      location: "Whitefield, Bangalore",
-      city: "Bangalore",
-      rating: 4.6,
-      reviewCount: 128,
-      pricePerDay: 2800,
-      capacity: 12,
-      availableFrom: "2025-01-22",
-      image: "https://images.unsplash.com/photo-1512678080530-7760d81faba6?w=500&h=300&fit=crop",
-      images: [
-        "https://images.unsplash.com/photo-1512678080530-7760d81faba6?w=500&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=500&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=500&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&h-300&fit=crop",
-        "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=500&h=300&fit=crop"
-      ],
-      services: ["Critical Care", "Ventilator Support", "Dialysis", "Pain Management", "Mental Health Support"],
-      facilities: ["Advanced Monitoring", "Backup Power", "Sanitized Environment", "Visitor Areas", "Pharmacy"],
-      description: "High-end recovery facility with state-of-the-art equipment and round-the-clock medical supervision for complex medical conditions.",
-      phone: "+91-80-4679-1000",
-      specialties: ["Intensive Care", "Respiratory Care", "Renal Care"],
-      distanceFromHospital: "2.1 km",
-      nearestHospital: "Fortis Hospital Whitefield"
-    },
-    "7": {
-      name: "Apollo Wellness Home Chennai",
-      location: "Greams Road, Chennai",
-      city: "Chennai",
-      rating: 4.6,
-      reviewCount: 134,
-      pricePerDay: 2300,
-      capacity: 18,
-      availableFrom: "2025-01-19",
-      image: "https://images.unsplash.com/photo-1512678080530-7760d81faba6?w=500&h=300&fit=crop",
-      images: [
-        "https://images.unsplash.com/photo-1512678080530-7760d81faba6?w=500&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=500&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=500&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=500&h=300&fit=crop"
-      ],
-      services: ["Post-Operative Care", "Cardiac Recovery", "Physiotherapy", "Nursing Care", "Family Support"],
-      facilities: ["ICU Setup", "Medical Equipment", "Doctor Visits", "Emergency Support", "Dining Services"],
-      description: "Leading healthcare facility in Chennai with specialized cardiac recovery programs and 24/7 medical supervision.",
-      phone: "+91-44-2829-3333",
-      specialties: ["Cardiac Recovery", "Post-Surgical Care", "Rehabilitation"],
-      distanceFromHospital: "0.5 km",
-      nearestHospital: "Apollo Hospital Greams Road"
-    },
-    "8": {
-      name: "Fortis Recovery Center Chennai",
-      location: "Vadapalani, Chennai",
-      city: "Chennai",
-      rating: 4.5,
-      reviewCount: 98,
-      pricePerDay: 2100,
-      capacity: 16,
-      availableFrom: "2025-01-21",
-      image: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=500&h=300&fit=crop",
-      images: [
-        "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=500&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=500&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=500&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&h=300&fit=crop"
-      ],
-      services: ["Neurological Care", "Stroke Recovery", "Physical Therapy", "Speech Therapy", "Occupational Therapy"],
-      facilities: ["Therapy Rooms", "Exercise Equipment", "Medical Supervision", "Nutritious Meals", "Wi-Fi"],
-      description: "Specialized neurological recovery center with comprehensive rehabilitation programs and expert medical care.",
-      phone: "+91-44-4289-4289",
-      specialties: ["Neurological Recovery", "Stroke Rehabilitation", "Physical Therapy"],
-      distanceFromHospital: "1.3 km",
-      nearestHospital: "Fortis Malar Hospital"
-    },
-  };
+  const [showGallery, setShowGallery] = React.useState(false);
+const [activeIndex, setActiveIndex] = React.useState(0);
+// ✅ dates (for now default)
+const [checkIn, setCheckIn] = React.useState("2026-03-13");
+const [checkOut, setCheckOut] = React.useState("2026-03-15");
 
-  const healthHome = healthHomesData[id as keyof typeof healthHomesData] || healthHomesData["1"];
-  
-  const fullDescription = `${healthHome.name} is a state-of-the-art health home facility located in ${healthHome.location}. Our facility offers comprehensive care for individuals requiring assisted living, post-operative care, or long-term health management. With a team of experienced healthcare professionals and modern amenities, we ensure every resident receives personalized attention and the highest quality of care.`;
+// ✅ guests dropdown UI
+const [guests, setGuests] = React.useState(1);
 
-  const amenities = [
-    { name: "WiFi", icon: Wifi },
-    { name: "Parking", icon: Car },
-    { name: "Meals Included", icon: Utensils },
-    { name: "AC Rooms", icon: Wind },
-    { name: "Private Rooms", icon: Bed },
-    { name: "Attached Bath", icon: Bath },
-    { name: "Common Areas", icon: Home }
-  ];
 
-  const features = [
-    "24x7 Medical Staff",
-    "Emergency Response System", 
-    "Hygienic Environment",
-    "Family Visiting Hours",
-    "Regular Health Checkups",
-    "Recreational Activities"
-  ];
+// small formatter
+const formatShort = (iso: string) => {
+  const d = new Date(iso);
+  return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+};
 
-  const contact = {
-    phone: healthHome.phone,
-    email: `info@${healthHome.name.toLowerCase().replace(/\s+/g, '')}.com`,
-    address: `${healthHome.location} - 560034`
-  };
+
+const openGallery = (idx: number) => {
+  setActiveIndex(idx);
+  setShowGallery(true);
+};
+
+  const { data: property, isLoading, isError } = useGetPropertyByIdQuery(id ?? "", {
+    skip: !id,
+  });
+
+  if (isLoading) return <div className="p-6 text-muted-foreground">Loading...</div>;
+  if (isError || !property) return <div className="p-6 text-red-500">Failed to load property</div>;
+
+  const imageUrls =
+    property.images?.length
+      ? [
+          ...property.images.filter((x) => x.isPrimary).map((x) => x.imageUrl),
+          ...property.images.filter((x) => !x.isPrimary).map((x) => x.imageUrl),
+        ]
+      : [fallbackImg];
+
+  const location = [property.addressLine1, property.city].filter(Boolean).join(", ");
+  const reviewCount = property._count?.reviews ?? 0;
+
+  const pricePerNight =
+    property.pricing?.find((p) => p.isActive)?.basePricePerNight ??
+    property.pricing?.[0]?.basePricePerNight ??
+    null;
+
+  const amenities = property.amenities?.map((a) => a.amenity?.name).filter(Boolean) ?? [];
+  const medicalAmenities =
+    property.medicalAmenities?.map((m) => m.medicalAmenity?.title).filter(Boolean) ?? [];
+
+  const phone = property.host?.phoneNumber ?? "N/A";
+
+
+  // ✅ pricing helpers
+const nightly = pricePerNight ?? 0;
+const nights = Math.max(1, property.minStayNights || 1); // for UI demo (2 nights style)
+const total = nightly * nights;
+
+// optional: show a fake "old" price like Airbnb (example 40% higher)
+const oldTotal = total ? Math.round(total * 1.4) : 0;
 
   return (
     <div className="min-h-screen bg-background">
       <Header activePage="health-homes" />
 
-      {/* Hero Section with Image Carousel */}
-      <section className="relative h-48 sm:h-64 md:h-96 overflow-hidden">
-        <Carousel className="w-full h-full">
-          <CarouselContent>
-            {healthHome.images.map((image, index) => (
-              <CarouselItem key={index}>
-                <img 
-                  src={image} 
-                  alt={`${healthHome.name} - Image ${index + 1}`}
-                  className="w-full h-48 sm:h-64 md:h-96 object-cover"
-                />
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 bg-black/50 border-white/20 text-white hover:bg-black/70 h-8 w-8 sm:h-10 sm:w-10" />
-          <CarouselNext className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 bg-black/50 border-white/20 text-white hover:bg-black/70 h-8 w-8 sm:h-10 sm:w-10" />
-        </Carousel>
-        
-        <div className="absolute inset-0 bg-black/30 pointer-events-none" />
-        <div className="absolute bottom-2 sm:bottom-4 left-2 sm:left-4 text-white">
-          <h1 className="text-lg sm:text-2xl md:text-4xl font-bold mb-1 sm:mb-2">{healthHome.name}</h1>
-          <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-base">
-            <MapPin className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span>{healthHome.location}</span>
-          </div>
-        </div>
-        <div className="absolute top-2 sm:top-4 right-2 sm:right-4 bg-white/90 backdrop-blur-sm rounded-lg px-2 sm:px-3 py-1 sm:py-2">
-          <div className="flex items-center gap-0.5 sm:gap-1">
-            <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
-            <span className="text-sm sm:text-base font-semibold">{healthHome.rating}</span>
-            <span className="text-[10px] sm:text-sm text-muted-foreground">({healthHome.reviewCount})</span>
-          </div>
-        </div>
-      </section>
+      {/* Hero Carousel */}
+          {/* ✅ Hero Image Grid (Airbnb style) */}
+          <section className="relative">
+            <div className="container mx-auto px-3 sm:px-4 pt-6">
+              {/* Title row */}
+              <div className="flex items-start justify-between gap-4 mb-4">
+                <div>
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
+                    {property.name}
+                  </h1>
+                  <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+                    <MapPin className="h-4 w-4" />
+                    <span>{location}</span>
+                    <span className="mx-1">•</span>
+                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    <span className="font-medium">New</span>
+                    <span>({reviewCount})</span>
+                  </div>
+                </div>
+
+                <div className="hidden sm:flex items-center gap-3">
+                  <button className="text-sm underline">Share</button>
+                  <button className="text-sm underline">Save</button>
+                </div>
+              </div>
+
+              {/* Grid */}
+              <div className="relative overflow-hidden rounded-2xl">
+                {/* Desktop grid */}
+                <div className="hidden md:grid grid-cols-4 grid-rows-2 gap-2 h-[420px] bg-muted">
+                  {/* Big image */}
+                  <button
+                    type="button"
+                    onClick={() => openGallery(0)}
+                    className="col-span-2 row-span-2 overflow-hidden"
+                  >
+                    <img
+                      src={imageUrls[0] ?? fallbackImg}
+                      alt="Main"
+                      className="h-full w-full object-cover hover:opacity-95 transition"
+                    />
+                  </button>
+
+                  {/* 4 small images */}
+                  {Array.from({ length: 4 }).map((_, i) => {
+                    const idx = i + 1;
+                    const src = imageUrls[idx] ?? imageUrls[0] ?? fallbackImg;
+
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => openGallery(idx)}
+                        className="col-span-1 row-span-1 overflow-hidden"
+                      >
+                        <img
+                          src={src}
+                          alt={`Thumb ${idx + 1}`}
+                          className="h-full w-full object-cover hover:opacity-95 transition"
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Mobile: show only big image */}
+                <div className="md:hidden h-[240px] bg-muted">
+                  <button
+                    type="button"
+                    onClick={() => openGallery(0)}
+                    className="h-full w-full overflow-hidden"
+                  >
+                    <img
+                      src={imageUrls[0] ?? fallbackImg}
+                      alt="Main"
+                      className="h-full w-full object-cover"
+                    />
+                  </button>
+                </div>
+
+                {/* Show all photos button */}
+                <button
+                  type="button"
+                  onClick={() => openGallery(0)}
+                  className="absolute bottom-3 right-3 bg-white text-black rounded-xl px-4 py-2 shadow-md border flex items-center gap-2 text-sm font-medium"
+                >
+                  <span className="inline-block">☰</span>
+                  Show all photos
+                </button>
+              </div>
+            </div>
+          </section>
+
+          {/* ✅ Simple Lightbox Modal */}
+          {showGallery && (
+            <div className="fixed inset-0 z-[80] bg-black/80 flex items-center justify-center px-3">
+              <div className="relative w-full max-w-5xl">
+                {/* Close */}
+                <button
+                  type="button"
+                  onClick={() => setShowGallery(false)}
+                  className="absolute -top-10 right-0 text-white bg-black/60 rounded-full w-9 h-9 flex items-center justify-center"
+                  aria-label="Close"
+                >
+                  ✕
+                </button>
+
+                {/* Image */}
+                <div className="bg-black rounded-xl overflow-hidden">
+                  <img
+                    src={imageUrls[activeIndex] ?? fallbackImg}
+                    alt="Preview"
+                    className="w-full max-h-[75vh] object-contain"
+                  />
+                </div>
+
+                {/* Thumbnails */}
+                <div className="mt-3 flex gap-2 overflow-x-auto pb-2">
+                  {imageUrls.map((src, idx) => (
+                    <button
+                      key={src + idx}
+                      type="button"
+                      onClick={() => setActiveIndex(idx)}
+                      className={[
+                        "h-16 w-24 rounded-lg overflow-hidden border",
+                        idx === activeIndex ? "border-white" : "border-white/30 opacity-80",
+                      ].join(" ")}
+                    >
+                      <img src={src} alt={`thumb-${idx}`} className="h-full w-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Click outside close */}
+              <button
+                type="button"
+                onClick={() => setShowGallery(false)}
+                className="absolute inset-0 -z-10"
+                aria-label="Close overlay"
+              />
+            </div>
+          )}
+
 
       <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-4 sm:space-y-6 md:space-y-8">
-            {/* Basic Info */}
-            <Card>
-              <CardContent className="p-4 sm:p-6">
-                <div className="flex flex-wrap items-center gap-3 sm:gap-4 mb-3 sm:mb-4 text-sm">
-                  <div className="flex items-center gap-1.5 sm:gap-2">
-                    <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-                    <span>{healthHome.capacity} beds available</span>
+         {/* Main */}
+          <div className="lg:col-span-2 space-y-6">
+            <Card className="rounded-2xl">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h2 className="text-xl font-semibold text-foreground">
+                      {property.name}
+                    </h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Hosted by{" "}
+                      <span className="font-medium text-foreground">
+                        {property.host?.firstName} {property.host?.lastName}
+                      </span>
+                    </p>
                   </div>
-                  <div className="flex items-center gap-1.5 sm:gap-2">
-                    <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-                    <span>Available from {new Date(healthHome.availableFrom).toLocaleDateString()}</span>
+
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground">Contact</p>
+                    <p className="text-sm font-medium">{property.host?.phoneNumber ?? "N/A"}</p>
                   </div>
                 </div>
-                <p className="text-sm sm:text-base text-muted-foreground">{fullDescription}</p>
+
+                <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="flex items-center gap-2 rounded-xl border p-3">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Rooms</p>
+                      <p className="text-sm font-medium">{property.totalRooms} room(s)</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 rounded-xl border p-3">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Check-in / Check-out</p>
+                      <p className="text-sm font-medium">
+                        {property.checkInTime} • {property.checkOutTime}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 rounded-xl border p-3">
+                    <Shield className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Minimum stay</p>
+                      <p className="text-sm font-medium">{property.minStayNights} night(s)</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 rounded-xl border p-3">
+                    <Heart className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Cancellation policy</p>
+                      <p className="text-sm font-medium">
+                        {property.cancellationPolicyDays} day(s)
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <Badge variant="secondary" className="rounded-full px-3 py-1">
+                    {property.propertyType.toUpperCase()}
+                  </Badge>
+                  <Badge variant="outline" className="rounded-full px-3 py-1">
+                    {property.status.toUpperCase()}
+                  </Badge>
+                </div>
               </CardContent>
             </Card>
 
-            {/* Services */}
-            <Card>
+            {/* ✅ Description */}
+            <Card className="rounded-2xl">
               <CardContent className="p-6">
-                <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                <h3 className="text-lg font-semibold mb-3">About this place</h3>
+
+                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed line-clamp-4">
+                  {property.description}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="rounded-2xl">
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                   <Shield className="h-5 w-5" />
-                  Medical Services
+                  Medical Amenities
                 </h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {healthHome.services.map(service => (
-                    <Badge key={service} variant="secondary" className="justify-center">
-                      {service}
-                    </Badge>
-                  ))}
-                </div>
+
+                {medicalAmenities.length ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {medicalAmenities.map((x) => (
+                      <div
+                        key={x}
+                        className="flex items-center gap-2 rounded-xl border p-3 text-sm"
+                      >
+                        <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+                          ✅
+                        </div>
+                        <span className="text-foreground">{x}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No medical amenities</p>
+                )}
               </CardContent>
             </Card>
 
-            {/* Specialties */}
-            <Card>
+            <Card className="rounded-2xl">
               <CardContent className="p-6">
-                <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                   <Heart className="h-5 w-5" />
-                  Specialties
+                  What this place offers (Amenities)
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {healthHome.specialties.map(specialty => (
-                    <Badge key={specialty} variant="outline" className="justify-center">
-                      {specialty}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
 
-            {/* Amenities */}
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="text-xl font-semibold mb-4">Amenities</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {amenities.map(amenity => (
-                    <div key={amenity.name} className="flex items-center gap-2 p-3 rounded-lg bg-accent/50">
-                      <amenity.icon className="h-4 w-4 text-primary" />
-                      <span className="text-sm">{amenity.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                {amenities.length ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {amenities.map((x) => (
+                      <div
+                        key={x}
+                        className="flex items-center gap-2 text-sm text-foreground"
+                      >
+                        <span className="text-muted-foreground">•</span>
+                        <span>{x}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No amenities</p>
+                )}
 
-            {/* Features */}
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="text-xl font-semibold mb-4">Key Features</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {features.map(feature => (
-                    <div key={feature} className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-primary rounded-full" />
-                      <span>{feature}</span>
-                    </div>
-                  ))}
-                </div>
+                {amenities.length > 0 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="mt-5 rounded-xl"
+                    onClick={() =>
+                      toast.success("All amenities", {
+                        description: amenities.join(", "),
+                      })
+                    }
+                  >
+                    Show all {amenities.length} amenities
+                  </Button>
+                )}
               </CardContent>
             </Card>
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Booking Card */}
-            <Card className="sticky top-24">
+          <div className="space-y-4">
+            <Card className="sticky top-24 rounded-2xl shadow-lg">
               <CardContent className="p-6">
-                <div className="text-center mb-6">
-                  <div className="text-3xl font-bold text-primary mb-1">
-                    ₹{healthHome.pricePerDay}
-                  </div>
-                  <div className="text-sm text-muted-foreground">per day</div>
+                <div className="flex items-baseline gap-2 mb-5">
+                  {oldTotal > 0 && (
+                    <span className="text-muted-foreground line-through text-xl">
+                      ₹{oldTotal.toLocaleString("en-IN")}
+                    </span>
+                  )}
+                  <span className="text-2xl font-bold text-foreground">
+                    ₹{total ? total.toLocaleString("en-IN") : "--"}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    for {nights} {nights === 1 ? "night" : "nights"}
+                  </span>
                 </div>
-                
-                <div className="space-y-4">
-                  <Button className="w-full" size="lg">
-                    Book Now
-                  </Button>
-                  
-                  <Button variant="outline" className="w-full" size="lg">
-                    <Phone className="h-4 w-4 mr-2" />
-                    Call {contact.phone}
-                  </Button>
-                  
-                  <Button variant="ghost" className="w-full">
-                    Schedule Visit
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
 
-            {/* Contact Info */}
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
-                <div className="space-y-3 text-sm">
-                  <div>
-                    <div className="font-medium">Phone</div>
-                    <div className="text-muted-foreground">{contact.phone}</div>
+                <div className="rounded-xl border overflow-hidden mb-4">
+                  {/* Dates */}
+                  <div className="grid grid-cols-2 border-b">
+                    <div className="p-3 border-r">
+                      <div className="text-[11px] font-semibold uppercase">Check-in</div>
+                      <input
+                        type="date"
+                        value={checkIn}
+                        onChange={(e) => setCheckIn(e.target.value)}
+                        className="mt-1 w-full text-sm outline-none bg-transparent"
+                      />
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {formatShort(checkIn)}
+                      </div>
+                    </div>
+
+                    <div className="p-3">
+                      <div className="text-[11px] font-semibold uppercase">Checkout</div>
+                      <input
+                        type="date"
+                        value={checkOut}
+                        onChange={(e) => setCheckOut(e.target.value)}
+                        className="mt-1 w-full text-sm outline-none bg-transparent"
+                      />
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {formatShort(checkOut)}
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="font-medium">Email</div>
-                    <div className="text-muted-foreground">{contact.email}</div>
+
+                  {/* Guests */}
+                  <div className="p-3 flex items-center justify-between">
+                    <div>
+                      <div className="text-[11px] font-semibold uppercase">Guests</div>
+                      <div className="text-sm text-foreground">{guests} guest</div>
+                    </div>
+
+                    <select
+                      value={guests}
+                      onChange={(e) => setGuests(Number(e.target.value))}
+                      className="text-sm border rounded-md px-2 py-1 bg-background"
+                    >
+                      {[1, 2, 3, 4, 5, 6].map((g) => (
+                        <option key={g} value={g}>
+                          {g} guest{g > 1 ? "s" : ""}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                  <div>
-                    <div className="font-medium">Address</div>
-                    <div className="text-muted-foreground">{contact.address}</div>
-                  </div>
+                </div>
+
+                <div className="rounded-xl bg-muted/40 py-3 text-center text-sm text-foreground mb-5">
+                  Free cancellation before <span className="font-medium">8 March</span>
+                </div>
+
+                <Button
+                  className="w-full h-12 rounded-full text-base font-semibold"
+                  // onClick={() => {
+                  //   toast.success("Reserve clicked", { description: "Booking flow coming soon." });
+                  // }}
+                >
+                  Reserve
+                </Button>
+
+                <div className="mt-3 text-center text-sm text-muted-foreground">
+                  You won't be charged yet
                 </div>
               </CardContent>
             </Card>
+            <button
+              type="button"
+              className="mx-auto flex items-center gap-2 text-sm text-muted-foreground underline hover:text-foreground"
+              onClick={() => toast.success("Reported", { description: "Thanks for the report." })}
+            >
+              <span className="text-base">🏳️</span>
+              Report this listing
+            </button>
           </div>
         </div>
       </div>

@@ -1,18 +1,73 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Upload, ArrowLeft, Heart, Home, Stethoscope, Users } from 'lucide-react';
-import { Link, useSearchParams } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { Upload, ArrowLeft, Heart, Info, Stethoscope, Users, Check } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
+import { useUserProfileQuery } from '@/rtk/api/authApi';
+import { Amenity, useAddAmenitiesToPropertyMutation, useAddMedicalAmenitiesToPropertyMutation, useAddPropertyPricingMutation, useConvertToHostMutation, useCreatePropertyMutation, useGetAmenitiesQuery, useGetMedicalAmenitiesQuery, useGetPropertyImagesQuery, useSetPrimaryPropertyImageMutation, useUpdatePropertyStatusMutation, useUploadPropertyImagesMutation } from '@/rtk/api/convertToHost';
+import { Checkbox } from "@/components/ui/checkbox";
+
+type PricingFormState = {
+  basePricePerNight: number | "";
+  currency: string;
+  weekendMultiplier: number | "";
+  seasonMultiplier: number | "";
+  cleaningFee: number | "";
+  serviceFeePercentage: number | "";
+  taxPercentage: number | "";
+  minStayNights: number | "";
+  isActive: boolean;
+};
+type Step1Errors = Partial<Record<
+  | "businessName"
+  | "ownerName"
+  | "email"
+  | "phone"
+  | "address"
+  | "city"
+  | "state"
+  | "pincode"
+  | "description",
+  string
+>>;
+type Step2Errors = Partial<Record<
+  | "amenities"
+  | "medicalAmenities"
+  // | "experience"
+  // | "certifications"
+  // | "pricing"
+  | "Images",
+  string
+>>;
+type Step3Errors = Partial<Record<
+  | "basePricePerNight"
+  | "weekendMultiplier"
+  | "seasonMultiplier"
+  | "cleaningFee"
+  | "serviceFeePercentage"
+  | "taxPercentage"
+  | "minStayNights",
+  string
+>>;
 
 const BecomeProvider = () => {
   const [searchParams] = useSearchParams();
+
+  const [step1Errors, setStep1Errors] = useState<Step1Errors>({});
+  const [step2Errors, setStep2Errors] = useState<Step2Errors>({});
+  const [step3Errors, setStep3Errors] = useState<Step3Errors>({});
+
+
   const [formData, setFormData] = useState({
     serviceType: '',
     businessName: '',
@@ -30,9 +85,163 @@ const BecomeProvider = () => {
     certifications: '',
     availability: ''
   });
-  
+  const [pricingData, setPricingData] = useState<PricingFormState>({
+    basePricePerNight: "",
+    currency: "INR",
+    weekendMultiplier: "",
+    seasonMultiplier: "",
+    cleaningFee: "",
+    serviceFeePercentage: "",
+    taxPercentage: "",
+    minStayNights: "",
+    isActive: true,
+  });
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [propertyId, setPropertyId] = useState<string | null>(null);
   const [photos, setPhotos] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
+  const [activePreview, setActivePreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [selectedAmenityIds, setSelectedAmenityIds] = useState<string[]>([]);
+  const [selectedMedicalAmenityIds, setSelectedMedicalAmenityIds] = useState<string[]>([]);
+  const [selectedPrimaryImageId, setSelectedPrimaryImageId] = useState<string | null>(null);
+
+
+  // Api parts
+  const { data: profileRes, isLoading, error } = useUserProfileQuery();
+  const [convertToHost, { isLoading: isConverting }] = useConvertToHostMutation();
+  const [createProperty, { isLoading: isCreatingProperty }] = useCreatePropertyMutation();
+  const {
+    data: amenities = [],
+    isLoading: amenitiesLoading,
+    isError: amenitiesError,
+  } = useGetAmenitiesQuery(undefined, { skip: step !== 2 });
+  const {
+    data: medicalAmenities = [],
+    isLoading: medicalLoading,
+    isError: medicalError,
+  } = useGetMedicalAmenitiesQuery(undefined, { skip: step !== 2 });
+  const [uploadPropertyImages, { isLoading: isUploadingImages }] = useUploadPropertyImagesMutation();
+  const [addAmenitiesToProperty, { isLoading: isSavingAmenities }] = useAddAmenitiesToPropertyMutation();
+  const [addMedicalAmenitiesToProperty, { isLoading: isSavingMedicalAmenities }] =
+  useAddMedicalAmenitiesToPropertyMutation();
+  const {
+    data: propertyImages = [],
+    isLoading: imagesLoading,
+    isError: imagesError,
+    refetch: refetchImages,
+  } = useGetPropertyImagesQuery(propertyId as string, {
+    skip: step !== 3 || !propertyId,
+    refetchOnMountOrArgChange: true,
+  });
+  const [addPropertyPricing, { isLoading: isSavingPricing }] = useAddPropertyPricingMutation();
+  const [setPrimaryPropertyImage, { isLoading: isSettingPrimary }] =
+  useSetPrimaryPropertyImageMutation();
+  const [updatePropertyStatus, { isLoading: isUpdatingStatus }] =
+  useUpdatePropertyStatusMutation();
+const profileUser = profileRes; 
+const navigate = useNavigate();
+const fileRef = React.useRef<HTMLInputElement | null>(null);
+
+// validation part 
+const validateStep1 = () => {
+  const e: Step1Errors = {};
+
+  if (!formData.businessName.trim()) e.businessName = "Health Home Name is required";
+  if (!formData.ownerName.trim()) e.ownerName = "Owner/Contact Person Name is required";
+
+  if (!formData.email.trim()) {
+    e.email = "Email is required";
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+    e.email = "Enter a valid email";
+  }
+
+  if (!formData.phone.trim()) {
+    e.phone = "Phone number is required";
+  } else if (!/^\d{10}$/.test(formData.phone.trim())) {
+    e.phone = "Enter 10 digit phone number";
+  }
+
+  if (!formData.address.trim()) e.address = "Address is required";
+  if (!formData.city.trim()) e.city = "City is required";
+  if (!formData.state.trim()) e.state = "State is required";
+
+  if (!formData.pincode.trim()) {
+    e.pincode = "Pincode is required";
+  } else if (!/^\d{6}$/.test(formData.pincode.trim())) {
+    e.pincode = "Enter 6 digit pincode";
+  }
+
+  if (!formData.description.trim()) e.description = "Description is required";
+
+  setStep1Errors(e);
+  return Object.keys(e).length === 0;
+};
+
+const validateStep2 = () => {
+  const e: Step2Errors = {};
+
+  if (selectedAmenityIds.length === 0) {
+    e.amenities = "Please select at least 1 property amenity";
+  }
+  if (selectedMedicalAmenityIds.length === 0) {
+    e.medicalAmenities = "Please select at least 1 Medical amenity";
+  }
+
+  // if (!formData.experience.trim()) e.experience = "Medical Experience & Team is required";
+  // if (!formData.certifications.trim()) e.certifications = "Medical Licenses & Certifications is required";
+  // if (!formData.pricing.trim()) e.pricing = "Pricing & Packages is required";
+  if (!photos.length) e.Images = "Please upload at least 1 property Image";
+  setStep2Errors(e);
+  return Object.keys(e).length === 0;
+};
+const validateStep3 = () => {
+  const e: Step3Errors = {};
+
+  if (pricingData.basePricePerNight === "" || Number(pricingData.basePricePerNight) <= 0)
+    e.basePricePerNight = "Base price is required";
+
+  if (pricingData.weekendMultiplier === "" || Number(pricingData.weekendMultiplier) <= 0)
+    e.weekendMultiplier = "Weekend multiplier is required";
+
+  if (pricingData.seasonMultiplier === "" || Number(pricingData.seasonMultiplier) <= 0)
+    e.seasonMultiplier = "Season multiplier is required";
+
+  if (pricingData.cleaningFee === "" || Number(pricingData.cleaningFee) < 0)
+    e.cleaningFee = "Cleaning fee is required";
+
+  if (pricingData.serviceFeePercentage === "" || Number(pricingData.serviceFeePercentage) < 0)
+    e.serviceFeePercentage = "Service fee % is required";
+
+  if (pricingData.taxPercentage === "" || Number(pricingData.taxPercentage) < 0)
+    e.taxPercentage = "Tax % is required";
+
+  if (pricingData.minStayNights === "" || Number(pricingData.minStayNights) <= 0)
+    e.minStayNights = "Min stay nights is required";
+
+  setStep3Errors(e);
+  return Object.keys(e).length === 0;
+};
+
+
+// profile data fetching and autofill
+useEffect(() => {
+  if (!profileUser) return;
+
+  const fullName = `${profileUser.firstName ?? ""} ${profileUser.lastName ?? ""}`.trim();
+
+  setFormData((prev) => ({
+    ...prev,
+
+    ownerName: prev.ownerName || fullName,
+    email: prev.email || profileUser.email || "",
+    phone: prev.phone || profileUser.phoneNumber || "",
+
+    serviceType: prev.serviceType || (profileUser?.hostDetails ? "health-homes" : "home-conversion"),
+  }));
+}, [profileUser]);
+
+// useEffect part
 
   useEffect(() => {
     const serviceParam = searchParams.get('service');
@@ -43,95 +252,428 @@ const BecomeProvider = () => {
       }));
     }
   }, [searchParams]);
+  useEffect(() => {
+    return () => {
+      previews.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [previews]);
 
-  const serviceTypes = [
-    { value: 'health-home', label: 'Health Homes', icon: Heart },
-    { value: 'home-conversion', label: 'Home Conversion', icon: Home }
-  ];
+  useEffect(() => {
+    if (step === 3 && propertyId) refetchImages();
+  }, [step, propertyId, refetchImages]);
+  useEffect(() => {
+    if (step !== 3) return;
+    if (!propertyImages?.length) return;
+  
+    const currentPrimary = propertyImages.find((x) => x.isPrimary);
+    setSelectedPrimaryImageId(currentPrimary?.id ?? propertyImages[0].id);
+  }, [step, propertyImages]);
 
-  const facilityOptions = [
-    'ICU Equipment', 'Oxygen Concentrator', 'Hospital Bed', 'Wheelchair', 
-    'Physiotherapy Equipment', 'Diagnostic Equipment', 'Emergency Response',
-    '24/7 Nursing Care', 'Doctor Visits', 'Medication Management',
-    'Nutritionist', 'Yoga/Meditation', 'Swimming Pool', 'Garden Area'
-  ];
 
+  // logic parts 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  
+    // ✅ clear error for that field
+    setStep1Errors(prev => {
+      if (!(field in prev)) return prev;
+      const copy = { ...prev };
+      delete (copy as Record<string, string>)[field];
+      return copy;
+    });
+    setStep2Errors((prev) => {
+      if (!(field in prev)) return prev;
+      const copy = { ...prev };
+      delete (copy as Record<string, string>)[field];
+      return copy;
+    });
   };
 
-  const handleFacilityChange = (facility: string, checked: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      facilities: checked 
-        ? [...prev.facilities, facility]
-        : prev.facilities.filter(f => f !== facility)
-    }));
+  const toggleAmenity = (id: string, checked: boolean) => {
+    setSelectedAmenityIds((prev) =>
+      checked ? [...prev, id] : prev.filter((x) => x !== id)
+    );
+  
+    // ✅ clear amenities error
+    setStep2Errors((prev) => {
+      if (!prev.amenities) return prev;
+      const copy = { ...prev };
+      delete copy.amenities;
+      return copy;
+    });
   };
-
-  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    setPhotos(prev => [...prev, ...files]);
+  const toggleMedicalAmenity = (id: string, checked: boolean) => {
+    setSelectedMedicalAmenityIds((prev) =>
+      checked ? [...prev, id] : prev.filter((x) => x !== id)
+    );
+    setStep2Errors((prev) => {
+      if (!prev.medicalAmenities) return prev;
+      const copy = { ...prev };
+      delete copy.medicalAmenities;
+      return copy;
+    });
   };
-
-  const uploadPhotos = async () => {
-    const uploadedUrls = [];
-    
-    for (const photo of photos) {
-      const fileName = `${Date.now()}-${photo.name}`;
-      const { data, error } = await supabase.storage
-        .from('provider-photos')
-        .upload(fileName, photo);
-        
-      if (error) {
-        console.error('Upload error:', error);
-        throw error;
-      }
-      
-      const { data: { publicUrl } } = supabase.storage
-        .from('provider-photos')
-        .getPublicUrl(fileName);
-        
-      uploadedUrls.push(publicUrl);
-    }
-    
-    return uploadedUrls;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const amenitiesByCategory = useMemo(() => {
+    const allowed = new Set(["basic"]);
+    const map = new Map<string, Amenity[]>();
+  
+    amenities.forEach((a) => {
+      const key = (a.category || "other").toLowerCase();
+      if (!allowed.has(key)) return;
+  
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(a);
+    });
+  
+    const order = ["basic"];
+    return order
+      .filter((k) => map.has(k))
+      .map((k) => [k, map.get(k)!] as [string, Amenity[]]);
+  }, [amenities]);
+  
+  const handleStep1Submit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const ok = validateStep1();
+    if (!ok) {
+      toast({
+        title: "Please fill all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+  
+    if (!profileUser?.id) {
+      toast({ title: "User not found", variant: "destructive" });
+      return;
+    }
+  
     setUploading(true);
-
+  
     try {
-      // Upload photos
-      const photoUrls = await uploadPhotos();
-      
-      // Here you would save the form data to your database
-      console.log('Form Data:', { ...formData, photos: photoUrls });
-      
+      // 1) Convert to host (ignore "already host" type errors if needed)
+      try {
+        await convertToHost({ userId: profileUser.id }).unwrap();
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          toast({
+            title: "Failed",
+            description: err.message || "Something went wrong",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Failed",
+            description: "Something went wrong",
+            variant: "destructive",
+          });
+        }
+      }
+  
+      // 2) Create property
+      const propertyPayload = {
+        name: formData.businessName,
+        description: formData.description,
+        propertyType: "cottage",     
+        totalRooms: 1,                
+  
+        addressLine1: formData.address,
+        city: formData.city,
+        state: formData.state,
+        country: "India",
+        postalCode: formData.pincode,
+        latitude: 19.076,
+        longitude: 72.8777,
+        checkInTime: "14:00:00",
+        checkOutTime: "12:00:00",
+        minStayNights: 1,
+        cancellationPolicyDays: 7,
+      };
+  
+      const created = await createProperty(propertyPayload).unwrap();
+  
       toast({
-        title: "Application Submitted Successfully!",
-        description: "We'll review your application and get back to you within 24 hours.",
+        title: "Success",
+        description: "Host enabled + Property created successfully.",
       });
-
-      // Reset form
-      setFormData({
-        serviceType: '', businessName: '', ownerName: '', email: '', phone: '',
-        address: '', city: '', state: '', pincode: '', description: '',
-        facilities: [], pricing: '', experience: '', certifications: '', availability: ''
-      });
-      setPhotos([]);
-      
-    } catch (error) {
-      toast({
-        title: "Submission Failed",
-        description: "There was an error submitting your application. Please try again.",
-        variant: "destructive"
-      });
+      setPropertyId(created?.data?.property?.id);
+      setStep(2); 
+  
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast({
+          title: "Failed",
+          description: err.message || "Something went wrong",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Failed",
+          description: "Something went wrong",
+          variant: "destructive",
+        });
+      }
     } finally {
       setUploading(false);
     }
   };
+  const handleStep2Submit = async () => {
+    if (!propertyId) {
+      toast({ title: "Property not found", variant: "destructive" });
+      return;
+    }
+    const ok = validateStep2();
+  if (!ok) {
+    toast({ title: "Please fill all required fields", variant: "destructive" });
+    return;
+  }
+  
+    if (selectedAmenityIds.length === 0) {
+      toast({
+        title: "Select at least 1 property amenity",
+        variant: "destructive",
+      });
+      return;
+    }
+  
+    try {
+      // 1) Save property amenities
+      const res1 = await addAmenitiesToProperty({
+        propertyId,
+        amenityIds: selectedAmenityIds,
+      }).unwrap();
+  
+      // 2) Save medical amenities (optional — if none selected, skip)
+      if (selectedMedicalAmenityIds.length > 0) {
+        const res2 = await addMedicalAmenitiesToProperty({
+          propertyId,
+          medicalAmenityIds: selectedMedicalAmenityIds,
+        }).unwrap();
+  
+        toast({
+          title: "Saved successfully",
+          description:
+            (res2?.message || "Medical amenities saved") +
+            " • " +
+            (res1?.message || "Property amenities saved"),
+        });
+      } else {
+        toast({
+          title: "Property amenities saved",
+          description: res1?.message || "Saved successfully",
+        });
+      }
+      setStep(3);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+  
+      // ✅ yaha aage next page / navigation bhi kar sakte ho if needed
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast({
+          title: "Failed to save amenities",
+          description: err.message || "Something went wrong",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Failed to save amenities",
+          description: "Something went wrong while saving amenities",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+  
+  const ALLOWED_IMAGE_TYPES = new Set([
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/webp",
+    "image/gif",
+  ]);
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    setStep2Errors((prev) => {
+      if (!prev.Images) return prev;
+      const copy = { ...prev };
+      delete copy.Images;
+      return copy;
+    });
+    const selected = Array.from(event.target.files || []);
+    if (!selected.length) return;
+  
+    // ✅ validate types
+    const validFiles = selected.filter((f) => ALLOWED_IMAGE_TYPES.has(f.type));
+    const invalidFiles = selected.filter((f) => !ALLOWED_IMAGE_TYPES.has(f.type));
+  
+    // show error for invalid
+    if (invalidFiles.length > 0) {
+      toast({
+        title: "Invalid file type",
+        description:
+          `Only JPG, JPEG, PNG, WEBP, GIF allowed.\nInvalid: ${invalidFiles
+            .map((f) => f.name)
+            .join(", ")}`,
+        variant: "destructive",
+      });
+    }
+  
+    // if nothing valid -> stop
+    if (validFiles.length === 0) {
+      event.target.value = "";
+      return;
+    }
+  
+    if (!propertyId) {
+      toast({ title: "Property not created yet", variant: "destructive" });
+      event.target.value = "";
+      return;
+    }
+  
+    // previews for valid files only
+    const newPreviews = validFiles.map((file) => URL.createObjectURL(file));
+  
+    setPhotos((prev) => [...prev, ...validFiles]);
+    setPreviews((prev) => [...prev, ...newPreviews]);
+  
+    try {
+      const res = await uploadPropertyImages({ propertyId, files: validFiles }).unwrap();
+  
+      toast({
+        title: "Images uploaded",
+        description: res?.message || `${validFiles.length} image(s) uploaded`,
+      });
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast({
+          title: "Upload failed",
+          description: err.message || "Something went wrong while uploading images",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Upload failed",
+          description: "Something went wrong while uploading images",
+          variant: "destructive",
+        });
+      }
+  
+      // (Optional) if upload fails, remove the previews we just added
+      setPreviews((prev) => prev.slice(0, prev.length - newPreviews.length));
+      setPhotos((prev) => prev.slice(0, prev.length - validFiles.length));
+      newPreviews.forEach((u) => URL.revokeObjectURL(u));
+    } finally {
+      event.target.value = ""; // allow reselect same file
+    }
+  };
+  
+  const removePhotoAt = (index: number) => {
+    setPreviews((prev) => {
+      const url = prev[index];
+      if (url) URL.revokeObjectURL(url); // cleanup
+      return prev.filter((_, i) => i !== index);
+    });
+  
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
+  
+    // if modal open for removed image -> close
+    setActivePreview((curr) => {
+      const removedUrl = previews[index];
+      return curr === removedUrl ? null : curr;
+    });
+  };
+  const handlePricingChange = (field: string, value: string | number | boolean) => {
+    setPricingData((prev) => ({ ...prev, [field]: value }));
+    setStep3Errors((prev) => {
+      if (!(field in prev)) return prev;
+      const copy = { ...prev };
+      delete (copy as Record<string, string>)[field];
+      return copy;
+    });
+  };
+
+  const canSavePricing = useMemo(() => {
+    return (
+      pricingData.basePricePerNight !== "" &&
+      pricingData.weekendMultiplier !== "" &&
+      pricingData.seasonMultiplier !== "" &&
+      pricingData.cleaningFee !== "" &&
+      pricingData.serviceFeePercentage !== "" &&
+      pricingData.taxPercentage !== "" &&
+      pricingData.minStayNights !== ""
+    );
+  }, [pricingData]);
+
+  const handleSavePricing = async () => {
+    if (!propertyId) {
+      toast({ title: "Property not found", variant: "destructive" });
+      return;
+    }
+    const ok = validateStep3();
+    if (!ok) {
+      toast({ title: "Please fix pricing errors", variant: "destructive" });
+      return;
+    }
+  
+    if (propertyImages.length > 0 && !selectedPrimaryImageId) {
+      toast({ title: "Please select a primary image", variant: "destructive" });
+      return;
+    }
+  
+    try {
+      // 1) set primary image
+      if (selectedPrimaryImageId) {
+        await setPrimaryPropertyImage({ propertyId, imageId: selectedPrimaryImageId }).unwrap();
+        await refetchImages();
+      }
+  
+      // 2) save pricing
+      await addPropertyPricing({
+        propertyId,
+        body: {
+          basePricePerNight: Number(pricingData.basePricePerNight),
+          currency: pricingData.currency,
+          weekendMultiplier: Number(pricingData.weekendMultiplier),
+          seasonMultiplier: Number(pricingData.seasonMultiplier),
+          cleaningFee: Number(pricingData.cleaningFee),
+          serviceFeePercentage: Number(pricingData.serviceFeePercentage),
+          taxPercentage: Number(pricingData.taxPercentage),
+          minStayNights: Number(pricingData.minStayNights),
+          isActive: pricingData.isActive,
+        },
+      }).unwrap();
+  
+      // 3) ✅ update property status (active/inactive) — ONLY HERE
+      await updatePropertyStatus({
+        propertyId,
+        status: "active",
+      }).unwrap();
+  
+      toast({
+        title: "Saved successfully",
+        description: "Pricing saved + Status set to active",
+      });
+  
+      navigate("/");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+      toast({
+        title: "Failed",
+        description: err.message || "Something went wrong",
+        variant: "destructive",
+      });
+      } else {
+        toast({
+          title: "Failed",
+          description: "Something went wrong",
+        variant: "destructive",
+      });
+    } 
+    }
+  };
+  
+  
+  
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -177,56 +719,49 @@ const BecomeProvider = () => {
 
           <Card>
             <CardHeader className="pb-4 sm:pb-6">
-              <CardTitle className="text-lg sm:text-xl">Provider Registration Form</CardTitle>
+            <CardTitle className="text-lg sm:text-xl">
+              {step === 1 ? "Provider Registration Form" : step === 2 ? "Property Amenities *" : "Pricing & Fees"}
+            </CardTitle>
             </CardHeader>
+
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+            {step === 1 && (
+               <form onSubmit={handleStep1Submit} noValidate  className="space-y-4 sm:space-y-6">
                 {/* Service Type */}
                 <div className="space-y-3 sm:space-y-4">
                   <Label className="text-sm sm:text-base">Service Type *</Label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className=" sm:grid-cols-2 gap-3 sm:gap-4">
                     <Button
                       type="button"
                       variant={formData.serviceType === 'health-homes' ? 'default' : 'outline'}
                       onClick={() => handleInputChange('serviceType', 'health-homes')}
-                      className="h-16 sm:h-20 flex flex-col justify-center"
+                      className="h-16 w-full sm:h-24 flex flex-col justify-center"
                     >
                       <Heart className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
                       <span className="font-semibold text-sm sm:text-base">Health Home Host</span>
-                      <span className="text-[10px] sm:text-xs text-muted-foreground">Offer recovery accommodation</span>
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={formData.serviceType === 'home-conversion' ? 'default' : 'outline'}
-                      onClick={() => handleInputChange('serviceType', 'home-conversion')}
-                      className="h-16 sm:h-20 flex flex-col justify-center"
-                    >
-                      <Home className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
-                      <span className="font-semibold text-sm sm:text-base">Equipment Provider</span>
-                      <span className="text-[10px] sm:text-xs text-muted-foreground">Medical equipment & setup</span>
+                      <span className="text-[10px] text-white sm:text-xs text-muted-foreground">Offer recovery accommodation</span>
                     </Button>
                   </div>
                 </div>
 
-                {/* Basic Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                   <div className="space-y-1.5 sm:space-y-2">
                     <Label htmlFor="businessName" className="text-sm">
                       {formData.serviceType === 'health-homes' ? 'Health Home Name' : 
-                       formData.serviceType === 'home-conversion' ? 'Business Name' : 'Business/Property Name'} *
+                       //   formData.serviceType === 'home-conversion' ? 'Business Name' : 
+                       'Business or Property Name'} *
                     </Label>
                     <Input
                       id="businessName"
                       value={formData.businessName}
                       onChange={(e) => handleInputChange('businessName', e.target.value)}
-                      placeholder={
-                        formData.serviceType === 'health-homes' ? 'Enter your health home name' : 
-                        formData.serviceType === 'home-conversion' ? 'Enter your business name' : 
-                        'Enter your business or property name'
-                      }
+                      placeholder='Enter your business or property name'
                       required
                       className="text-sm"
                     />
+                    {step1Errors.businessName && (
+                        <p className="text-xs text-red-500 mt-1">{step1Errors.businessName}</p>
+                    )}
                   </div>
                   <div className="space-y-1.5 sm:space-y-2">
                     <Label htmlFor="ownerName" className="text-sm">Owner/Contact Person Name *</Label>
@@ -238,6 +773,9 @@ const BecomeProvider = () => {
                       required
                       className="text-sm"
                     />
+                    {step1Errors.ownerName && (
+                      <p className="text-xs text-red-500 mt-1">{step1Errors.ownerName}</p>
+                    )}
                   </div>
                 </div>
 
@@ -254,6 +792,9 @@ const BecomeProvider = () => {
                       required
                       className="text-sm"
                     />
+                    {step1Errors.email && (
+                      <p className="text-xs text-red-500 mt-1">{step1Errors.email}</p>
+                    )}
                   </div>
                   <div className="space-y-1.5 sm:space-y-2">
                     <Label htmlFor="phone" className="text-sm">Phone Number *</Label>
@@ -266,11 +807,14 @@ const BecomeProvider = () => {
                       required
                       className="text-sm"
                     />
+                    {step1Errors.phone && (
+                      <p className="text-xs text-red-500 mt-1">{step1Errors.phone}</p>
+                    )}
                   </div>
                 </div>
 
                 {/* Address Information */}
-                <div className="space-y-3 sm:space-y-4">
+               <div className="space-y-3 sm:space-y-4">
                   <div className="space-y-1.5 sm:space-y-2">
                     <Label htmlFor="address" className="text-sm">Complete Address *</Label>
                     <Textarea
@@ -281,7 +825,11 @@ const BecomeProvider = () => {
                       required
                       className="text-sm"
                     />
+                    {step1Errors.address && (
+                      <p className="text-xs text-red-500 mt-1">{step1Errors.address}</p>
+                    )}
                   </div>
+
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                     <div className="space-y-1.5 sm:space-y-2">
                       <Label htmlFor="city" className="text-sm">City *</Label>
@@ -293,7 +841,11 @@ const BecomeProvider = () => {
                         required
                         className="text-sm"
                       />
+                      {step1Errors.city && (
+                        <p className="text-xs text-red-500 mt-1">{step1Errors.city}</p>
+                      )}
                     </div>
+
                     <div className="space-y-1.5 sm:space-y-2">
                       <Label htmlFor="state" className="text-sm">State *</Label>
                       <Input
@@ -304,7 +856,11 @@ const BecomeProvider = () => {
                         required
                         className="text-sm"
                       />
+                      {step1Errors.state && (
+                        <p className="text-xs text-red-500 mt-1">{step1Errors.state}</p>
+                      )}
                     </div>
+
                     <div className="space-y-1.5 sm:space-y-2">
                       <Label htmlFor="pincode" className="text-sm">Pincode *</Label>
                       <Input
@@ -315,57 +871,118 @@ const BecomeProvider = () => {
                         required
                         className="text-sm"
                       />
+                      {step1Errors.pincode && (
+                        <p className="text-xs text-red-500 mt-1">{step1Errors.pincode}</p>
+                      )}
                     </div>
                   </div>
+
+                  {/* Full width */}
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="description" className="text-sm">Health Home Description *</Label>
+                    <Textarea
+                      id="description"
+                      value={formData.description}
+                      onChange={(e) => handleInputChange('description', e.target.value)}
+                      placeholder="Describe your health home facilities, patient capacity, specializations, and care philosophy..."
+                      rows={4}
+                      required
+                      className="w-full text-sm"
+                    />
+                    {step1Errors.description && (
+                      <p className="text-xs text-red-500 mt-1">{step1Errors.description}</p>
+                    )}
+                  </div>
+                  <div className="pt-6 flex justify-end">
+                  <Button
+                    type="submit"
+                    size="lg"
+                    disabled={
+                      uploading ||
+                      isConverting ||
+                      isCreatingProperty ||
+                      !formData.serviceType ||
+                      !formData.businessName ||
+                      !formData.ownerName ||
+                      !formData.email ||
+                      !formData.phone
+                    }
+                  >
+                    {uploading || isConverting || isCreatingProperty ? "Please wait..." : "Next"}
+                  </Button>
                 </div>
+                </div>
+              </form>
+               )}
+              {step === 2 && (
+                <div className="space-y-6">
 
-                {formData.serviceType && (
-                  <>
-                    {/* Health Home Specific Section */}
-                    {formData.serviceType === 'health-homes' && (
-                      <div className="space-y-6 border-t pt-6">
-                        <h3 className="text-lg font-semibold flex items-center gap-2">
-                          <Heart className="h-5 w-5 text-primary" />
-                          Health Home Details
-                        </h3>
-                        
-                        {/* Description */}
-                        <div className="space-y-2">
-                          <Label htmlFor="description">Health Home Description *</Label>
-                          <Textarea
-                            id="description"
-                            value={formData.description}
-                            onChange={(e) => handleInputChange('description', e.target.value)}
-                            placeholder="Describe your health home facilities, patient capacity, specializations, and care philosophy..."
-                            rows={4}
-                            required
-                          />
-                        </div>
+                  {amenitiesLoading && <p>Loading amenities...</p>}
+                  {amenitiesError && <p className="text-red-500">Failed to load amenities</p>}
 
-                        {/* Medical Facilities & Services */}
-                        <div className="space-y-2 sm:space-y-3">
-                          <Label className="text-sm">Medical Facilities & Services Available</Label>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1.5 sm:gap-2">
-                            {['ICU Equipment', 'Oxygen Concentrator', 'Hospital Bed', 'Wheelchair', 
-                              'Physiotherapy Equipment', 'Diagnostic Equipment', 'Emergency Response',
-                              '24/7 Nursing Care', 'Doctor Visits', 'Medication Management',
-                              'Nutritionist', 'Yoga/Meditation', 'Swimming Pool', 'Garden Area'].map((facility) => (
-                              <div key={facility} className="flex items-center space-x-1.5 sm:space-x-2">
+                  {!amenitiesLoading && !amenitiesError && (
+                    <div className="space-y-6">
+                      {/* Category wise (optional) */}
+                      {amenitiesByCategory.map(([category, list]) => (
+                        <div key={category} className="space-y-3">
+
+                          {/* ✅ White screenshot jaisa grid */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                          {list.map((a) => (
+                              <div key={a.id} className="flex items-center gap-2">
                                 <Checkbox
-                                  id={facility}
-                                  checked={formData.facilities.includes(facility)}
-                                  onCheckedChange={(checked) => handleFacilityChange(facility, !!checked)}
+                                  id={a.id}
+                                  checked={selectedAmenityIds.includes(a.id)}
+                                  onCheckedChange={(checked) => toggleAmenity(a.id, !!checked)}
                                 />
-                                <Label htmlFor={facility} className="text-xs sm:text-sm">{facility}</Label>
+                                <Label htmlFor={a.id} className="text-sm">
+                                  {a.name}
+                                </Label>
                               </div>
                             ))}
                           </div>
+                            {step2Errors.amenities && (
+                              <p className="text-xs text-red-500 mt-2">{step2Errors.amenities}</p>
+                            )}
                         </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="pt-6">
+                    <h2 className="text-lg font-semibold">Medical Amenities *</h2>
 
-                        {/* Health Home Specific Information */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {medicalLoading && <p className="mt-3">Loading medical amenities...</p>}
+                    {medicalError && <p className="mt-3 text-red-500">Failed to load medical amenities</p>}
+
+                    {!medicalLoading && !medicalError && (
+                      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                        {medicalAmenities.map((m) => (
+                          <label
+                            key={m.id}
+                            htmlFor={`med-${m.id}`}
+                            className="flex items-center gap-2 cursor-pointer select-none"
+                            title={m.description ?? ""}
+                          >
+                            <Checkbox
+                              id={`med-${m.id}`}
+                              checked={selectedMedicalAmenityIds.includes(m.id)}
+                              onCheckedChange={(checked) => toggleMedicalAmenity(m.id, !!checked)}
+                            />
+                             <Label htmlFor={m.id} className="text-sm">
+                                  {m.title}
+                                </Label>
+                          </label>
+                        ))}
+                         {step2Errors.medicalAmenities && (
+                              <p className="text-xs text-red-500 mt-2">{step2Errors.medicalAmenities}</p>
+                            )}
+                      </div>
+                      
+                    )}
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 ">
                           <div className="space-y-2">
-                            <Label htmlFor="experience">Medical Experience & Team *</Label>
+                            <Label htmlFor="experience">Medical Experience & Team</Label>
                             <Textarea
                               id="experience"
                               value={formData.experience}
@@ -376,7 +993,7 @@ const BecomeProvider = () => {
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="certifications">Medical Licenses & Certifications *</Label>
+                            <Label htmlFor="certifications">Medical Licenses & Certifications</Label>
                             <Textarea
                               id="certifications"
                               value={formData.certifications}
@@ -387,7 +1004,6 @@ const BecomeProvider = () => {
                             />
                           </div>
                         </div>
-
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="pricing">Pricing & Packages *</Label>
@@ -411,147 +1027,352 @@ const BecomeProvider = () => {
                             />
                           </div>
                         </div>
+
+                        <div className="space-y-3 pt-6">
+                      <Label htmlFor="photos">Upload Photos (Property, Equipment, Facilities) *</Label>
+                      <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
+                        <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <p className="text-muted-foreground mb-4">
+                          Click to upload or drag and drop photos of your facility, equipment, and services
+                        </p>
+                        <Input
+                          ref={fileRef}
+                          type="file"
+                          multiple
+                          accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                          onChange={handlePhotoUpload}
+                          className="hidden"
+                        />
+                        {step2Errors.Images && (
+                          <p className="text-xs text-red-500 mt-2">{step2Errors.Images}</p>
+                        )}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => fileRef.current?.click()}
+                        >
+                          Choose Files
+                        </Button>
+                        {previews.length > 0 && (
+                            <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-left">
+                              {previews.map((url, idx) => (
+                                <div key={url} className="relative group">
+                                  {/* ❌ remove */}
+                                  <button
+                                    type="button"
+                                    onClick={() => removePhotoAt(idx)}
+                                    className="absolute right-2 top-2 z-10 rounded-full bg-black/60 text-white w-7 h-7 flex items-center justify-center
+                                              opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition"
+                                    aria-label="Remove image"
+                                  >
+                                    ✕
+                                  </button>
+
+                                  {/* click to open */}
+                                  <button
+                                    type="button"
+                                    className="w-full"
+                                    onClick={() => setActivePreview(url)}
+                                  >
+                                    <img
+                                      src={url}
+                                      alt={`preview-${idx}`}
+                                      className="h-24 w-full object-cover rounded-md border"
+                                    />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                  </div>
+                
+                  {activePreview && (
+                    <div className="fixed inset-0 z-[60] flex items-center justify-center">
+                      {/* overlay */}
+                      <button
+                        type="button"
+                        className="absolute inset-0 bg-black/70"
+                        onClick={() => setActivePreview(null)}
+                        aria-label="Close preview"
+                      />
+
+                      {/* content */}
+                      <div className="relative z-[61] max-w-5xl w-[92%]">
+                        <button
+                          type="button"
+                          onClick={() => setActivePreview(null)}
+                          className="absolute -top-10 right-0 text-white bg-black/60 rounded-full w-9 h-9 flex items-center justify-center"
+                          aria-label="Close"
+                        >
+                          ✕
+                        </button>
+
+                        <img
+                          src={activePreview}
+                          alt="Selected preview"
+                          className="max-h-[80vh] w-full object-contain rounded-lg bg-black"
+                        />
                       </div>
-                    )}
+                    </div>
+                  )}
+                  <div className="flex  justify-end pt-2">
 
-                    {/* Home Conversion Specific Section */}
-                    {formData.serviceType === 'home-conversion' && (
-                      <div className="space-y-6 border-t pt-6">
-                        <h3 className="text-lg font-semibold flex items-center gap-2">
-                          <Home className="h-5 w-5 text-primary" />
-                          Home Conversion Services
-                        </h3>
-                        
-                        {/* Description */}
-                        <div className="space-y-2">
-                          <Label htmlFor="description">Service Description *</Label>
-                          <Textarea
-                            id="description"
-                            value={formData.description}
-                            onChange={(e) => handleInputChange('description', e.target.value)}
-                            placeholder="Describe your home conversion services, equipment rental, setup process, and support provided..."
-                            rows={4}
-                            required
-                          />
-                        </div>
-
-                        {/* Equipment & Services */}
-                        <div className="space-y-3">
-                          <Label>Equipment & Conversion Services Available</Label>
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                            {['Hospital Bed Setup', 'Oxygen Concentrator', 'Patient Monitoring Equipment', 'Wheelchair & Mobility Aids', 
-                              'IV Stands & Medical Supplies', 'Room Sanitization', 'Nursing Equipment Setup',
-                              'Emergency Response System', 'Medication Storage Setup', 'Patient Lift Equipment',
-                              'Bathroom Safety Modifications', 'Air Purification Systems'].map((service) => (
-                              <div key={service} className="flex items-center space-x-2">
-                                <Checkbox
-                                  id={service}
-                                  checked={formData.facilities.includes(service)}
-                                  onCheckedChange={(checked) => handleFacilityChange(service, !!checked)}
-                                />
-                                <Label htmlFor={service} className="text-sm">{service}</Label>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Home Conversion Specific Information */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="experience">Technical Experience & Team *</Label>
-                            <Textarea
-                              id="experience"
-                              value={formData.experience}
-                              onChange={(e) => handleInputChange('experience', e.target.value)}
-                              placeholder="Years in home healthcare setup, technical team, installation experience..."
-                              rows={3}
-                              required
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="certifications">Certifications & Partnerships</Label>
-                            <Textarea
-                              id="certifications"
-                              value={formData.certifications}
-                              onChange={(e) => handleInputChange('certifications', e.target.value)}
-                              placeholder="Equipment certifications, medical equipment partnerships, service licenses..."
-                              rows={3}
-                            />
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="pricing">Pricing & Rental Rates *</Label>
-                            <Textarea
-                              id="pricing"
-                              value={formData.pricing}
-                              onChange={(e) => handleInputChange('pricing', e.target.value)}
-                              placeholder="Equipment rental rates, setup charges, maintenance costs..."
-                              rows={3}
-                              required
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="availability">Service Areas & Response Time</Label>
-                            <Textarea
-                              id="availability"
-                              value={formData.availability}
-                              onChange={(e) => handleInputChange('availability', e.target.value)}
-                              placeholder="Service coverage areas, installation timeline, emergency response..."
-                              rows={3}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </>
-                )}
-
-                {/* Photo Upload */}
-                <div className="space-y-3">
-                  <Label htmlFor="photos">Upload Photos (Property, Equipment, Facilities)</Label>
-                  <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
-                    <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground mb-4">
-                      Click to upload or drag and drop photos of your facility, equipment, and services
-                    </p>
-                    <Input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={handlePhotoUpload}
-                      className="hidden"
-                      id="photo-upload"
-                    />
-                    <Label htmlFor="photo-upload">
-                      <Button type="button" variant="outline" className="cursor-pointer">
-                        Choose Files
-                      </Button>
-                    </Label>
-                    {photos.length > 0 && (
-                      <p className="text-sm text-muted-foreground mt-2">
-                        {photos.length} file(s) selected
-                      </p>
-                    )}
+                    <Button
+                      onClick={handleStep2Submit}
+                      disabled={isSavingAmenities || isSavingMedicalAmenities}
+                    >
+                      {(isSavingAmenities || isSavingMedicalAmenities) ? "Saving..." : "Save & Continue"}
+                    </Button>
                   </div>
                 </div>
+              )}
+              {step === 3 && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* basePricePerNight */}
+                    <div className="space-y-2">
+                      <Label>Base Price / Night</Label>
+                      <Input
+                        type="number"
+                        value={pricingData.basePricePerNight}
+                        onChange={(e) => handlePricingChange("basePricePerNight", e.target.value === "" ? "" : Number(e.target.value))}
+                      />
+                      {step3Errors.basePricePerNight && (
+                        <p className="text-xs text-red-500 mt-1">{step3Errors.basePricePerNight}</p>
+                      )}
+                    </div>
 
-                {/* Submit Button */}
-                <div className="pt-6">
-                  <Button 
-                    type="submit" 
-                    size="lg" 
-                    className="w-full"
-                    disabled={uploading || !formData.serviceType || !formData.businessName || !formData.ownerName || !formData.email || !formData.phone}
-                  >
-                    {uploading ? 'Submitting Application...' : 'Submit Application'}
-                  </Button>
-                  <p className="text-sm text-muted-foreground text-center mt-2">
-                    We'll review your application and contact you within 24 hours
-                  </p>
+                    {/* currency */}
+                    <div className="space-y-2">
+                      <Label>Currency</Label>
+                      <Input
+                        value={pricingData.currency}
+                        onChange={(e) => handlePricingChange("currency", e.target.value)}
+                        placeholder="INR"
+                        disabled
+                      />
+                    </div>
+
+                    {/* weekendMultiplier */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Label>Weekend Multiplier</Label>
+
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                type="button"
+                                className="inline-flex h-5 w-5 items-center justify-center rounded-full border text-muted-foreground hover:text-foreground"
+                                aria-label="Weekend multiplier info"
+                              >
+                                <Info className="h-3.5 w-3.5" />
+                              </button>
+                            </TooltipTrigger>
+
+                            <TooltipContent side="top">
+                              <p>This is a Weekend Multiplier</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+
+                      <Input
+                        type="number"
+                        step="0.1"
+                        value={pricingData.weekendMultiplier}
+                        onChange={(e) =>
+                          handlePricingChange("weekendMultiplier", Number(e.target.value))
+                        }
+                      />
+                      {step3Errors.weekendMultiplier && (
+                        <p className="text-xs text-red-500 mt-1">{step3Errors.weekendMultiplier}</p>
+                      )}
+                    </div>
+
+
+
+                    {/* seasonMultiplier */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Label>Season Multiplier</Label>
+
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                type="button"
+                                className="inline-flex h-5 w-5 items-center justify-center rounded-full border text-muted-foreground hover:text-foreground"
+                                aria-label="Season multiplier info"
+                              >
+                                <Info className="h-3.5 w-3.5" />
+                              </button>
+                            </TooltipTrigger>
+
+                            <TooltipContent side="top">
+                              <p>This is a Season Multiplier</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+
+                      <Input
+                        type="number"
+                        step="0.1"
+                        value={pricingData.seasonMultiplier}
+                        onChange={(e) =>
+                          handlePricingChange("seasonMultiplier", Number(e.target.value))
+                        }
+                      />
+                      {step3Errors.seasonMultiplier && (
+                        <p className="text-xs text-red-500 mt-1">{step3Errors.seasonMultiplier}</p>
+                      )}
+                    </div>
+
+
+                    {/* cleaningFee */}
+                    <div className="space-y-2">
+                      <Label>Cleaning Fee</Label>
+                      <Input
+                        type="number"
+                        value={pricingData.cleaningFee}
+                        onChange={(e) => handlePricingChange("cleaningFee", Number(e.target.value))}
+                      />
+                      {step3Errors.cleaningFee && (
+                        <p className="text-xs text-red-500 mt-1">{step3Errors.cleaningFee}</p>
+                      )}
+                    </div>
+
+                    {/* serviceFeePercentage */}
+                    <div className="space-y-2">
+                      <Label>Service Fee %</Label>
+                      <Input
+                        type="number"
+                        value={pricingData.serviceFeePercentage}
+                        onChange={(e) => handlePricingChange("serviceFeePercentage", Number(e.target.value))}
+                      />
+                      {step3Errors.serviceFeePercentage && (
+                        <p className="text-xs text-red-500 mt-1">{step3Errors.serviceFeePercentage}</p>
+                      )}
+                    </div>
+
+                    {/* taxPercentage */}
+                    <div className="space-y-2">
+                      <Label>Tax %</Label>
+                      <Input
+                        type="number"
+                        value={pricingData.taxPercentage}
+                        onChange={(e) => handlePricingChange("taxPercentage", Number(e.target.value))}
+                      />
+                      {step3Errors.taxPercentage && (
+                        <p className="text-xs text-red-500 mt-1">{step3Errors.taxPercentage}</p>
+                      )}
+                    </div>
+
+                    {/* minStayNights */}
+                    <div className="space-y-2">
+                      <Label>Min Stay Nights</Label>
+                      <Input
+                        type="number"
+                        value={pricingData.minStayNights}
+                        onChange={(e) => handlePricingChange("minStayNights", Number(e.target.value))}
+                        onBlur={() => {
+                          if (pricingData.minStayNights === "" || Number(pricingData.minStayNights) < 1) {
+                            handlePricingChange("minStayNights", 1);
+                          }
+                        }}
+                      />
+                      {step3Errors.minStayNights && (
+                        <p className="text-xs text-red-500 mt-1">{step3Errors.minStayNights}</p>
+                      )}
+                    </div>
+
+                    {/* isActive */}
+                    <div className="space-y-2 md:col-span-2 flex items-center gap-2">
+                      <Checkbox
+                        checked={pricingData.isActive}
+                        onCheckedChange={(checked) => handlePricingChange("isActive", !!checked)}
+                      />
+                      <Label>Active</Label>
+                    </div>
+                  </div>
+                  {/* ✅ Property Photos Section (below Active) */}
+                  <div className="pt-6 border-t space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold">Property Photos</h3>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => refetchImages()}
+                      >
+                        Refresh
+                      </Button>
+                    </div>
+
+                    {imagesLoading && <p className="text-sm text-muted-foreground">Loading images...</p>}
+                    {imagesError && <p className="text-sm text-red-500">Failed to load images</p>}
+
+                    {!imagesLoading && !imagesError && propertyImages.length === 0 && (
+                      <p className="text-sm text-muted-foreground">No images uploaded yet.</p>
+                    )}
+
+                    {!imagesLoading && !imagesError && propertyImages.length > 0 && (
+                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                     {propertyImages.map((img) => {
+                       const isSelected = selectedPrimaryImageId === img.id;
+                   
+                       return (
+                         <button
+                           key={img.id}
+                           type="button"
+                           onClick={() => setSelectedPrimaryImageId(img.id)} // ✅ select only one
+                           onDoubleClick={() => setActivePreview(img.imageUrl)} // ✅ optional: preview on double click
+                           className={[
+                             "relative rounded-md border overflow-hidden",
+                             "transition-all duration-200 ease-out",
+                             isSelected ? "-translate-y-2 shadow-lg ring-2 ring-primary" : "hover:-translate-y-1 hover:shadow",
+                           ].join(" ")}
+                         >
+                           <img
+                             src={img.imageUrl}
+                             alt="Property"
+                             className="h-24 w-full object-cover"
+                           />
+                   
+                           {/* Selected badge */}
+                           {isSelected && (
+                             <span className="absolute left-2 top-2 text-[10px] px-2 py-1 rounded bg-primary text-primary-foreground">
+                               Selected
+                             </span>
+                           )}
+                   
+                           {/* Already primary badge */}
+                           {img.isPrimary && !isSelected && (
+                             <span className="absolute left-2 top-2 text-[10px] px-2 py-1 rounded bg-black/60 text-white">
+                               Primary
+                             </span>
+                           )}
+                         </button>
+                       );
+                     })}
+                   </div>                   
+                    )}
+                  </div>
+
+
+                  <div className="flex justify-end pt-4">
+                  <Button
+                      onClick={handleSavePricing}
+                      disabled={isSavingPricing || isSettingPrimary || isUpdatingStatus || !canSavePricing}
+                    >
+                      {(isSavingPricing || isSettingPrimary || isUpdatingStatus) ? "Saving..." : "Save Pricing"}
+                    </Button>
+                  </div>
                 </div>
-              </form>
+              )}
             </CardContent>
           </Card>
         </div>

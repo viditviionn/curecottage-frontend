@@ -120,7 +120,7 @@ const healthHomes = data?.properties ?? [];
                       <div className="relative h-40 overflow-hidden">
                         <img
                           src={getCardImage(home)}
-                          alt={home.name}
+                          alt={home.name} 
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
 

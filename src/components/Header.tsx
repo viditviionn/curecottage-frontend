@@ -12,6 +12,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { useUserProfileQuery } from '@/rtk/api/authApi';
 
 interface HeaderProps {
   activePage?: 'health-homes' | 'home-conversion';
@@ -23,7 +24,13 @@ const Header = ({ activePage = 'health-homes' }: HeaderProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+  const { isAuthenticated, user: storeUser } = useSelector((state: RootState) => state.auth);
+
+  const { data: profileUser } = useUserProfileQuery(undefined, {
+    skip: !isAuthenticated,
+  });
+  
+  const user = profileUser || storeUser;
 
   const isHealthHomesActive = activePage === 'health-homes' || location.pathname === '/' || location.pathname === '/health-homes' || location.pathname === '/browse';
   const isHomeConversionActive = activePage === 'home-conversion' || location.pathname === '/home-conversion';
@@ -40,6 +47,16 @@ const Header = ({ activePage = 'health-homes' }: HeaderProps) => {
       isActive: isHomeConversionActive,
     },
   ];
+  const closeTimer = React.useRef<number | null>(null);
+
+const openDropdown = () => {
+  if (closeTimer.current) window.clearTimeout(closeTimer.current);
+  setOpen(true);
+};
+
+const closeDropdown = () => {
+  closeTimer.current = window.setTimeout(() => setOpen(false), 150);
+};
 
   return (
     <header className="border-b border-border/40 bg-background/80 backdrop-blur-md sticky top-0 z-50">
@@ -63,87 +80,96 @@ const Header = ({ activePage = 'health-homes' }: HeaderProps) => {
                 <Link
                   key={link.to}
                   to={link.to}
-                  className={`transition-colors ${
-                    link.isActive
+                  className={`transition-colors ${link.isActive
                       ? 'text-primary font-medium'
                       : 'text-foreground hover:text-primary'
-                  }`}
+                    }`}
                 >
                   {link.label}
                 </Link>
               ))}
-              <Link
-                to={`/become-provider?service=${activePage}`}
-                className="inline-flex items-center gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap"
-              >
-                <Heart className="h-4 w-4" />
-                Be the Host
-              </Link>
+             <Link
+  to={isAuthenticated ? `/become-provider?service=${activePage}` : "/auth"}
+  state={!isAuthenticated ? { from: `/become-provider?service=${activePage}` } : undefined}
+  onClick={(e) => {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      navigate("/auth", {
+        state: { from: `/become-provider?service=${activePage}` },
+      });
+    }
+  }}
+  className="inline-flex items-center gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap"
+>
+  <Heart className="h-4 w-4" />
+  Be the Host
+</Link>
             </div>
           </nav>
 
           {/* Desktop Auth Buttons - shows on lg screens and up */}
           <div className="hidden lg:flex items-center space-x-4 flex-shrink-0">
-            {isAuthenticated ? (
-              <div className="flex items-center gap-2 relative">
-                <div className="bg-primary/10 p-2 rounded-full cursor-pointer"
+          {isAuthenticated ? (
+            <div
+              className="relative"
+              onMouseEnter={openDropdown}
+              onMouseLeave={closeDropdown}
+            >
+              {/* Avatar/Icon */}
+              <button
+                type="button"
+                className="bg-primary/10 p-2 rounded-full cursor-pointer hover:bg-primary/20 transition-colors"
                 onClick={(e) => {
-                e.stopPropagation();
-                setOpen(true);
-    }}>
-                  <User className="h-5 w-5 text-primary" />
+                  e.stopPropagation();
+                  setOpen((prev) => !prev); // click also toggle (optional)
+                }}
+                aria-label="User menu"
+              >
+                <User className="h-5 w-5 text-primary" />
+              </button>
+
+              {/* Dropdown */}
+              {open && (
+                <div
+                  className="absolute top-12 right-0 z-50 bg-white shadow-lg border rounded-xl min-w-[240px] overflow-hidden"
+                  onMouseEnter={openDropdown}
+                  onMouseLeave={closeDropdown}
+                >
+                  {/* Header */}
+                  <div className="px-4 py-3 border-b bg-muted/30">
+                    <p className="text-sm font-semibold capitalize leading-tight">
+                      {user?.firstName} {user?.lastName}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                  </div>
+
+                  {/* Menu */}
+                  <div className="p-2">
+                    <button
+                      className="w-full text-left px-3 py-2 rounded-lg hover:bg-muted transition-colors text-sm"
+                      onClick={() => {
+                        navigate("/profile");
+                        setOpen(false);
+                      }}
+                    >
+                      Profile
+                    </button>
+
+                    <button
+                      className="w-full text-left px-3 py-2 rounded-lg hover:bg-muted transition-colors text-sm text-red-600"
+                      onClick={() => {
+                        dispatch(logout());
+                        setOpen(false);
+                        navigate("/auth"); // ✅ redirect to sign in page
+                      }}
+                    >
+                      Logout
+                    </button>
+                  </div>
                 </div>
-                  {open && (
-    <>
-      <button
-        type="button"
-        className="fixed inset-0 z-40 cursor-default"
-        aria-label="Close dropdown"
-        onClick={() => setOpen(false)}
-      />
-
-      {/* Dropdown */}
-      <div
-        className="absolute top-16 right-0 z-50 bg-white shadow-md p-4 rounded-lg min-w-[200px]"
-        onClick={(e) => e.stopPropagation()} 
-      >
-        <div className="mb-3 pb-3 border-b">
-          <span className="text-sm font-medium block capitalize">
-            {user?.firstName} {user?.lastName}
-          </span>
-          <span className="text-xs text-muted-foreground">{user?.email}</span>
-        </div>
-
-        <div className="space-y-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-start"
-            onClick={() => {
-              navigate('/profile');
-              setOpen(false);
-            }}
-          >
-            Profile
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-start"
-            onClick={() => {
-              dispatch(logout());
-              setOpen(false);
-            }}
-          >
-            Logout
-          </Button>
-        </div>
-      </div>
-    </>
-  )}
-               
-              </div>
-            ) : (
+              )}
+            </div>
+          ) : (
               <>
                 <Link to="/auth">
                   <Button variant="ghost" size="sm">Sign In</Button>
@@ -179,23 +205,30 @@ const Header = ({ activePage = 'health-homes' }: HeaderProps) => {
                       key={link.to}
                       to={link.to}
                       onClick={() => setIsOpen(false)}
-                      className={`text-lg py-2 px-4 rounded-lg transition-colors ${
-                        link.isActive
+                      className={`text-lg py-2 px-4 rounded-lg transition-colors ${link.isActive
                           ? 'bg-primary/10 text-primary font-medium'
                           : 'text-foreground hover:bg-muted'
-                      }`}
+                        }`}
                     >
                       {link.label}
                     </Link>
                   ))}
-                  <Link
-                    to={`/become-provider?service=${activePage}`}
-                    onClick={() => setIsOpen(false)}
-                    className="flex items-center gap-2 text-lg py-2 px-4 rounded-lg text-foreground hover:bg-muted transition-colors"
-                  >
-                    <Heart className="h-5 w-5" />
-                    Be the Host
-                  </Link>
+                 <Link
+  to={isAuthenticated ? `/become-provider?service=${activePage}` : "/auth"}
+  state={!isAuthenticated ? { from: `/become-provider?service=${activePage}` } : undefined}
+  onClick={(e) => {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      navigate("/auth", {
+        state: { from: `/become-provider?service=${activePage}` },
+      });
+    }
+  }}
+  className="inline-flex items-center gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap"
+>
+  <Heart className="h-4 w-4" />
+  Be the Host
+</Link>
                   <div className="border-t border-border my-4" />
                   {isAuthenticated ? (
                     <>
@@ -212,13 +245,14 @@ const Header = ({ activePage = 'health-homes' }: HeaderProps) => {
                       >
                         Profile
                       </Link>
-                      <Button 
-                        className="flex items-center gap-2 text-lg py-2 px-4 rounded-lg text-foreground hover:bg-primary/20 transition-colors" 
+                      <Button
+                        className="flex items-center gap-2 text-lg py-2 px-4 rounded-lg text-foreground hover:bg-primary/20 transition-colors"
                         size="lg"
                         variant="outline"
                         onClick={() => {
                           dispatch(logout());
                           setIsOpen(false);
+                          navigate("/auth");
                         }}
                       >
                         Logout

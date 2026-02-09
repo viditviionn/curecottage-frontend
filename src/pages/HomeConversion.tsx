@@ -417,6 +417,9 @@ const HomeConversion = () => {
       <section className="py-10 sm:py-16 md:py-20 bg-gradient-to-br from-background via-accent/5 to-primary/5">
         <div className="container mx-auto px-4">
           <div className="text-center mb-8 md:mb-12">
+          <p className="text-3xl sm:text-4xl md:text-2xl lg:text-3xl font-bold text-primary mb-4 md:mb-6">
+              Coming Soon...
+            </p>
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4 md:mb-6">
               Transform your home for
               <span className="text-primary"> medical care</span>

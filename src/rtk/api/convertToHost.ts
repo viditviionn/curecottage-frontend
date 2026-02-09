@@ -190,7 +190,58 @@ export type UpdatePropertyStatusResponse = {
     property: Property;
   };
 };
-
+export type PropertyFull = {
+  id: string;
+  name: string;
+  description: string;
+  propertyType: string;
+  totalRooms: number;
+  addressLine1: string;
+  city: string;
+  state: string;
+  country: string;
+  postalCode: string;
+  latitude: number;
+  longitude: number;
+  checkInTime: string;
+  checkOutTime: string;
+  minStayNights: number;
+  cancellationPolicyDays: number;
+};
+export type GetPropertyByIdResponse = {
+  success: boolean;
+  message: string;
+  data: {
+    property: PropertyFull;
+  };
+};
+export type UpdatePropertyRequest = {
+  propertyId: string;
+  body: {
+    name: string;
+    description: string;
+    propertyType: string;
+    totalRooms: number;
+    addressLine1: string;
+    city: string;
+    state: string;
+    country: string;
+    postalCode: string;
+    latitude: number;
+    longitude: number;
+    checkInTime: string;
+    checkOutTime: string;
+    minStayNights: number;
+    cancellationPolicyDays: number;
+  };
+};
+export type UpdatePropertyResponse = {
+  success: boolean;
+  message: string;
+  data?: {
+    property: PropertyFull;
+  };
+};
 
 export const convertToHostApi = authApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -293,6 +344,18 @@ updatePropertyStatus: builder.mutation<
     body: { status },
   }),
 }),
+getPropertyById: builder.query<PropertyFull, string>({
+  query: (propertyId) => `/properties/${propertyId}`,
+  transformResponse: (res: GetPropertyByIdResponse) => res.data.property,
+}),
+
+updateProperty: builder.mutation<UpdatePropertyResponse, UpdatePropertyRequest>({
+  query: ({ propertyId, body }) => ({
+    url: `/properties/${propertyId}`,
+    method: "PUT",
+    body,
+  }),
+}),
   }),
   overrideExisting: false,
 });
@@ -308,5 +371,7 @@ export const {
   useGetPropertyImagesQuery,
   useAddPropertyPricingMutation,
   useSetPrimaryPropertyImageMutation,
-  useUpdatePropertyStatusMutation
+  useUpdatePropertyStatusMutation,
+  useGetPropertyByIdQuery,
+  useUpdatePropertyMutation
 } = convertToHostApi;

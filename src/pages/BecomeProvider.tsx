@@ -11,10 +11,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
 import { useUserProfileQuery } from '@/rtk/api/authApi';
-import { Amenity, useAddAmenitiesToPropertyMutation, useAddMedicalAmenitiesToPropertyMutation, useAddPropertyPricingMutation, useConvertToHostMutation, useCreatePropertyMutation, useGetAmenitiesQuery, useGetMedicalAmenitiesQuery, useGetPropertyImagesQuery, useSetPrimaryPropertyImageMutation, useUpdatePropertyStatusMutation, useUploadPropertyImagesMutation } from '@/rtk/api/convertToHost';
+import { Amenity, PropertyFull, useAddAmenitiesToPropertyMutation, useAddMedicalAmenitiesToPropertyMutation, useAddPropertyPricingMutation, useConvertToHostMutation, useCreatePropertyMutation, useGetAmenitiesQuery, useGetMedicalAmenitiesQuery, useGetPropertyByIdQuery, useGetPropertyImagesQuery, useSetPrimaryPropertyImageMutation, useUpdatePropertyMutation, useUpdatePropertyStatusMutation, useUploadPropertyImagesMutation } from '@/rtk/api/convertToHost';
 import { Checkbox } from "@/components/ui/checkbox";
 
 type PricingFormState = {
@@ -139,6 +139,21 @@ const BecomeProvider = () => {
   useSetPrimaryPropertyImageMutation();
   const [updatePropertyStatus, { isLoading: isUpdatingStatus }] =
   useUpdatePropertyStatusMutation();
+
+  const location = useLocation();
+  
+  const editId = searchParams.get("edit");       
+  const isEditMode = !!editId;
+  
+  // optional state fallback (profile se pass hua)
+  const stateProperty = (location.state as { property: PropertyFull })?.property as PropertyFull | undefined;
+  const { data: fetchedProperty, isLoading: isLoadingProperty, isError: isErrorProperty } = useGetPropertyByIdQuery(editId as string, {
+    skip: !isEditMode,
+  });
+  const editProperty = stateProperty || fetchedProperty;
+  
+  const [updateProperty, { isLoading: isUpdatingProperty }] = useUpdatePropertyMutation();
+
 const profileUser = profileRes; 
 const navigate = useNavigate();
 const fileRef = React.useRef<HTMLInputElement | null>(null);
@@ -224,6 +239,24 @@ const validateStep3 = () => {
 };
 
 
+
+useEffect(() => {
+  if (!isEditMode || !editId) return;
+  setPropertyId(editId); // ✅ important for later steps
+
+  if (!editProperty) return;
+
+  setFormData((prev) => ({
+    ...prev,
+    serviceType: prev.serviceType || "health-homes",
+    businessName: editProperty.name ?? "",
+    description: editProperty.description ?? "",
+    address: editProperty.addressLine1 ?? "",
+    city: editProperty.city ?? "",
+    state: editProperty.state ?? "",
+    pincode: editProperty.postalCode ?? "",
+  }));
+}, [isEditMode, editId, editProperty]);
 // profile data fetching and autofill
 useEffect(() => {
   if (!profileUser) return;
@@ -349,6 +382,55 @@ useEffect(() => {
     }
   
     setUploading(true);
+
+    if (isEditMode) {
+      if (!editId) return;
+  
+      try {
+        const body = {
+          name: formData.businessName,
+          description: formData.description,
+  
+          // keep existing if available (otherwise defaults)
+          propertyType: (editProperty as PropertyFull)?.propertyType ?? "cottage",
+          totalRooms: (editProperty as PropertyFull)?.totalRooms ?? 1,
+  
+          addressLine1: formData.address,
+          city: formData.city,
+          state: formData.state,
+          country: (editProperty as PropertyFull)?.country ?? "India",
+          postalCode: formData.pincode,
+  
+          latitude: (editProperty as PropertyFull)?.latitude ?? 19.076,
+          longitude: (editProperty as PropertyFull)?.longitude ?? 72.8777,
+          checkInTime: (editProperty as PropertyFull)?.checkInTime ?? "14:00:00",
+          checkOutTime: (editProperty as PropertyFull)?.checkOutTime ?? "12:00:00",
+          minStayNights: (editProperty as PropertyFull)?.minStayNights ?? 1,
+          cancellationPolicyDays: (editProperty as PropertyFull)?.cancellationPolicyDays ?? 7,
+        };
+  
+        await updateProperty({ propertyId: editId, body }).unwrap();
+  
+        toast({ title: "Updated", description: "Property updated successfully ✅" });
+  
+        navigate("/profile"); // abhi edit only step-1
+        return;
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          toast({
+            title: "Update failed",
+            description: err.message || "Something went wrong",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Update failed",
+            description: "Something went wrong",
+            variant: "destructive",
+          });
+        }
+      }
+    }
   
     try {
       // 1) Convert to host (ignore "already host" type errors if needed)
@@ -730,7 +812,7 @@ useEffect(() => {
                 {/* Service Type */}
                 <div className="space-y-3 sm:space-y-4">
                   <Label className="text-sm sm:text-base">Service Type *</Label>
-                  <div className=" sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="">
                     <Button
                       type="button"
                       variant={formData.serviceType === 'health-homes' ? 'default' : 'outline'}
@@ -895,21 +977,24 @@ useEffect(() => {
                   </div>
                   <div className="pt-6 flex justify-end">
                   <Button
-                    type="submit"
-                    size="lg"
-                    disabled={
-                      uploading ||
-                      isConverting ||
-                      isCreatingProperty ||
-                      !formData.serviceType ||
-                      !formData.businessName ||
-                      !formData.ownerName ||
-                      !formData.email ||
-                      !formData.phone
-                    }
-                  >
-                    {uploading || isConverting || isCreatingProperty ? "Please wait..." : "Next"}
-                  </Button>
+                      type="submit"
+                      size="lg"
+                      disabled={
+                        uploading ||
+                        isConverting ||
+                        isCreatingProperty ||
+                        isUpdatingProperty ||
+                        !formData.serviceType ||
+                        !formData.businessName ||
+                        !formData.ownerName ||
+                        !formData.email ||
+                        !formData.phone
+                      }
+                    >
+                      {isEditMode
+                        ? (isUpdatingProperty ? "Updating..." : "Update")
+                        : (uploading || isConverting || isCreatingProperty ? "Please wait..." : "Next")}
+                    </Button>
                 </div>
                 </div>
               </form>

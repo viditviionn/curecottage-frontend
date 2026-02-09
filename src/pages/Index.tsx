@@ -21,8 +21,9 @@ const Index = () => {
     page: 1,
     limit: 100,
   });
-  const { data, isLoading, isError } = useGetAvailablePropertiesQuery(queryArgs);
-  const healthHomes = data?.properties ?? [];
+  const { data, isLoading,isFetching, isError } = useGetAvailablePropertiesQuery(queryArgs);
+  const showSkeleton = isLoading || isFetching;
+const healthHomes = data?.properties ?? [];
 
   const handleSearch = (location: string, checkIn: string, checkOut: string, guests: number) => {
     setSelectedCity(location);
@@ -123,7 +124,7 @@ const Index = () => {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
 
-                        <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1">
+                        <div className="absolute top-2 right-2 bg-green-600 text-white backdrop-blur-sm rounded-lg px-2 py-1">
                           <span className="text-xs font-semibold">{home.status.toUpperCase()}</span>
                         </div>
 
@@ -223,7 +224,7 @@ const Index = () => {
                           <Badge variant="secondary" className="text-xs py-0 px-2 h-5">
                             {home.propertyType.toUpperCase()}
                           </Badge>
-                          <Badge variant="outline" className="text-xs py-0 px-2 h-5">
+                          <Badge variant="outline" className="text-xs bg-green-600 text-white py-0 px-2 h-5">
                             {home.status.toUpperCase()}
                           </Badge>
                         </div>
@@ -234,7 +235,7 @@ const Index = () => {
                         size="sm"
                         className="w-full text-sm group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300"
                         onClick={(e) => {
-                          e.stopPropagation(); // ✅ card click block
+                          e.stopPropagation(); 
                           navigate(`/health-home/${home.id}`);
                         }}
                       >
@@ -276,6 +277,45 @@ const Index = () => {
       </section>
     );
   };
+
+  const SkeletonLine = ({ className = "" }: { className?: string }) => (
+    <div className={`rounded-full bg-muted/60 animate-pulse ${className}`} />
+  );
+  
+  const SkeletonCard = () => (
+    <div className="rounded-2xl border overflow-hidden bg-background">
+      {/* image */}
+      <div className="h-40 bg-muted/60 animate-pulse" />
+  
+      {/* text */}
+      <div className="p-4 space-y-2">
+        <SkeletonLine className="h-4 w-3/5" />
+        <SkeletonLine className="h-3 w-2/5" />
+      </div>
+    </div>
+  );
+  
+  const CityHealthHomesSectionSkeleton = ({ city }: { city: string }) => (
+    <section className="py-8 md:py-12">
+      <div className="container mx-auto px-4">
+        {/* title skeleton */}
+        <div className="mb-6 md:mb-8">
+          <SkeletonLine className="h-7 w-72" />
+          <div className="mt-3 flex gap-3">
+            <SkeletonLine className="h-4 w-24" />
+            <SkeletonLine className="h-4 w-44" />
+          </div>
+        </div>
+  
+        {/* cards skeleton (like your screenshot: 2 rows) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4">
+          {Array.from({ length: 14 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
@@ -349,20 +389,32 @@ const Index = () => {
       </section>
 
       {/* Health Homes by Cities */}
-      {citiesToRender.map((city) => {
-  const cityHomes = getHealthHomesByCity(city);
-  const displayedHomes = cityHomes;
+      {showSkeleton ? (
+  citiesToRender.map((city) => (
+    <CityHealthHomesSectionSkeleton key={city} city={city} />
+  ))
+) : isError ? (
+  <section className="py-10">
+    <div className="container mx-auto px-4">
+      <p className="text-red-500">Failed to load properties</p>
+    </div>
+  </section>
+) : (
+  citiesToRender.map((city) => {
+    const cityHomes = getHealthHomesByCity(city);
+    const displayedHomes = cityHomes;
 
-  return (
-    <CityHealthHomesSection
-      key={city}
-      city={city}
-      cityHomes={cityHomes}
-      displayedHomes={displayedHomes}
-      hasMoreHomes={false}
-    />
-  );
-})}
+    return (
+      <CityHealthHomesSection
+        key={city}
+        city={city}
+        cityHomes={cityHomes}
+        displayedHomes={displayedHomes}
+        hasMoreHomes={false}
+      />
+    );
+  })
+)}
 
 
       {/* Trust Section */}

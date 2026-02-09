@@ -60,18 +60,34 @@ export interface ProfileResponse {
   };
 }
 
+export type UpdateUserRequest = {
+  userId: string;
+  body: {
+    firstName?: string;
+    lastName?: string;
+    dateOfBirth?: string; 
+  };
+};
+
+export type UpdateUserResponse = {
+  success: boolean;
+  message: string;
+  data: {
+    user: User;
+  };
+};
+
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({
     baseUrl: API_BASE_URL,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("auth_token");
-      if (token) {
-        headers.set("authorization", `Bearer ${token}`);
-      }
+      if (token) headers.set("authorization", `Bearer ${token}`);
       return headers;
     },
   }),
+  tagTypes: ["Profile"], 
   endpoints: (builder) => ({
     login: builder.mutation<LoginResponse, LoginRequest>({
       query: (credentials) => ({
@@ -80,6 +96,7 @@ export const authApi = createApi({
         body: credentials,
       }),
     }),
+
     signup: builder.mutation<SignupResponse, SignupRequest>({
       query: (userData) => ({
         url: "/auth/register",
@@ -87,11 +104,42 @@ export const authApi = createApi({
         body: userData,
       }),
     }),
+
     userProfile: builder.query<User, void>({
       query: () => "/auth/profile",
       transformResponse: (response: ProfileResponse) => response.data.user,
+      providesTags: ["Profile"], 
+    }),
+
+    // ✅ PUT /users/:id
+    updateUser: builder.mutation<UpdateUserResponse, UpdateUserRequest>({
+      query: ({ userId, body }) => ({
+        url: `/users/${userId}`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["Profile"], 
+
+      async onQueryStarted({ body }, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+
+          dispatch(
+            authApi.util.updateQueryData("userProfile", undefined, (draft) => {
+              Object.assign(draft, data.data.user);
+            })
+          );
+        } catch {
+          // ignore
+        }
+      },
     }),
   }),
 });
 
-export const { useLoginMutation, useSignupMutation, useUserProfileQuery } = authApi;
+export const {
+  useLoginMutation,
+  useSignupMutation,
+  useUserProfileQuery,
+  useUpdateUserMutation, 
+} = authApi;

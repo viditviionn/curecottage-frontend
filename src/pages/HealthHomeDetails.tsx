@@ -1,5 +1,5 @@
 import React from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   MapPin,
   Star,
@@ -22,11 +22,176 @@ import {
 } from "@/components/ui/carousel";
 import { useGetPropertyByIdQuery } from "@/rtk/api/showproperty";
 import { toast } from "sonner";
+import { useUpdatePropertyStatusMutation } from "@/rtk/api/convertToHost";
+import { useSelector } from "react-redux";
+import { RootState } from "@/rtk/store";
 
 const fallbackImg =
   "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=1200&h=600&fit=crop";
 
+  const Skeleton = ({ className = "" }: { className?: string }) => (
+    <div className={`animate-pulse bg-muted/60 ${className}`} />
+  );
+  
+  const HealthHomeDetailsSkeleton = () => (
+    <div className="min-h-screen bg-background">
+      <Header activePage="health-homes" />
+  
+      {/* Hero skeleton */}
+      <section className="relative">
+        <div className="container mx-auto px-3 sm:px-4 pt-6">
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <div className="w-full space-y-2">
+              <Skeleton className="h-8 w-2/3 rounded-lg" />
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-4 w-28 rounded-full" />
+                <Skeleton className="h-4 w-40 rounded-full" />
+                <Skeleton className="h-4 w-20 rounded-full" />
+              </div>
+            </div>
+  
+            <div className="hidden sm:flex items-center gap-3">
+              <Skeleton className="h-5 w-14 rounded-md" />
+              <Skeleton className="h-5 w-12 rounded-md" />
+              <Skeleton className="h-9 w-[110px] rounded-full" />
+            </div>
+          </div>
+  
+          <div className="relative overflow-hidden rounded-2xl">
+            {/* Desktop */}
+            <div className="hidden md:grid grid-cols-4 grid-rows-2 gap-2 h-[420px] bg-muted">
+              <Skeleton className="col-span-2 row-span-2 h-full w-full" />
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="col-span-1 row-span-1 h-full w-full" />
+              ))}
+            </div>
+  
+            {/* Mobile */}
+            <div className="md:hidden h-[240px] bg-muted">
+              <Skeleton className="h-full w-full" />
+            </div>
+  
+            <div className="absolute bottom-3 right-3">
+              <Skeleton className="h-10 w-40 rounded-xl" />
+            </div>
+          </div>
+        </div>
+      </section>
+  
+      {/* Body skeleton */}
+      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+          {/* Main */}
+          <div className="lg:col-span-2 space-y-6">
+            <Card className="rounded-2xl">
+              <CardContent className="p-6 space-y-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-6 w-1/2 rounded-lg" />
+                    <Skeleton className="h-4 w-1/3 rounded-full" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-3 w-16 rounded-full" />
+                    <Skeleton className="h-4 w-24 rounded-full" />
+                  </div>
+                </div>
+  
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-2 rounded-xl border p-3">
+                      <Skeleton className="h-8 w-8 rounded-full" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-3 w-20 rounded-full" />
+                        <Skeleton className="h-4 w-36 rounded-full" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+  
+                <div className="flex flex-wrap gap-2">
+                  <Skeleton className="h-7 w-24 rounded-full" />
+                  <Skeleton className="h-7 w-24 rounded-full" />
+                </div>
+              </CardContent>
+            </Card>
+  
+            <Card className="rounded-2xl">
+              <CardContent className="p-6 space-y-3">
+                <Skeleton className="h-5 w-44 rounded-lg" />
+                <Skeleton className="h-4 w-full rounded-full" />
+                <Skeleton className="h-4 w-11/12 rounded-full" />
+                <Skeleton className="h-4 w-10/12 rounded-full" />
+                <Skeleton className="h-4 w-9/12 rounded-full" />
+              </CardContent>
+            </Card>
+  
+            <Card className="rounded-2xl">
+              <CardContent className="p-6 space-y-4">
+                <Skeleton className="h-5 w-56 rounded-lg" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-2 rounded-xl border p-3">
+                      <Skeleton className="h-8 w-8 rounded-full" />
+                      <Skeleton className="h-4 w-32 rounded-full" />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+  
+          {/* Sidebar */}
+          <div className="space-y-4">
+            <Card className="sticky top-24 rounded-2xl shadow-lg">
+              <CardContent className="p-6 space-y-5">
+                <div className="flex items-baseline gap-2">
+                  <Skeleton className="h-6 w-24 rounded-full" />
+                  <Skeleton className="h-8 w-28 rounded-full" />
+                  <Skeleton className="h-4 w-28 rounded-full" />
+                </div>
+  
+                <div className="rounded-xl border overflow-hidden">
+                  <div className="grid grid-cols-2 border-b">
+                    <div className="p-3 border-r space-y-2">
+                      <Skeleton className="h-3 w-16 rounded-full" />
+                      <Skeleton className="h-4 w-24 rounded-full" />
+                      <Skeleton className="h-3 w-20 rounded-full" />
+                    </div>
+                    <div className="p-3 space-y-2">
+                      <Skeleton className="h-3 w-16 rounded-full" />
+                      <Skeleton className="h-4 w-24 rounded-full" />
+                      <Skeleton className="h-3 w-20 rounded-full" />
+                    </div>
+                  </div>
+  
+                  <div className="p-3 flex items-center justify-between">
+                    <div className="space-y-2">
+                      <Skeleton className="h-3 w-16 rounded-full" />
+                      <Skeleton className="h-4 w-20 rounded-full" />
+                    </div>
+                    <Skeleton className="h-8 w-24 rounded-md" />
+                  </div>
+                </div>
+  
+                <Skeleton className="h-10 w-full rounded-xl" />
+                <Skeleton className="h-12 w-full rounded-full" />
+                <Skeleton className="h-4 w-40 mx-auto rounded-full" />
+              </CardContent>
+            </Card>
+  
+            <div className="flex justify-center">
+              <Skeleton className="h-4 w-44 rounded-full" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+  
+
+
 const HealthHomeDetails = () => {
+  const navigate = useNavigate();
   const { id } = useParams();
   const [showGallery, setShowGallery] = React.useState(false);
 const [activeIndex, setActiveIndex] = React.useState(0);
@@ -50,11 +215,31 @@ const openGallery = (idx: number) => {
   setShowGallery(true);
 };
 
-  const { data: property, isLoading, isError } = useGetPropertyByIdQuery(id ?? "", {
+  const { data: property, isLoading, refetch, isFetching, isError } = useGetPropertyByIdQuery(id ?? "", {
     skip: !id,
   });
 
-  if (isLoading) return <div className="p-6 text-muted-foreground">Loading...</div>;
+  const authUser = useSelector((state: RootState) => state.auth.user);
+  
+  const [updatePropertyStatus, { isLoading: isStatusUpdating }] =
+  useUpdatePropertyStatusMutation();
+
+// local status for instant UI update
+const [localStatus, setLocalStatus] = React.useState<"active" | "inactive">(
+  "inactive"
+);
+
+React.useEffect(() => {
+  const s = (property?.status ?? "inactive").toLowerCase();
+  setLocalStatus(s === "active" ? "active" : "inactive");
+}, [property?.status]);
+
+// show only to host owner
+const canToggleStatus =
+  !!authUser?.id && authUser.id === property?.host?.id;
+
+  if (isLoading) return <HealthHomeDetailsSkeleton />;
+
   if (isError || !property) return <div className="p-6 text-red-500">Failed to load property</div>;
 
   const imageUrls =
@@ -82,15 +267,44 @@ const openGallery = (idx: number) => {
 
   // ✅ pricing helpers
 const nightly = pricePerNight ?? 0;
-const nights = Math.max(1, property.minStayNights || 1); // for UI demo (2 nights style)
+const nights = Math.max(1, property.minStayNights || 1); 
 const total = nightly * nights;
 
-// optional: show a fake "old" price like Airbnb (example 40% higher)
 const oldTotal = total ? Math.round(total * 1.4) : 0;
+
+const onToggleStatus = async () => {
+  if (!property?.id) return;
+
+  const nextStatus: "active" | "inactive" =
+    localStatus === "active" ? "inactive" : "active";
+
+  try {
+    await updatePropertyStatus({
+      propertyId: property.id,
+      status: nextStatus,
+    }).unwrap();
+
+    setLocalStatus(nextStatus);
+
+    toast.success("Status updated", {
+      description: `Property is now ${nextStatus.toUpperCase()}`,
+    });
+
+    refetch();
+  } catch (err) {
+    toast.error("Failed to update status");
+    console.error(err);
+  }
+};
 
   return (
     <div className="min-h-screen bg-background">
       <Header activePage="health-homes" />
+      {isFetching && (
+        <div className="fixed top-0 left-0 right-0 z-[90]">
+          <div className="h-1 w-full bg-primary/30 animate-pulse" />
+        </div>
+      )}
 
       {/* Hero Carousel */}
           {/* ✅ Hero Image Grid (Airbnb style) */}
@@ -113,9 +327,43 @@ const oldTotal = total ? Math.round(total * 1.4) : 0;
                 </div>
 
                 <div className="hidden sm:flex items-center gap-3">
-                  <button className="text-sm underline">Share</button>
-                  <button className="text-sm underline">Save</button>
-                </div>
+                    <button className="text-sm underline">Share</button>
+                    <button className="text-sm underline">Save</button>
+
+                    {canToggleStatus && (
+                      <button
+                        type="button"
+                        onClick={onToggleStatus}
+                        disabled={isStatusUpdating}
+                        aria-label="Toggle property status"
+                        className={[
+                          "relative w-[110px] h-9 rounded-full px-2 flex items-center border shadow-sm transition-colors",
+                          localStatus === "active"
+                            ? "bg-green-600 border-green-700"
+                            : "bg-red-600 border-red-700",
+                          isStatusUpdating ? "opacity-70 cursor-not-allowed" : "cursor-pointer",
+                        ].join(" ")}
+                      >
+                        {/* Label */}
+                        <span
+                          className={[
+                            "absolute text-[11px] font-semibold tracking-wide text-white",
+                            localStatus === "active" ? "left-4" : "right-4",
+                          ].join(" ")}
+                        >
+                          {localStatus === "active" ? "ACTIVE" : "INACTIVE"}
+                        </span>
+
+                        {/* Knob */}
+                        <span
+                          className={[
+                            "h-7 w-7 rounded-full bg-white shadow transition-all",
+                            localStatus === "active" ? "ml-auto" : "ml-0",
+                          ].join(" ")}
+                        />
+                      </button>
+                    )}
+                  </div>
               </div>
 
               {/* Grid */}
@@ -465,9 +713,33 @@ const oldTotal = total ? Math.round(total * 1.4) : 0;
 
                 <Button
                   className="w-full h-12 rounded-full text-base font-semibold"
-                  // onClick={() => {
-                  //   toast.success("Reserve clicked", { description: "Booking flow coming soon." });
-                  // }}
+                  onClick={() => {
+                    // ✅ 1) must be logged in
+                    if (!authUser?.id) {
+                      toast.error("Please sign in to reserve");
+
+                      navigate("/auth", {
+                        state: {
+                          from: `/health-home/${property.id}`, // or use location.pathname (better)
+                          reserveIntent: true,
+                          payload: { checkIn, checkOut, guests, propertyId: property.id },
+                        },
+                      });
+
+                      return;
+                    }
+
+                    // ✅ 2) basic guard
+                    if (!checkIn || !checkOut) {
+                      toast.error("Please select check-in and check-out dates");
+                      return;
+                    }
+
+                    // ✅ 3) logged-in flow unchanged
+                    navigate(`/reserve/${property.id}`, {
+                      state: { checkIn, checkOut, guests },
+                    });
+                  }}
                 >
                   Reserve
                 </Button>

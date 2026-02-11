@@ -165,7 +165,7 @@ const Auth = () => {
               </div>
               <span className="text-2xl font-bold text-primary">Cure Cottage</span>
             </div>
-            <CardTitle className="text-2xl">{isLogin ? 'Welcome back yes i am ' : 'Create an account'}</CardTitle>
+            <CardTitle className="text-2xl">{isLogin ? 'Welcome back' : 'Create an account'}</CardTitle>
             <CardDescription>
               {isLogin ? 'Sign in to access your health home bookings' : 'Sign up to start finding your perfect health home'}
             </CardDescription>

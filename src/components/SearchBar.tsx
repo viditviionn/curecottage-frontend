@@ -1,45 +1,37 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Search, MapPin, Calendar, Users, Navigation } from "lucide-react";
+import { Search, MapPin, Calendar, Users, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 interface SearchBarProps {
   onSearch?: (location: string, checkIn: string, checkOut: string, guests: number) => void;
+  loading?: boolean; // ✅ added
 }
 
 type ActivePanel = "where" | "when" | "who" | null;
 
 const SUGGESTIONS = [
-  // { title: "Nearby", subtitle: "Find what’s around you", icon: Navigation },
-  { title: "Bangalore, Karnataka", subtitle: "Because your wishlist has stays in Bangalore", icon: MapPin },
-  { title: "Mumbai, Maharashtra", subtitle: "Because your wishlist has stays in Mumbai", icon: MapPin },
-  { title: "Delhi, Delhi", subtitle: "Because your wishlist has stays in Delhi", icon: MapPin },
-  { title: "Chennai, Tamil Nadu", subtitle: "Because your wishlist has stays in Chennai", icon: MapPin },
-  { title: "Hyderabad, Telangana", subtitle: "Because your wishlist has stays in Hyderabad", icon: MapPin },
-  { title: "Ahmedabad, Gujarat", subtitle: "Because your wishlist has stays in Ahmedabad", icon: MapPin },
-  { title: "Jaipur, Rajasthan", subtitle: "Because your wishlist has stays in Jaipur", icon: MapPin },
-  { title: "Kolkata, West Bengal", subtitle: "Because your wishlist has stays in Kolkata", icon: MapPin },
-  { title: "Bhopal, Madhya Pradesh", subtitle: "Because your wishlist has stays in Bhopal", icon: MapPin },
-  { title: "Lucknow, Uttar Pradesh", subtitle: "Because your wishlist has stays in Lucknow", icon: MapPin },
-  { title: "Surat, Gujarat", subtitle: "Because your wishlist has stays in Surat", icon: MapPin },
-  { title: "Vadodara, Gujarat", subtitle: "Because your wishlist has stays in Vadodara", icon: MapPin },
+  { title: "Bangalore", subtitle: "Because your wishlist has stays in Bangalore", icon: MapPin },
+  { title: "Mumbai", subtitle: "Because your wishlist has stays in Mumbai", icon: MapPin },
+  { title: "Delhi", subtitle: "Because your wishlist has stays in Delhi", icon: MapPin },
+  { title: "Chennai", subtitle: "Because your wishlist has stays in Chennai", icon: MapPin },
+  { title: "Hyderabad", subtitle: "Because your wishlist has stays in Hyderabad", icon: MapPin },
 ];
 
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
 
-export const SearchBar = ({ onSearch }: SearchBarProps = {}) => {
-  // Values
+export const SearchBar = ({ onSearch, loading = false }: SearchBarProps = {}) => {
   const [location, setLocation] = useState("Bangalore");
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
 
-  // Airbnb-like guests
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
   const [infants, setInfants] = useState(0);
   const [pets, setPets] = useState(0);
 
   const guests = useMemo(() => adults + children, [adults, children]);
+
   const whoLabel = useMemo(() => {
     const parts: string[] = [];
     const g = adults + children;
@@ -49,22 +41,9 @@ export const SearchBar = ({ onSearch }: SearchBarProps = {}) => {
     return parts.join(" • ");
   }, [adults, children, infants, pets]);
 
-  // UI
   const [active, setActive] = useState<ActivePanel>(null);
   const rootRef = useRef<HTMLDivElement | null>(null);
 
-
-  useEffect(() => {
-    function onDown(e: MouseEvent) {
-      if (!active) return;
-      const el = rootRef.current;
-      if (!el) return;
-      if (!el.contains(e.target as Node)) setActive(null);
-    }
-    document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
-  }, [active]);
-  // Click outside => close
   useEffect(() => {
     function onDown(e: MouseEvent) {
       if (!active) return;
@@ -77,13 +56,11 @@ export const SearchBar = ({ onSearch }: SearchBarProps = {}) => {
   }, [active]);
 
   const runSearch = () => {
+    if (loading) return; // ✅ block multiple clicks
     setActive(null);
     onSearch?.(location, checkIn, checkOut, guests);
   };
 
-  const isDesktop = typeof window !== "undefined" ? window.innerWidth >= 768 : true;
-
-  // Segment component
   const Seg = ({
     id,
     label,
@@ -166,7 +143,6 @@ export const SearchBar = ({ onSearch }: SearchBarProps = {}) => {
 
   return (
     <div ref={rootRef} className="relative">
-      {/* Overlay like Airbnb */}
       {active && (
         <div
           className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px]"
@@ -174,16 +150,11 @@ export const SearchBar = ({ onSearch }: SearchBarProps = {}) => {
         />
       )}
 
-      {/* DESKTOP: Airbnb pill */}
+      {/* DESKTOP */}
       <div className="hidden md:block relative z-50">
         <div className="bg-muted/40 border border-border rounded-full shadow-lg p-1">
           <div className="flex items-center gap-1">
-            <Seg
-              id="where"
-              label="Where"
-              value={location}
-              placeholder="Search destinations"
-            />
+            <Seg id="where" label="Where" value={location} placeholder="Search destinations" />
 
             <div className="h-8 w-px bg-border" />
 
@@ -196,30 +167,32 @@ export const SearchBar = ({ onSearch }: SearchBarProps = {}) => {
 
             <div className="h-8 w-px bg-border" />
 
-            <Seg
-              id="who"
-              label="Who"
-              value={whoLabel}
-              placeholder="Add guests"
-            />
+            <Seg id="who" label="Who" value={whoLabel} placeholder="Add guests" />
 
             <div className="pr-1">
-              <Button className="rounded-full h-12 px-6" onClick={runSearch}>
-                <Search className="h-4 w-4 mr-2" />
-                Search
+              <Button className="rounded-full h-12 px-6" onClick={runSearch} disabled={loading}>
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Searching...
+                  </>
+                ) : (
+                  <>
+                    <Search className="h-4 w-4 mr-2" />
+                    Search
+                  </>
+                )}
               </Button>
             </div>
           </div>
         </div>
 
-        {/* Panels container */}
         <div
           className={[
             "absolute left-0 right-0 mt-3 z-50 transition-all duration-200 ease-out",
             active ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none",
           ].join(" ")}
         >
-          {/* WHERE panel */}
           {active === "where" && (
             <div className="bg-background border rounded-3xl shadow-2xl p-4 max-w-xl">
               <div className="text-sm font-semibold text-foreground px-2 pb-3">
@@ -234,8 +207,7 @@ export const SearchBar = ({ onSearch }: SearchBarProps = {}) => {
                       key={s.title}
                       type="button"
                       onClick={() => {
-                        // set title/city
-                        setLocation(s.title.includes(",") ? s.title : "Nearby");
+                        setLocation(s.title); // ✅ FIX: direct city set
                         setActive("when");
                       }}
                       className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-muted transition text-left"
@@ -267,7 +239,6 @@ export const SearchBar = ({ onSearch }: SearchBarProps = {}) => {
             </div>
           )}
 
-          {/* WHEN panel */}
           {active === "when" && (
             <div className="bg-background border rounded-3xl shadow-2xl p-6 max-w-5xl">
               <div className="flex items-center justify-center gap-2 mb-6">
@@ -276,7 +247,6 @@ export const SearchBar = ({ onSearch }: SearchBarProps = {}) => {
                 <button className="px-5 py-2 rounded-full hover:bg-muted/60">Flexible</button>
               </div>
 
-              {/* Simple (stable) date range UI */}
               <div className="grid grid-cols-2 gap-6">
                 <div className="rounded-2xl border p-4">
                   <div className="flex items-center gap-2 mb-2">
@@ -295,7 +265,6 @@ export const SearchBar = ({ onSearch }: SearchBarProps = {}) => {
                 </div>
               </div>
 
-              {/* Bottom chips like Airbnb */}
               <div className="flex flex-wrap gap-2 mt-6">
                 {["Exact dates", "± 1 day", "± 2 days", "± 3 days", "± 7 days", "± 14 days"].map((x) => (
                   <button
@@ -311,36 +280,12 @@ export const SearchBar = ({ onSearch }: SearchBarProps = {}) => {
             </div>
           )}
 
-          {/* WHO panel */}
           {active === "who" && (
             <div className="bg-background border rounded-3xl shadow-2xl p-6 max-w-xl ml-auto">
-              <CounterRow
-                title="Adults"
-                subtitle="Ages 13 or above"
-                value={adults}
-                min={1}
-                onChange={setAdults}
-              />
-              <CounterRow
-                title="Children"
-                subtitle="Ages 2–12"
-                value={children}
-                onChange={setChildren}
-              />
-              <CounterRow
-                title="Infants"
-                subtitle="Under 2"
-                value={infants}
-                max={10}
-                onChange={setInfants}
-              />
-              <CounterRow
-                title="Pets"
-                subtitle="Bringing a service animal?"
-                value={pets}
-                max={5}
-                onChange={setPets}
-              />
+              <CounterRow title="Adults" subtitle="Ages 13 or above" value={adults} min={1} onChange={setAdults} />
+              <CounterRow title="Children" subtitle="Ages 2–12" value={children} onChange={setChildren} />
+              <CounterRow title="Infants" subtitle="Under 2" value={infants} max={10} onChange={setInfants} />
+              <CounterRow title="Pets" subtitle="Bringing a service animal?" value={pets} max={5} onChange={setPets} />
 
               <div className="flex items-center justify-between pt-5">
                 <button
@@ -356,9 +301,18 @@ export const SearchBar = ({ onSearch }: SearchBarProps = {}) => {
                   Clear all
                 </button>
 
-                <Button className="rounded-full px-6" onClick={runSearch}>
-                  <Search className="h-4 w-4 mr-2" />
-                  Search
+                <Button className="rounded-full px-6" onClick={runSearch} disabled={loading}>
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Searching...
+                    </>
+                  ) : (
+                    <>
+                      <Search className="h-4 w-4 mr-2" />
+                      Search
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
@@ -366,7 +320,7 @@ export const SearchBar = ({ onSearch }: SearchBarProps = {}) => {
         </div>
       </div>
 
-      {/* MOBILE: your existing compact layout (simple + stable) */}
+      {/* MOBILE */}
       <div className="md:hidden bg-card rounded-2xl shadow-xl p-2 border border-border/50 backdrop-blur-sm relative z-10">
         <div className="grid grid-cols-2 gap-2">
           <div className="flex flex-col p-2 rounded-xl hover:bg-accent/50 transition-colors">
@@ -427,9 +381,18 @@ export const SearchBar = ({ onSearch }: SearchBarProps = {}) => {
           </div>
 
           <div className="col-span-2">
-            <Button className="w-full h-10 rounded-xl" onClick={runSearch}>
-              <Search className="h-4 w-4 mr-2" />
-              Search
+            <Button className="w-full h-10 rounded-xl" onClick={runSearch} disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Searching...
+                </>
+              ) : (
+                <>
+                  <Search className="h-4 w-4 mr-2" />
+                  Search
+                </>
+              )}
             </Button>
           </div>
         </div>

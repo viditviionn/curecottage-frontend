@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Shield, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 import { useLoginMutation, useSignupMutation } from '@/rtk/api/authApi';
@@ -12,8 +12,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setCredentials } from '@/rtk/slices/authSlice';
 import { RootState } from '@/rtk/store';
 
-const emailSchema = z.string().trim().email({ message: "Invalid email address" });
-const passwordSchema = z.string().min(6, { message: "Password must be at least 6 characters" });
+const emailSchema = z.string().trim().email({ message: 'Invalid email address' });
+const passwordSchema = z.string().min(6, { message: 'Password must be at least 6 characters' });
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -26,16 +26,25 @@ const Auth = () => {
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [aadhar, setAadhar] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string; confirmPassword?: string; firstName?: string; lastName?: string; phoneNumber?: string; aadhar?: string }>({});
-  
+
+  const [errors, setErrors] = useState<{
+    email?: string;
+    password?: string;
+    confirmPassword?: string;
+    firstName?: string;
+    lastName?: string;
+    phoneNumber?: string;
+    aadhar?: string;
+  }>({});
+
   const navigate = useNavigate();
   const { toast } = useToast();
   const dispatch = useDispatch();
-  
+
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
   const [login, { isLoading: isLoginLoading }] = useLoginMutation();
   const [signup, { isLoading: isSignupLoading }] = useSignupMutation();
-  
+
   const loading = isLoginLoading || isSignupLoading;
 
   useEffect(() => {
@@ -45,75 +54,85 @@ const Auth = () => {
   }, [isAuthenticated, navigate]);
 
   const validateForm = () => {
-    const newErrors: { email?: string; password?: string; confirmPassword?: string; firstName?: string; lastName?: string; phoneNumber?: string; aadhar?: string } = {};
-    
+    const newErrors: {
+      email?: string;
+      password?: string;
+      confirmPassword?: string;
+      firstName?: string;
+      lastName?: string;
+      phoneNumber?: string;
+      aadhar?: string;
+    } = {};
+
     const emailResult = emailSchema.safeParse(email);
     if (!emailResult.success) {
       newErrors.email = emailResult.error.errors[0].message;
     }
-    
+
     const passwordResult = passwordSchema.safeParse(password);
     if (!passwordResult.success) {
       newErrors.password = passwordResult.error.errors[0].message;
     }
-    
+
     if (!isLogin) {
       if (password !== confirmPassword) {
-        newErrors.confirmPassword = "Passwords do not match";
+        newErrors.confirmPassword = 'Passwords do not match';
       }
       if (!firstName.trim()) {
-        newErrors.firstName = "First name is required";
+        newErrors.firstName = 'First name is required';
       }
       if (!lastName.trim()) {
-        newErrors.lastName = "Last name is required";
+        newErrors.lastName = 'Last name is required';
       }
       if (phoneNumber && !/^\d{10}$/.test(phoneNumber)) {
-        newErrors.phoneNumber = "Phone number must be 10 digits";
+        newErrors.phoneNumber = 'Phone number must be 10 digits';
       }
       if (aadhar && !/^\d{12}$/.test(aadhar)) {
-        newErrors.aadhar = "Aadhar must be 12 digits";
+        newErrors.aadhar = 'Aadhar must be 12 digits';
       }
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     try {
       if (isLogin) {
         const result = await login({ email: email.trim(), password }).unwrap();
-        
+
         if (result.success) {
-          dispatch(setCredentials({
-            user: result.data.user,
-            token: result.data.token,
-          }));
+          dispatch(
+            setCredentials({
+              user: result.data.user,
+              token: result.data.token,
+            })
+          );
           toast({
-            title: "Welcome back!",
-            description: result.message || "You have successfully logged in.",
+            title: 'Welcome back!',
+            description: result.message || 'You have successfully logged in.',
           });
           navigate('/');
         }
       } else {
-        const result = await signup({ 
-          email: email.trim(), 
-          password, 
-          firstName: firstName.trim(), 
+        const result = await signup({
+          email: email.trim(),
+          password,
+          firstName: firstName.trim(),
           lastName: lastName.trim(),
-          phoneNumber: phoneNumber,
-          dateOfBirth: dateOfBirth,
-          aadhar: aadhar,
+          phoneNumber,
+          dateOfBirth,
+          aadhar,
         }).unwrap();
-        
+
         if (result.success) {
           toast({
-            title: "Account created!",
-            description: result.message || "Your account has been created successfully. Please login.",
+            title: 'Account created!',
+            description: result.message || 'Your account has been created successfully. Please login.',
           });
           setIsLogin(true);
           setPassword('');
@@ -125,25 +144,20 @@ const Auth = () => {
           setAadhar('');
         }
       }
-    } catch (error) {
-      const errorMessage = error?.data?.message || error?.message || "An unexpected error occurred. Please try again.";
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred. Please try again.";
       toast({
-        title: isLogin ? "Login failed" : "Sign up failed",
+        title: isLogin ? 'Login failed' : 'Sign up failed',
         description: errorMessage,
-        variant: "destructive",
+        variant: 'destructive',
       });
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5 flex items-center justify-center p-4">
+    <div className=" bg-gradient-to-br from-background via-background to-accent/5 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors">
-          <ArrowLeft className="h-4 w-4" />
-          Back to home
-        </Link>
-        
-        <Card className="border-border/50 shadow-lg">
+        <Card className="border-border/50 shadow-lg max-h-[70vh] overflow-y-auto pr-2">
           <CardHeader className="text-center pb-2">
             <div className="flex items-center justify-center gap-2 mb-4">
               <div className="bg-primary p-2 rounded-lg">
@@ -151,19 +165,15 @@ const Auth = () => {
               </div>
               <span className="text-2xl font-bold text-primary">Cure Cottage</span>
             </div>
-            <CardTitle className="text-2xl">
-              {isLogin ? 'Welcome back' : 'Create an account'}
-            </CardTitle>
+            <CardTitle className="text-2xl">{isLogin ? 'Welcome back' : 'Create an account'}</CardTitle>
             <CardDescription>
-              {isLogin 
-                ? 'Sign in to access your health home bookings' 
-                : 'Sign up to start finding your perfect health home'}
+              {isLogin ? 'Sign in to access your health home bookings' : 'Sign up to start finding your perfect health home'}
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-            {!isLogin && (
+              {!isLogin && (
                 <>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -177,10 +187,9 @@ const Auth = () => {
                         className={errors.firstName ? 'border-destructive' : ''}
                         disabled={loading}
                       />
-                      {errors.firstName && (
-                        <p className="text-sm text-destructive">{errors.firstName}</p>
-                      )}
+                      {errors.firstName && <p className="text-sm text-destructive">{errors.firstName}</p>}
                     </div>
+
                     <div className="space-y-2">
                       <Label htmlFor="lastName">Last Name</Label>
                       <Input
@@ -192,12 +201,10 @@ const Auth = () => {
                         className={errors.lastName ? 'border-destructive' : ''}
                         disabled={loading}
                       />
-                      {errors.lastName && (
-                        <p className="text-sm text-destructive">{errors.lastName}</p>
-                      )}
+                      {errors.lastName && <p className="text-sm text-destructive">{errors.lastName}</p>}
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="phoneNumber">Phone Number</Label>
@@ -210,10 +217,9 @@ const Auth = () => {
                         className={errors.phoneNumber ? 'border-destructive' : ''}
                         disabled={loading}
                       />
-                      {errors.phoneNumber && (
-                        <p className="text-sm text-destructive">{errors.phoneNumber}</p>
-                      )}
+                      {errors.phoneNumber && <p className="text-sm text-destructive">{errors.phoneNumber}</p>}
                     </div>
+
                     <div className="space-y-2">
                       <Label htmlFor="dateOfBirth">Date of Birth</Label>
                       <Input
@@ -225,25 +231,11 @@ const Auth = () => {
                       />
                     </div>
                   </div>
+
                   
-                  {/* <div className="space-y-2">
-                    <Label htmlFor="aadhar">Aadhar Number</Label>
-                    <Input
-                      id="aadhar"
-                      type="text"
-                      placeholder="123456789012"
-                      value={aadhar}
-                      onChange={(e) => setAadhar(e.target.value.replace(/\D/g, '').slice(0, 12))}
-                      className={errors.aadhar ? 'border-destructive' : ''}
-                      disabled={loading}
-                    />
-                    {errors.aadhar && (
-                      <p className="text-sm text-destructive">{errors.aadhar}</p>
-                    )}
-                  </div> */}
-                
                 </>
               )}
+
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -255,11 +247,9 @@ const Auth = () => {
                   className={errors.email ? 'border-destructive' : ''}
                   disabled={loading}
                 />
-                {errors.email && (
-                  <p className="text-sm text-destructive">{errors.email}</p>
-                )}
+                {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
@@ -276,15 +266,14 @@ const Auth = () => {
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
-                {errors.password && (
-                  <p className="text-sm text-destructive">{errors.password}</p>
-                )}
+                {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
               </div>
-                
+
               {!isLogin && (
                 <div className="space-y-2">
                   <Label htmlFor="confirmPassword">Confirm Password</Label>
@@ -297,22 +286,18 @@ const Auth = () => {
                     className={errors.confirmPassword ? 'border-destructive' : ''}
                     disabled={loading}
                   />
-                  {errors.confirmPassword && (
-                    <p className="text-sm text-destructive">{errors.confirmPassword}</p>
-                  )}
+                  {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
                 </div>
               )}
-              
-             
-              
+
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Loading...' : (isLogin ? 'Sign In' : 'Sign Up')}
+                {loading ? 'Loading...' : isLogin ? 'Sign In' : 'Sign Up'}
               </Button>
             </form>
-            
+
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
-                {isLogin ? "Don't have an account?" : "Already have an account?"}
+                {isLogin ? "Don't have an account?" : 'Already have an account?'}
                 <button
                   type="button"
                   onClick={() => {
@@ -327,7 +312,7 @@ const Auth = () => {
             </div>
           </CardContent>
         </Card>
-        
+
         <p className="text-center text-xs text-muted-foreground mt-4">
           By continuing, you agree to our Terms of Service and Privacy Policy.
         </p>

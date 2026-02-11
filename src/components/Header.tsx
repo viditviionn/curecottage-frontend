@@ -1,6 +1,9 @@
+// ✅ Header.tsx (FULL FILE)
+// Place this as: src/components/Header.tsx (or your existing path)
+
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Shield, Heart, Menu, User } from 'lucide-react';
+import { Shield, Heart, Menu, User, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/rtk/store';
@@ -14,13 +17,37 @@ import {
 } from '@/components/ui/sheet';
 import { useUserProfileQuery } from '@/rtk/api/authApi';
 
+// ✅ shadcn alert-dialog
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog';
+
 interface HeaderProps {
   activePage?: 'health-homes' | 'home-conversion';
+  hideCenterNav?: boolean;              // when true => center switches to search bar
+  centerContent?: React.ReactNode;      // the searchbar rendered in header center
 }
 
-const Header = ({ activePage = 'health-homes' }: HeaderProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [open, setOpen] = useState(false);
+const Header = ({
+  activePage = 'health-homes',
+  hideCenterNav = false,
+  centerContent,
+}: HeaderProps) => {
+  const [isOpen, setIsOpen] = useState(false); // mobile sheet
+  const [open, setOpen] = useState(false); // desktop dropdown
+
+  // ✅ logout modal states
+  const [logoutModalOpen, setLogoutModalOpen] = useState(false);
+  const [logoutStep, setLogoutStep] = useState<'confirm' | 'success'>('confirm');
+  const [loggingOut, setLoggingOut] = useState(false);
+
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -29,258 +56,346 @@ const Header = ({ activePage = 'health-homes' }: HeaderProps) => {
   const { data: profileUser } = useUserProfileQuery(undefined, {
     skip: !isAuthenticated,
   });
-  
+
   const user = profileUser || storeUser;
 
-  const isHealthHomesActive = activePage === 'health-homes' || location.pathname === '/' || location.pathname === '/health-homes' || location.pathname === '/browse';
-  const isHomeConversionActive = activePage === 'home-conversion' || location.pathname === '/home-conversion';
+  const isHealthHomesActive =
+    activePage === 'health-homes' ||
+    location.pathname === '/' ||
+    location.pathname === '/health-homes' ||
+    location.pathname === '/browse';
+
+  const isHomeConversionActive =
+    activePage === 'home-conversion' || location.pathname === '/home-conversion';
 
   const navLinks = [
-    {
-      to: '/',
-      label: 'Health Homes',
-      isActive: isHealthHomesActive,
-    },
-    {
-      to: '/home-conversion',
-      label: 'Home Conversion',
-      isActive: isHomeConversionActive,
-    },
+    { to: '/', label: 'Health Homes', isActive: isHealthHomesActive },
+    { to: '/home-conversion', label: 'Home Conversion', isActive: isHomeConversionActive },
   ];
+
   const closeTimer = React.useRef<number | null>(null);
 
-const openDropdown = () => {
-  if (closeTimer.current) window.clearTimeout(closeTimer.current);
-  setOpen(true);
-};
+  const openDropdown = () => {
+    if (closeTimer.current) window.clearTimeout(closeTimer.current);
+    setOpen(true);
+  };
 
-const closeDropdown = () => {
-  closeTimer.current = window.setTimeout(() => setOpen(false), 150);
-};
+  const closeDropdown = () => {
+    closeTimer.current = window.setTimeout(() => setOpen(false), 150);
+  };
+
+  // ✅ open confirm modal
+  const requestLogout = () => {
+    setOpen(false);     // close desktop dropdown
+    setIsOpen(false);   // close mobile sheet
+    setLogoutStep('confirm');
+    setLogoutModalOpen(true);
+  };
+
+  // ✅ confirm logout + show tick
+  const confirmLogout = async () => {
+    try {
+      setLoggingOut(true);
+
+      // If you have an API logout call, await it here.
+      dispatch(logout());
+
+      setLogoutStep('success');
+
+      // show tick then redirect
+      window.setTimeout(() => {
+        setLogoutModalOpen(false);
+        navigate('/');
+      }, 900);
+    } finally {
+      setLoggingOut(false);
+    }
+  };
 
   return (
-    <header className="border-b border-border/40 bg-background/80 backdrop-blur-md sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-3 lg:py-4">
-        <div className="flex items-center justify-between">
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
-            <div className="bg-primary p-1.5 lg:p-2 rounded-lg">
-              <Shield className="h-5 w-5 lg:h-6 lg:w-6 text-primary-foreground" />
-            </div>
-            <div className="flex flex-col">
-              <h1 className="text-lg lg:text-2xl font-bold text-primary leading-tight">Cure Cottage</h1>
-              <p className="text-[0.6rem] lg:text-xs text-muted-foreground hidden sm:block">Heal faster. Save more. Feel at home.</p>
-            </div>
-          </Link>
+    <>
+      <header className="border-b border-border/40 bg-background/80 backdrop-blur-md sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-3 lg:py-4">
+          <div className="flex items-center justify-between gap-4">
+            {/* Logo */}
+            <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
+              <div className="bg-primary p-1.5 lg:p-2 rounded-lg">
+                <Shield className="h-5 w-5 lg:h-6 lg:w-6 text-primary-foreground" />
+              </div>
+              <div className="flex flex-col">
+                <h1 className="text-lg lg:text-2xl font-bold text-primary leading-tight">
+                  Cure Cottage
+                </h1>
+                <p className="text-[0.6rem] lg:text-xs text-muted-foreground hidden sm:block">
+                  Heal faster. Save more. Feel at home.
+                </p>
+              </div>
+            </Link>
 
-          {/* Desktop Navigation - shows on lg screens and up */}
-          <nav className="hidden lg:flex items-center justify-center flex-1 mx-4">
-            <div className="flex items-center space-x-8">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  className={`transition-colors ${link.isActive
-                      ? 'text-primary font-medium'
-                      : 'text-foreground hover:text-primary'
-                    }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
-             <Link
-  to={isAuthenticated ? `/become-provider?service=${activePage}` : "/auth"}
-  state={!isAuthenticated ? { from: `/become-provider?service=${activePage}` } : undefined}
-  onClick={(e) => {
-    if (!isAuthenticated) {
-      e.preventDefault();
-      navigate("/auth", {
-        state: { from: `/become-provider?service=${activePage}` },
-      });
-    }
-  }}
-  className="inline-flex items-center gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap"
->
-  <Heart className="h-4 w-4" />
-  Be the Host
-</Link>
-            </div>
-          </nav>
-
-          {/* Desktop Auth Buttons - shows on lg screens and up */}
-          <div className="hidden lg:flex items-center space-x-4 flex-shrink-0">
-          {isAuthenticated ? (
-            <div
-              className="relative"
-              onMouseEnter={openDropdown}
-              onMouseLeave={closeDropdown}
-            >
-              {/* Avatar/Icon */}
-              <button
-                type="button"
-                className="bg-primary/10 p-2 rounded-full cursor-pointer hover:bg-primary/20 transition-colors"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setOpen((prev) => !prev); // click also toggle (optional)
-                }}
-                aria-label="User menu"
-              >
-                <User className="h-5 w-5 text-primary" />
-              </button>
-
-              {/* Dropdown */}
-              {open && (
-                <div
-                  className="absolute top-12 right-0 z-50 bg-white shadow-lg border rounded-xl min-w-[240px] overflow-hidden"
-                  onMouseEnter={openDropdown}
-                  onMouseLeave={closeDropdown}
-                >
-                  {/* Header */}
-                  <div className="px-4 py-3 border-b bg-muted/30">
-                    <p className="text-sm font-semibold capitalize leading-tight">
-                      {user?.firstName} {user?.lastName}
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-                  </div>
-
-                  {/* Menu */}
-                  <div className="p-2">
-                    <button
-                      className="w-full text-left px-3 py-2 rounded-lg hover:bg-muted transition-colors text-sm"
-                      onClick={() => {
-                        navigate("/profile");
-                        setOpen(false);
-                      }}
-                    >
-                      Profile
-                    </button>
-
-                    <button
-                      className="w-full text-left px-3 py-2 rounded-lg hover:bg-muted transition-colors text-sm text-red-600"
-                      onClick={() => {
-                        dispatch(logout());
-                        setOpen(false);
-                        navigate("/auth"); // ✅ redirect to sign in page
-                      }}
-                    >
-                      Logout
-                    </button>
-                  </div>
+            {/* ✅ Desktop Center Area (Nav OR Searchbar like Airbnb) */}
+            <div className="hidden lg:flex items-center justify-center flex-1 mx-2">
+              {hideCenterNav ? (
+                <div className="w-full max-w-[820px]">
+                  {centerContent}
                 </div>
-              )}
-            </div>
-          ) : (
-              <>
-                <Link to="/auth">
-                  <Button variant="ghost" size="sm">Sign In</Button>
-                </Link>
-                <Link to="/auth">
-                  <Button size="sm">Get Started</Button>
-                </Link>
-              </>
-            )}
-          </div>
-
-          {/* Mobile/Tablet Menu Button - shows on screens below lg */}
-          <div className="lg:hidden">
-            <Sheet open={isOpen} onOpenChange={setIsOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-10 w-10">
-                  <Menu className="h-6 w-6" />
-                  <span className="sr-only">Open menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[350px]">
-                <SheetHeader>
-                  <SheetTitle className="flex items-center gap-2">
-                    <div className="bg-primary p-1.5 rounded-lg">
-                      <Shield className="h-5 w-5 text-primary-foreground" />
-                    </div>
-                    <span className="text-primary">Cure Cottage</span>
-                  </SheetTitle>
-                </SheetHeader>
-                <nav className="flex flex-col gap-4 mt-8">
+              ) : (
+                <nav className="flex items-center space-x-8">
                   {navLinks.map((link) => (
                     <Link
                       key={link.to}
                       to={link.to}
-                      onClick={() => setIsOpen(false)}
-                      className={`text-lg py-2 px-4 rounded-lg transition-colors ${link.isActive
-                          ? 'bg-primary/10 text-primary font-medium'
-                          : 'text-foreground hover:bg-muted'
-                        }`}
+                      className={`transition-colors ${
+                        link.isActive
+                          ? 'text-primary font-medium'
+                          : 'text-foreground hover:text-primary'
+                      }`}
                     >
                       {link.label}
                     </Link>
                   ))}
-                 <Link
-  to={isAuthenticated ? `/become-provider?service=${activePage}` : "/auth"}
-  state={!isAuthenticated ? { from: `/become-provider?service=${activePage}` } : undefined}
-  onClick={(e) => {
-    if (!isAuthenticated) {
-      e.preventDefault();
-      navigate("/auth", {
-        state: { from: `/become-provider?service=${activePage}` },
-      });
-    }
-  }}
-  className="inline-flex items-center gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap"
->
-  <Heart className="h-4 w-4" />
-  Be the Host
-</Link>
-                  <div className="border-t border-border my-4" />
-                  {isAuthenticated ? (
-                    <>
-                      <div className="flex items-center gap-3 px-4 py-2">
-                        <div className="bg-primary/10 p-2 rounded-full">
-                          <User className="h-5 w-5 text-primary" />
-                        </div>
-                        <span className="text-lg font-medium">{user?.firstName} {user?.lastName}</span>
-                      </div>
-                      <Link
-                        to="/profile"
-                        onClick={() => setIsOpen(false)}
-                        className="text-lg py-2 px-4 rounded-lg text-foreground hover:bg-muted transition-colors"
-                      >
-                        Profile
-                      </Link>
-                      <Button
-                        className="flex items-center gap-2 text-lg py-2 px-4 rounded-lg text-foreground hover:bg-primary/20 transition-colors"
-                        size="lg"
-                        variant="outline"
-                        onClick={() => {
-                          dispatch(logout());
-                          setIsOpen(false);
-                          navigate("/auth");
-                        }}
-                      >
-                        Logout
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <Link
-                        to="/auth"
-                        onClick={() => setIsOpen(false)}
-                        className="text-lg py-2 px-4 rounded-lg text-foreground hover:bg-muted transition-colors"
-                      >
-                        Sign In
-                      </Link>
-                      <Link to="/auth" onClick={() => setIsOpen(false)}>
-                        <Button className="w-full" size="lg">
-                          Get Started
-                        </Button>
-                      </Link>
-                    </>
-                  )}
                 </nav>
-              </SheetContent>
-            </Sheet>
+              )}
+            </div>
+
+            {/* ✅ Desktop Right Side (Be the Host + Auth/User always visible) */}
+            <div className="hidden lg:flex items-center space-x-4 flex-shrink-0">
+              {/* Be the Host stays right always */}
+              <Link
+                to={isAuthenticated ? `/become-provider?service=${activePage}` : '/auth'}
+                state={!isAuthenticated ? { from: `/become-provider?service=${activePage}` } : undefined}
+                onClick={(e) => {
+                  if (!isAuthenticated) {
+                    e.preventDefault();
+                    navigate('/auth', { state: { from: `/become-provider?service=${activePage}` } });
+                  }
+                }}
+                className="inline-flex items-center gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap"
+              >
+                <Heart className="h-4 w-4" />
+                Be the Host
+              </Link>
+
+              {isAuthenticated ? (
+                <div className="relative" onMouseEnter={openDropdown} onMouseLeave={closeDropdown}>
+                  <button
+                    type="button"
+                    className="bg-primary/10 p-2 rounded-full cursor-pointer hover:bg-primary/20 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpen((prev) => !prev);
+                    }}
+                    aria-label="User menu"
+                  >
+                    <User className="h-5 w-5 text-primary" />
+                  </button>
+
+                  {open && (
+                    <div
+                      className="absolute top-12 right-0 z-50 bg-white shadow-lg border rounded-xl min-w-[240px] overflow-hidden"
+                      onMouseEnter={openDropdown}
+                      onMouseLeave={closeDropdown}
+                    >
+                      <div className="px-4 py-3 border-b bg-muted/30">
+                        <p className="text-sm font-semibold capitalize leading-tight">
+                          {user?.firstName} {user?.lastName}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                      </div>
+
+                      <div className="p-2">
+                        <button
+                          className="w-full text-left px-3 py-2 rounded-lg hover:bg-muted transition-colors text-sm"
+                          onClick={() => {
+                            navigate('/profile');
+                            setOpen(false);
+                          }}
+                        >
+                          Profile
+                        </button>
+
+                        <button
+                          className="w-full text-left px-3 py-2 rounded-lg hover:bg-muted transition-colors text-sm text-red-600"
+                          onClick={requestLogout}
+                        >
+                          Logout
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <Link to="/auth" state={{ backgroundLocation: location }}>
+                    <Button variant="ghost" size="sm">
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Link to="/auth" state={{ backgroundLocation: location }}>
+                    <Button size="sm">Get Started</Button>
+                  </Link>
+                </>
+              )}
+            </div>
+
+            {/* Mobile Menu */}
+            <div className="lg:hidden">
+              <Sheet open={isOpen} onOpenChange={setIsOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-10 w-10">
+                    <Menu className="h-6 w-6" />
+                    <span className="sr-only">Open menu</span>
+                  </Button>
+                </SheetTrigger>
+
+                <SheetContent side="right" className="w-[300px] sm:w-[350px]">
+                  <SheetHeader>
+                    <SheetTitle className="flex items-center gap-2">
+                      <div className="bg-primary p-1.5 rounded-lg">
+                        <Shield className="h-5 w-5 text-primary-foreground" />
+                      </div>
+                      <span className="text-primary">Cure Cottage</span>
+                    </SheetTitle>
+                  </SheetHeader>
+
+                  <nav className="flex flex-col gap-4 mt-8">
+                    {navLinks.map((link) => (
+                      <Link
+                        key={link.to}
+                        to={link.to}
+                        onClick={() => setIsOpen(false)}
+                        className={`text-lg py-2 px-4 rounded-lg transition-colors ${
+                          link.isActive
+                            ? 'bg-primary/10 text-primary font-medium'
+                            : 'text-foreground hover:bg-muted'
+                        }`}
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+
+                    <Link
+                      to={isAuthenticated ? `/become-provider?service=${activePage}` : '/auth'}
+                      state={!isAuthenticated ? { from: `/become-provider?service=${activePage}` } : undefined}
+                      onClick={(e) => {
+                        if (!isAuthenticated) {
+                          e.preventDefault();
+                          navigate('/auth', {
+                            state: { from: `/become-provider?service=${activePage}` },
+                          });
+                        }
+                        setIsOpen(false);
+                      }}
+                      className="inline-flex items-center gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap"
+                    >
+                      <Heart className="h-4 w-4" />
+                      Be the Host
+                    </Link>
+
+                    <div className="border-t border-border my-4" />
+
+                    {isAuthenticated ? (
+                      <>
+                        <div className="flex items-center gap-3 px-4 py-2">
+                          <div className="bg-primary/10 p-2 rounded-full">
+                            <User className="h-5 w-5 text-primary" />
+                          </div>
+                          <span className="text-lg font-medium">
+                            {user?.firstName} {user?.lastName}
+                          </span>
+                        </div>
+
+                        <Link
+                          to="/profile"
+                          onClick={() => setIsOpen(false)}
+                          className="text-lg py-2 px-4 rounded-lg text-foreground hover:bg-muted transition-colors"
+                        >
+                          Profile
+                        </Link>
+
+                        <Button
+                          className="flex items-center gap-2 text-lg py-2 px-4 rounded-lg"
+                          size="lg"
+                          variant="outline"
+                          onClick={requestLogout}
+                        >
+                          Logout
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Link
+                          to="/auth"
+                          state={location}
+                          className="text-lg py-2 px-4 rounded-lg text-foreground hover:bg-muted transition-colors"
+                        >
+                          Sign In
+                        </Link>
+                        <Link to="/auth" state={location}>
+                          <Button className="w-full" size="lg">
+                            Get Started
+                          </Button>
+                        </Link>
+                      </>
+                    )}
+                  </nav>
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
+
+          {/* ✅ Mobile Center Search (optional) */}
+          {/* If you want search inside header on mobile also, you can pass centerContent and render here */}
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* ✅ Logout Confirm Modal */}
+      <AlertDialog
+        open={logoutModalOpen}
+        onOpenChange={(v) => {
+          if (loggingOut) return;
+          setLogoutModalOpen(v);
+          if (!v) setLogoutStep('confirm');
+        }}
+      >
+        <AlertDialogContent className="rounded-2xl">
+          {logoutStep === 'confirm' ? (
+            <>
+              <AlertDialogHeader className="text-center">
+                <AlertDialogTitle className="text-base sm:text-lg">
+                  Are you sure, you want to logout?
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-sm">
+                  You will be signed out from your account.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+
+              <AlertDialogFooter className="flex flex-row gap-3 sm:gap-4 justify-center sm:justify-end">
+                <AlertDialogCancel className="rounded-full px-6" disabled={loggingOut}>
+                  Cancel
+                </AlertDialogCancel>
+
+                <AlertDialogAction
+                  className="rounded-full px-6 bg-primary text-primary-foreground hover:bg-primary/90"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    confirmLogout();
+                  }}
+                  disabled={loggingOut}
+                >
+                  {loggingOut ? 'Logging out...' : 'Logout'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </>
+          ) : (
+            <div className="py-8 flex flex-col items-center justify-center text-center gap-2">
+              <CheckCircle2 className="h-12 w-12 text-primary" />
+              <p className="text-base font-semibold">Logged out successfully</p>
+              <p className="text-sm text-muted-foreground">Redirecting…</p>
+            </div>
+          )}
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
 

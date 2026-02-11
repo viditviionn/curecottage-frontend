@@ -96,19 +96,42 @@ const SidebarProvider = React.forwardRef<
 
     // Adds a keyboard shortcut to toggle the sidebar.
     React.useEffect(() => {
+      const isTypingElement = (t: EventTarget | null) => {
+        if (!(t instanceof HTMLElement)) return false;
+        const tag = t.tagName;
+        return (
+          tag === "INPUT" ||
+          tag === "TEXTAREA" ||
+          tag === "SELECT" ||
+          t.isContentEditable
+        );
+      };
+    
+      const isAnyDialogOpen = () => {
+        // Radix Dialog/Sheet usually renders role="dialog" and often data-state="open"
+        return !!document.querySelector('[role="dialog"][data-state="open"]');
+      };
+    
       const handleKeyDown = (event: KeyboardEvent) => {
+        // ✅ 1) If any modal/dialog is open, ignore sidebar shortcuts
+        if (isAnyDialogOpen()) return;
+    
+        // ✅ 2) If user is typing in an input/textarea/select, ignore shortcuts
+        if (isTypingElement(event.target)) return;
+    
+        // ✅ existing shortcut
         if (
-          event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
+          event.key.toLowerCase() === SIDEBAR_KEYBOARD_SHORTCUT &&
           (event.metaKey || event.ctrlKey)
         ) {
-          event.preventDefault()
-          toggleSidebar()
+          event.preventDefault();
+          toggleSidebar();
         }
-      }
-
-      window.addEventListener("keydown", handleKeyDown)
-      return () => window.removeEventListener("keydown", handleKeyDown)
-    }, [toggleSidebar])
+      };
+    
+      window.addEventListener("keydown", handleKeyDown);
+      return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [toggleSidebar]);
 
     // We add a state so that we can do data-state="expanded" or "collapsed".
     // This makes it easier to style the sidebar with Tailwind classes.

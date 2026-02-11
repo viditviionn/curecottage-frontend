@@ -1,21 +1,21 @@
 // ✅ Header.tsx (FULL FILE)
 // Place this as: src/components/Header.tsx (or your existing path)
 
-import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Shield, Heart, Menu, User, CheckCircle2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '@/rtk/store';
-import { logout } from '@/rtk/slices/authSlice';
+import React, { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Shield, Heart, Menu, User, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "@/rtk/store";
+import { logout } from "@/rtk/slices/authSlice";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from '@/components/ui/sheet';
-import { useUserProfileQuery } from '@/rtk/api/authApi';
+} from "@/components/ui/sheet";
+import { useUserProfileQuery } from "@/rtk/api/authApi";
 
 // ✅ shadcn alert-dialog
 import {
@@ -27,16 +27,16 @@ import {
   AlertDialogFooter,
   AlertDialogCancel,
   AlertDialogAction,
-} from '@/components/ui/alert-dialog';
+} from "@/components/ui/alert-dialog";
 
 interface HeaderProps {
-  activePage?: 'health-homes' | 'home-conversion';
-  hideCenterNav?: boolean;              // when true => center switches to search bar
-  centerContent?: React.ReactNode;      // the searchbar rendered in header center
+  activePage?: "health-homes" | "home-conversion";
+  hideCenterNav?: boolean; // when true => center switches to search bar
+  centerContent?: React.ReactNode; // the searchbar rendered in header center
 }
 
 const Header = ({
-  activePage = 'health-homes',
+  activePage = "health-homes",
   hideCenterNav = false,
   centerContent,
 }: HeaderProps) => {
@@ -45,13 +45,17 @@ const Header = ({
 
   // ✅ logout modal states
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
-  const [logoutStep, setLogoutStep] = useState<'confirm' | 'success'>('confirm');
+  const [logoutStep, setLogoutStep] = useState<"confirm" | "success">(
+    "confirm",
+  );
   const [loggingOut, setLoggingOut] = useState(false);
 
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { isAuthenticated, user: storeUser } = useSelector((state: RootState) => state.auth);
+  const { isAuthenticated, user: storeUser } = useSelector(
+    (state: RootState) => state.auth,
+  );
 
   const { data: profileUser } = useUserProfileQuery(undefined, {
     skip: !isAuthenticated,
@@ -60,17 +64,22 @@ const Header = ({
   const user = profileUser || storeUser;
 
   const isHealthHomesActive =
-    activePage === 'health-homes' ||
-    location.pathname === '/' ||
-    location.pathname === '/health-homes' ||
-    location.pathname === '/browse';
+    activePage === "health-homes" ||
+    location.pathname === "/" ||
+    location.pathname === "/health-homes" ||
+    location.pathname === "/browse";
 
   const isHomeConversionActive =
-    activePage === 'home-conversion' || location.pathname === '/home-conversion';
+    activePage === "home-conversion" ||
+    location.pathname === "/home-conversion";
 
   const navLinks = [
-    { to: '/', label: 'Health Homes', isActive: isHealthHomesActive },
-    { to: '/home-conversion', label: 'Home Conversion', isActive: isHomeConversionActive },
+    { to: "/", label: "Health Homes", isActive: isHealthHomesActive },
+    {
+      to: "/home-conversion",
+      label: "Home Conversion",
+      isActive: isHomeConversionActive,
+    },
   ];
 
   const closeTimer = React.useRef<number | null>(null);
@@ -86,9 +95,9 @@ const Header = ({
 
   // ✅ open confirm modal
   const requestLogout = () => {
-    setOpen(false);     // close desktop dropdown
-    setIsOpen(false);   // close mobile sheet
-    setLogoutStep('confirm');
+    setOpen(false); // close desktop dropdown
+    setIsOpen(false); // close mobile sheet
+    setLogoutStep("confirm");
     setLogoutModalOpen(true);
   };
 
@@ -100,12 +109,12 @@ const Header = ({
       // If you have an API logout call, await it here.
       dispatch(logout());
 
-      setLogoutStep('success');
+      setLogoutStep("success");
 
       // show tick then redirect
       window.setTimeout(() => {
         setLogoutModalOpen(false);
-        navigate('/');
+        navigate("/");
       }, 900);
     } finally {
       setLoggingOut(false);
@@ -135,9 +144,7 @@ const Header = ({
             {/* ✅ Desktop Center Area (Nav OR Searchbar like Airbnb) */}
             <div className="hidden lg:flex items-center justify-center flex-1 mx-2">
               {hideCenterNav ? (
-                <div className="w-full max-w-[820px]">
-                  {centerContent}
-                </div>
+                <div className="w-full max-w-[820px]">{centerContent}</div>
               ) : (
                 <nav className="flex items-center space-x-8">
                   {navLinks.map((link) => (
@@ -146,8 +153,8 @@ const Header = ({
                       to={link.to}
                       className={`transition-colors ${
                         link.isActive
-                          ? 'text-primary font-medium'
-                          : 'text-foreground hover:text-primary'
+                          ? "text-primary font-medium"
+                          : "text-foreground hover:text-primary"
                       }`}
                     >
                       {link.label}
@@ -160,7 +167,7 @@ const Header = ({
             {/* ✅ Desktop Right Side (Be the Host + Auth/User always visible) */}
             <div className="hidden lg:flex items-center space-x-4 flex-shrink-0">
               {/* Be the Host stays right always */}
-              <Link
+              {/* <Link
                 to={isAuthenticated ? `/become-provider?service=${activePage}` : '/auth'}
                 state={!isAuthenticated ? { from: `/become-provider?service=${activePage}` } : undefined}
                 onClick={(e) => {
@@ -172,11 +179,36 @@ const Header = ({
                 className="inline-flex items-center gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap"
               >
                 <Heart className="h-4 w-4" />
+                Be the Host hello 1
+              </Link> */}
+
+              <Link
+                to={
+                  isAuthenticated
+                    ? `/become-provider?service=${activePage}`
+                    : "/auth"
+                }
+                state={
+                  !isAuthenticated
+                    ? {
+                        backgroundLocation: location, // ✅ this makes it open as modal (SS-2)
+                        from: `/become-provider?service=${activePage}`, // ✅ keep redirect
+                      }
+                    : undefined
+                }
+                onClick={() => setIsOpen(false)}
+                className="inline-flex items-center gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap"
+              >
+                <Heart className="h-4 w-4" />
                 Be the Host
               </Link>
 
               {isAuthenticated ? (
-                <div className="relative" onMouseEnter={openDropdown} onMouseLeave={closeDropdown}>
+                <div
+                  className="relative"
+                  onMouseEnter={openDropdown}
+                  onMouseLeave={closeDropdown}
+                >
                   <button
                     type="button"
                     className="bg-primary/10 p-2 rounded-full cursor-pointer hover:bg-primary/20 transition-colors"
@@ -199,14 +231,16 @@ const Header = ({
                         <p className="text-sm font-semibold capitalize leading-tight">
                           {user?.firstName} {user?.lastName}
                         </p>
-                        <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {user?.email}
+                        </p>
                       </div>
 
                       <div className="p-2">
                         <button
                           className="w-full text-left px-3 py-2 rounded-lg hover:bg-muted transition-colors text-sm"
                           onClick={() => {
-                            navigate('/profile');
+                            navigate("/profile");
                             setOpen(false);
                           }}
                         >
@@ -230,9 +264,9 @@ const Header = ({
                       Sign In
                     </Button>
                   </Link>
-                  <Link to="/auth" state={{ backgroundLocation: location }}>
+                  {/* <Link to="/auth" state={{ backgroundLocation: location }}>
                     <Button size="sm">Get Started</Button>
-                  </Link>
+                  </Link> */}
                 </>
               )}
             </div>
@@ -265,8 +299,8 @@ const Header = ({
                         onClick={() => setIsOpen(false)}
                         className={`text-lg py-2 px-4 rounded-lg transition-colors ${
                           link.isActive
-                            ? 'bg-primary/10 text-primary font-medium'
-                            : 'text-foreground hover:bg-muted'
+                            ? "bg-primary/10 text-primary font-medium"
+                            : "text-foreground hover:bg-muted"
                         }`}
                       >
                         {link.label}
@@ -274,13 +308,23 @@ const Header = ({
                     ))}
 
                     <Link
-                      to={isAuthenticated ? `/become-provider?service=${activePage}` : '/auth'}
-                      state={!isAuthenticated ? { from: `/become-provider?service=${activePage}` } : undefined}
+                      to={
+                        isAuthenticated
+                          ? `/become-provider?service=${activePage}`
+                          : "/auth"
+                      }
+                      state={
+                        !isAuthenticated
+                          ? { from: `/become-provider?service=${activePage}` }
+                          : undefined
+                      }
                       onClick={(e) => {
                         if (!isAuthenticated) {
                           e.preventDefault();
-                          navigate('/auth', {
-                            state: { from: `/become-provider?service=${activePage}` },
+                          navigate("/auth", {
+                            state: {
+                              from: `/become-provider?service=${activePage}`,
+                            },
                           });
                         }
                         setIsOpen(false);
@@ -354,11 +398,11 @@ const Header = ({
         onOpenChange={(v) => {
           if (loggingOut) return;
           setLogoutModalOpen(v);
-          if (!v) setLogoutStep('confirm');
+          if (!v) setLogoutStep("confirm");
         }}
       >
         <AlertDialogContent className="rounded-2xl">
-          {logoutStep === 'confirm' ? (
+          {logoutStep === "confirm" ? (
             <>
               <AlertDialogHeader className="text-center">
                 <AlertDialogTitle className="text-base sm:text-lg">
@@ -370,7 +414,10 @@ const Header = ({
               </AlertDialogHeader>
 
               <AlertDialogFooter className="flex flex-row gap-3 sm:gap-4 justify-center sm:justify-end">
-                <AlertDialogCancel className="rounded-full px-6" disabled={loggingOut}>
+                <AlertDialogCancel
+                  className="rounded-full px-6"
+                  disabled={loggingOut}
+                >
                   Cancel
                 </AlertDialogCancel>
 
@@ -382,7 +429,7 @@ const Header = ({
                   }}
                   disabled={loggingOut}
                 >
-                  {loggingOut ? 'Logging out...' : 'Logout'}
+                  {loggingOut ? "Logging out..." : "Logout"}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </>

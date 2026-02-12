@@ -1,7 +1,7 @@
 // ✅ Header.tsx (FULL FILE)
 // Place this as: src/components/Header.tsx (or your existing path)
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Shield, Heart, Menu, User, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -132,10 +132,25 @@ const Header = ({
     return () => window.removeEventListener("cc:searchDock", handler as EventListener);
   }, []);
 
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const onDocMouseDown = (e: MouseEvent) => {
+      if (!open) return;
+      const target = e.target as Node;
+      if (menuRef.current && !menuRef.current.contains(target)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", onDocMouseDown);
+    return () => document.removeEventListener("mousedown", onDocMouseDown);
+  }, [open]);
+
   return (
     <>
-      <header className="border-b border-border/40 bg-background/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-3 lg:py-4">
+<header className="border-b border-border/40 bg-background/80 backdrop-blur-md sticky top-0 z-[9999]">
+<div className="container mx-auto px-4 py-3 lg:py-4">
           <div className="flex items-center justify-between gap-4">
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
@@ -167,11 +182,10 @@ const Header = ({
                   <Link
                     key={link.to}
                     to={link.to}
-                    className={`transition-colors ${
-                      link.isActive
+                    className={`transition-colors ${link.isActive
                         ? "text-primary font-medium"
                         : "text-foreground hover:text-primary"
-                    }`}
+                      }`}
                   >
                     {link.label}
                   </Link>
@@ -224,9 +238,9 @@ const Header = ({
                 state={
                   !isAuthenticated
                     ? {
-                        backgroundLocation: location, // ✅ this makes it open as modal (SS-2)
-                        from: `/become-provider?service=${activePage}`, // ✅ keep redirect
-                      }
+                      backgroundLocation: location, // ✅ this makes it open as modal (SS-2)
+                      from: `/become-provider?service=${activePage}`, // ✅ keep redirect
+                    }
                     : undefined
                 }
                 onClick={() => setIsOpen(false)}
@@ -237,17 +251,14 @@ const Header = ({
               </Link>
 
               {isAuthenticated ? (
-                <div
-                  className="relative"
-                  onMouseEnter={openDropdown}
-                  onMouseLeave={closeDropdown}
-                >
+                <div className="relative" ref={menuRef}>
                   <button
                     type="button"
                     className="bg-primary/10 p-2 rounded-full cursor-pointer hover:bg-primary/20 transition-colors"
+                    onMouseEnter={() => setOpen(true)}     // ✅ hover open
                     onClick={(e) => {
                       e.stopPropagation();
-                      setOpen((prev) => !prev);
+                      setOpen((prev) => !prev);           // ✅ click toggle
                     }}
                     aria-label="User menu"
                   >
@@ -257,16 +268,13 @@ const Header = ({
                   {open && (
                     <div
                       className="absolute top-12 right-0 z-50 bg-white shadow-lg border rounded-xl min-w-[240px] overflow-hidden"
-                      onMouseEnter={openDropdown}
-                      onMouseLeave={closeDropdown}
+                      onMouseEnter={() => setOpen(true)}  // ✅ keep open when hovering menu
                     >
                       <div className="px-4 py-3 border-b bg-muted/30">
                         <p className="text-sm font-semibold capitalize leading-tight">
                           {user?.firstName} {user?.lastName}
                         </p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {user?.email}
-                        </p>
+                        <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                       </div>
 
                       <div className="p-2">
@@ -289,6 +297,7 @@ const Header = ({
                       </div>
                     </div>
                   )}
+
                 </div>
               ) : (
                 <>
@@ -330,11 +339,10 @@ const Header = ({
                         key={link.to}
                         to={link.to}
                         onClick={() => setIsOpen(false)}
-                        className={`text-lg py-2 px-4 rounded-lg transition-colors ${
-                          link.isActive
+                        className={`text-lg py-2 px-4 rounded-lg transition-colors ${link.isActive
                             ? "bg-primary/10 text-primary font-medium"
                             : "text-foreground hover:bg-muted"
-                        }`}
+                          }`}
                       >
                         {link.label}
                       </Link>

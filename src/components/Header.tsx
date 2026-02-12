@@ -125,7 +125,12 @@ const Header = ({
   // Listen to search dock event from SearchBar
   useEffect(() => {
     const handler = (e: CustomEvent) => {
-      setIsDocked(!!e.detail?.docked);
+      if(!!e.detail?.docked)
+        {setIsDocked(!!e.detail?.docked);}
+      else{
+        // Undock after short delay to allow SearchBar to animate out
+        setTimeout(() => setIsDocked(false), -0);
+      }
     };
 
     window.addEventListener("cc:searchDock", handler as EventListener);

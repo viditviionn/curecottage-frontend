@@ -105,10 +105,12 @@ const Index = () => {
     city,
     cityHomes,
     displayedHomes,
+    hasSearched,
   }: {
     city: string;
     cityHomes: Property[];
     displayedHomes: Property[];
+    hasSearched: boolean;
   }) => {
     const autoplayPlugin = useRef(Autoplay({ delay: 3000, stopOnInteraction: true }));
 
@@ -133,154 +135,231 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Mobile Carousel */}
-          <div className="md:hidden">
-            <Carousel
-              plugins={[autoplayPlugin.current]}
-              opts={{ align: 'start', loop: displayedHomes.length > 1 }}
-              className="w-full relative"
-              onMouseEnter={autoplayPlugin.current.stop}
-              onMouseLeave={autoplayPlugin.current.reset}
-            >
-              <CarouselContent className="-ml-4">
-                {displayedHomes.map((home) => (
-                  <CarouselItem key={home.id} className="pl-4 basis-full">
-                    <Card
-                      className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-primary/30 overflow-hidden w-full"
-                      onClick={() => navigate(`/health-home/${home.id}`)}
-                    >
-                      <div className="relative h-40 overflow-hidden">
-                        <img
-                          src={getCardImage(home)}
-                          alt={home.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-
-                        <div className="absolute top-2 right-2 bg-green-600 text-white backdrop-blur-sm rounded-lg px-2 py-1">
-                          <span className="text-xs font-semibold">{home.status.toUpperCase()}</span>
-                        </div>
-
-                        <div className="absolute top-2 left-2 bg-primary text-primary-foreground rounded-lg px-2 py-1">
-                          <span className="text-xs font-semibold">
-                            {home.propertyType.toUpperCase()}
-                          </span>
-                        </div>
-                      </div>
-
-                      <CardContent className="p-4">
-                        <h3 className="text-base font-semibold mb-1 group-hover:text-primary transition-colors line-clamp-1">
-                          {home.name}
-                        </h3>
-
-                        <div className="flex items-center gap-1 text-muted-foreground mb-2">
-                          <MapPin className="h-3 w-3" />
-                          <span className="text-xs line-clamp-1">{getLocation(home)}</span>
-                        </div>
-
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
-                          <div className="flex items-center gap-1">
-                            <Users className="h-3 w-3" />
-                            <span>{home.totalRooms} rooms</span>
-                          </div>
-                        </div>
-
-                        <Button variant="outline" size="sm" className="w-full text-sm">
-                          View Details
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-
-              <CarouselPrevious className="left-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
-              <CarouselNext className="right-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
-            </Carousel>
-          </div>
-
-          {/* Desktop Carousel */}
-          <div className="hidden md:block">
-            <Carousel opts={{ align: 'start', loop: displayedHomes.length > 3 }} className="w-full relative">
-              <CarouselContent className="-ml-4">
-                {displayedHomes.map((home) => (
-                  <CarouselItem key={home.id} className="pl-4 basis-1/3">
-                    <Card
-                      className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden w-full"
-                      onClick={() => navigate(`/health-home/${home.id}`)}
-                    >
-                      <div className="relative h-32 md:h-40 overflow-hidden">
-                        <img
-                          src={getCardImage(home)}
-                          alt={home.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1">
-                          <div className="flex items-center gap-1">
-                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                            <span className="text-xs font-semibold">New</span>
-                          </div>
-                        </div>
-                        <div className="absolute top-2 left-2 bg-primary text-primary-foreground rounded-lg px-2 py-1">
-                          <span className="text-xs font-semibold">₹{home.totalRooms * 500}/day</span>
-                        </div>
-                      </div>
-
-                      <CardContent className="p-4">
-                        <div className="mb-3">
-                          <h3 className="text-base md:text-lg font-semibold mb-1 text-foreground group-hover:text-primary transition-colors line-clamp-1">
-                            {home.name}
-                          </h3>
-                          <div className="flex items-center gap-1 text-muted-foreground mb-2">
-                            <MapPin className="h-3 w-3" />
-                            <span className="text-xs line-clamp-1">{getLocation(home)}</span>
-                          </div>
-                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <Users className="h-3 w-3" />
-                              <span>{home.totalRooms} rooms</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Hospital className="h-3 w-3" />
-                              <span>Nearby hospital</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="mb-3">
-                          <div className="flex flex-wrap gap-1">
-                            <Badge variant="secondary" className="text-xs py-0 px-2 h-5">
-                              {home.propertyType.toUpperCase()}
-                            </Badge>
-                            <Badge
-                              variant="outline"
-                              className="text-xs bg-green-600 text-white py-0 px-2 h-5"
-                            >
-                              {home.status.toUpperCase()}
-                            </Badge>
-                          </div>
-                        </div>
-
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full text-sm group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/health-home/${home.id}`);
-                          }}
+          {/* When NOT searched: show carousels (mobile + desktop) */}
+          {!hasSearched ? (
+            <>
+              {/* Mobile Carousel */}
+              <div className="md:hidden">
+                <Carousel
+                  plugins={[autoplayPlugin.current]}
+                  opts={{ align: 'start', loop: displayedHomes.length > 1 }}
+                  className="w-full relative"
+                  onMouseEnter={autoplayPlugin.current.stop}
+                  onMouseLeave={autoplayPlugin.current.reset}
+                >
+                  <CarouselContent className="-ml-4">
+                    {displayedHomes.map((home) => (
+                      <CarouselItem key={home.id} className="pl-4 basis-full">
+                        <Card
+                          className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-primary/30 overflow-hidden w-full"
+                          onClick={() => navigate(`/health-home/${home.id}`)}
                         >
-                          View Details
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
+                          <div className="relative h-40 overflow-hidden">
+                            <img
+                              src={getCardImage(home)}
+                              alt={home.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
 
-              <CarouselPrevious className="left-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
-              <CarouselNext className="right-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
-            </Carousel>
-          </div>
+                            <div className="absolute top-2 right-2 bg-green-600 text-white backdrop-blur-sm rounded-lg px-2 py-1">
+                              <span className="text-xs font-semibold">{home.status.toUpperCase()}</span>
+                            </div>
+
+                            <div className="absolute top-2 left-2 bg-primary text-primary-foreground rounded-lg px-2 py-1">
+                              <span className="text-xs font-semibold">
+                                {home.propertyType.toUpperCase()}
+                              </span>
+                            </div>
+                          </div>
+
+                          <CardContent className="p-4">
+                            <h3 className="text-base font-semibold mb-1 group-hover:text-primary transition-colors line-clamp-1">
+                              {home.name}
+                            </h3>
+
+                            <div className="flex items-center gap-1 text-muted-foreground mb-2">
+                              <MapPin className="h-3 w-3" />
+                              <span className="text-xs line-clamp-1">{getLocation(home)}</span>
+                            </div>
+
+                            <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
+                              <div className="flex items-center gap-1">
+                                <Users className="h-3 w-3" />
+                                <span>{home.totalRooms} rooms</span>
+                              </div>
+                            </div>
+
+                            <Button variant="outline" size="sm" className="w-full text-sm">
+                              View Details
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+
+                  <CarouselPrevious className="left-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
+                  <CarouselNext className="right-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
+                </Carousel>
+              </div>
+
+              {/* Desktop Carousel */}
+              <div className="hidden md:block">
+                <Carousel opts={{ align: 'start', loop: displayedHomes.length > 3 }} className="w-full relative">
+                  <CarouselContent className="-ml-4">
+                    {displayedHomes.map((home) => (
+                      <CarouselItem key={home.id} className="pl-4 basis-1/3">
+                        <Card
+                          className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden w-full"
+                          onClick={() => navigate(`/health-home/${home.id}`)}
+                        >
+                          <div className="relative h-32 md:h-40 overflow-hidden">
+                            <img
+                              src={getCardImage(home)}
+                              alt={home.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                            <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1">
+                              <div className="flex items-center gap-1">
+                                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                <span className="text-xs font-semibold">New</span>
+                              </div>
+                            </div>
+                            <div className="absolute top-2 left-2 bg-primary text-primary-foreground rounded-lg px-2 py-1">
+                              <span className="text-xs font-semibold">₹{home.totalRooms * 500}/day</span>
+                            </div>
+                          </div>
+
+                          <CardContent className="p-4">
+                            <div className="mb-3">
+                              <h3 className="text-base md:text-lg font-semibold mb-1 text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                                {home.name}
+                              </h3>
+                              <div className="flex items-center gap-1 text-muted-foreground mb-2">
+                                <MapPin className="h-3 w-3" />
+                                <span className="text-xs line-clamp-1">{getLocation(home)}</span>
+                              </div>
+                              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                                <div className="flex items-center gap-1">
+                                  <Users className="h-3 w-3" />
+                                  <span>{home.totalRooms} rooms</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <Hospital className="h-3 w-3" />
+                                  <span>Nearby hospital</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="mb-3">
+                              <div className="flex flex-wrap gap-1">
+                                <Badge variant="secondary" className="text-xs py-0 px-2 h-5">
+                                  {home.propertyType.toUpperCase()}
+                                </Badge>
+                                <Badge
+                                  variant="outline"
+                                  className="text-xs bg-green-600 text-white py-0 px-2 h-5"
+                                >
+                                  {home.status.toUpperCase()}
+                                </Badge>
+                              </div>
+                            </div>
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full text-sm group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/health-home/${home.id}`);
+                              }}
+                            >
+                              View Details
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+
+                  <CarouselPrevious className="left-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
+                  <CarouselNext className="right-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
+                </Carousel>
+              </div>
+            </>
+          ) : (
+            /* When searched: show simple grid (3 per row on desktop) */
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {displayedHomes.map((home) => (
+                <Card
+                  key={home.id}
+                  className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden w-full"
+                >
+                  <div className="relative h-40 overflow-hidden">
+                    <img
+                      src={getCardImage(home)}
+                      alt={home.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1">
+                      <div className="flex items-center gap-1">
+                        <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                        <span className="text-xs font-semibold">New</span>
+                      </div>
+                    </div>
+                    <div className="absolute top-2 left-2 bg-primary text-primary-foreground rounded-lg px-2 py-1">
+                      <span className="text-xs font-semibold">₹{home.totalRooms * 500}/day</span>
+                    </div>
+                  </div>
+
+                  <CardContent className="p-4">
+                    <div className="mb-3">
+                      <h3 className="text-base md:text-lg font-semibold mb-1 text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                        {home.name}
+                      </h3>
+                      <div className="flex items-center gap-1 text-muted-foreground mb-2">
+                        <MapPin className="h-3 w-3" />
+                        <span className="text-xs line-clamp-1">{getLocation(home)}</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Users className="h-3 w-3" />
+                          <span>{home.totalRooms} rooms</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Hospital className="h-3 w-3" />
+                          <span>Nearby hospital</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mb-3">
+                      <div className="flex flex-wrap gap-1">
+                        <Badge variant="secondary" className="text-xs py-0 px-2 h-5">
+                          {home.propertyType.toUpperCase()}
+                        </Badge>
+                        <Badge
+                          variant="outline"
+                          className="text-xs bg-green-600 text-white py-0 px-2 h-5"
+                        >
+                          {home.status.toUpperCase()}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full text-sm group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300"
+                      onClick={() => navigate(`/health-home/${home.id}`)}
+                    >
+                      View Details
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
 
           {cityHomes.length === 0 && (
             <div className="text-center py-8 md:py-12">
@@ -454,6 +533,7 @@ const Index = () => {
               city={city}
               cityHomes={cityHomes}
               displayedHomes={displayedHomes}
+              hasSearched={hasSearched}
             />
           );
         })

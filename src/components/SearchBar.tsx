@@ -6,12 +6,18 @@ import { Input } from "@/components/ui/input";
 interface SearchBarProps {
   variant?: "page" | "header";
   onSearch?: (location: string, checkIn: string, checkOut: string, guests: number) => void;
-  loading?: boolean; // ✅ added
+  loading?: boolean;
+  location?: string;
+  checkIn?: string;
+  checkOut?: string;
+  adults?: number;
+  children?: number;
 }
 
 type ActivePanel = "where" | "when" | "who" | null;
 
 const SUGGESTIONS = [
+  { title: "All", subtitle: "View properties from all cities", icon: MapPin },
   { title: "Bangalore", subtitle: "Because your wishlist has stays in Bangalore", icon: MapPin },
   { title: "Mumbai", subtitle: "Because your wishlist has stays in Mumbai", icon: MapPin },
   { title: "Delhi", subtitle: "Because your wishlist has stays in Delhi", icon: MapPin },
@@ -21,15 +27,33 @@ const SUGGESTIONS = [
 
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
 
-export const SearchBar = ({ variant = "page", onSearch, loading = false }: SearchBarProps) => {
-  const [location, setLocation] = useState("Bangalore");
-  const [checkIn, setCheckIn] = useState("");
-  const [checkOut, setCheckOut] = useState("");
+export const SearchBar = ({
+  variant = "page",
+  onSearch,
+  loading = false,
+  location: propLocation = "All",
+  checkIn: propCheckIn = "",
+  checkOut: propCheckOut = "",
+  adults: propAdults = 1,
+  children: propChildren = 0,
+}: SearchBarProps) => {
+  const [location, setLocation] = useState(propLocation);
+  const [checkIn, setCheckIn] = useState(propCheckIn);
+  const [checkOut, setCheckOut] = useState(propCheckOut);
 
-  const [adults, setAdults] = useState(1);
-  const [children, setChildren] = useState(0);
+  const [adults, setAdults] = useState(propAdults);
+  const [children, setChildren] = useState(propChildren);
   const [infants, setInfants] = useState(0);
   const [pets, setPets] = useState(0);
+
+  // Sync with props when they change (e.g., when docked to header)
+  useEffect(() => {
+    setLocation(propLocation);
+    setCheckIn(propCheckIn);
+    setCheckOut(propCheckOut);
+    setAdults(propAdults);
+    setChildren(propChildren);
+  }, [propLocation, propCheckIn, propCheckOut, propAdults, propChildren]);
 
   const guests = useMemo(() => adults + children, [adults, children]);
 

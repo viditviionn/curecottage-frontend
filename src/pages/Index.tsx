@@ -40,7 +40,11 @@ import {
 const Index = () => {
   const navigate = useNavigate();
 
-  const [selectedCity, setSelectedCity] = useState<string>('');
+  const [selectedCity, setSelectedCity] = useState<string>('All');
+  const [selectedCheckIn, setSelectedCheckIn] = useState<string>('');
+  const [selectedCheckOut, setSelectedCheckOut] = useState<string>('');
+  const [selectedAdults, setSelectedAdults] = useState<number>(1);
+  const [selectedChildren, setSelectedChildren] = useState<number>(0);
   const [hasSearched, setHasSearched] = useState(false);
 
   // For auto-scroll to results
@@ -57,13 +61,23 @@ const Index = () => {
   const healthHomes = data?.properties ?? [];
 
   const handleSearch = (location: string, checkIn: string, checkOut: string, guests: number) => {
-    setHasSearched(true);
     setSelectedCity(location);
+    setSelectedCheckIn(checkIn);
+    setSelectedCheckOut(checkOut);
+    setSelectedAdults(guests > 0 ? guests : 1); // Simplified: using guests as adults
+    setSelectedChildren(0); // Reset children for simplicity
+    
+    // Only mark as searched if specific city is selected (not "All")
+    if (location !== 'All') {
+      setHasSearched(true);
+    } else {
+      setHasSearched(false);
+    }
 
     setQueryArgs({
       page: 1,
       limit: 100,
-      city: location,
+      city: location === 'All' ? undefined : location,
       checkInDate: checkIn || undefined,
       checkOutDate: checkOut || undefined,
     });
@@ -81,13 +95,14 @@ const Index = () => {
   const cities = ['Bangalore', 'Chennai', 'Delhi', 'Mumbai', 'Hyderabad'];
 
   const filteredHomes = useMemo(() => {
-    if (!selectedCity) return healthHomes;
+    if (!selectedCity || selectedCity === 'All') return healthHomes;
     const city = selectedCity.trim().toLowerCase();
     return healthHomes.filter((p) => (p.city || '').trim().toLowerCase() === city);
   }, [healthHomes, selectedCity]);
 
   const citiesToRender = useMemo(() => {
-    return selectedCity ? [selectedCity] : cities;
+    if (!selectedCity || selectedCity === 'All') return cities;
+    return [selectedCity];
   }, [selectedCity]);
 
   const getCardImage = (p: Property) =>
@@ -416,7 +431,17 @@ const Index = () => {
       {/* ✅ Header: SearchBar will animate in when docked */}
       <Header
         activePage="health-homes"
-        centerContent={<SearchBar onSearch={handleSearch} loading={showSkeleton} />}
+        centerContent={
+          <SearchBar
+            onSearch={handleSearch}
+            loading={showSkeleton}
+            location={selectedCity}
+            checkIn={selectedCheckIn}
+            checkOut={selectedCheckOut}
+            adults={selectedAdults}
+            children={selectedChildren}
+          />
+        }
       />
 
       {/* ✅ SearchBar BELOW header (page variant - hides when docked) */}
@@ -424,14 +449,31 @@ const Index = () => {
   {/* Desktop */}
   <div className="hidden md:block pt-6">
     <div className="mx-auto w-full max-w-[820px]">
-      <SearchBar variant="page" onSearch={handleSearch} loading={showSkeleton} />
+      <SearchBar
+        variant="page"
+        onSearch={handleSearch}
+        loading={showSkeleton}
+        location={selectedCity}
+        checkIn={selectedCheckIn}
+        checkOut={selectedCheckOut}
+        adults={selectedAdults}
+        children={selectedChildren}
+      />
     </div>
   </div>
 
   {/* Mobile (always visible) */}
   <div className="md:hidden pt-4">
     <div className="mx-auto w-full max-w-[820px]">
-      <SearchBar onSearch={handleSearch} loading={showSkeleton} />
+      <SearchBar
+        onSearch={handleSearch}
+        loading={showSkeleton}
+        location={selectedCity}
+        checkIn={selectedCheckIn}
+        checkOut={selectedCheckOut}
+        adults={selectedAdults}
+        children={selectedChildren}
+      />
     </div>
   </div>
 </div>

@@ -262,17 +262,16 @@ const Header = ({
               </Link>
 
               {isAuthenticated ? (
-                <div className="relative" ref={menuRef}>
+                <div className="relative" ref={menuRef} onMouseLeave={closeDropdown}>
                   <button
                   
                     type="button"
                     className="bg-primary/10 p-2 rounded-full cursor-pointer hover:bg-primary/20 transition-colors"
-                    onMouseEnter={() => setOpen(true)} // ✅ hover open
+                    onMouseEnter={openDropdown}
                     onClick={(e) => {
-                        navigate("/profile");
-                            setOpen(false);
                       e.stopPropagation();
-                      setOpen((prev) => !prev); // ✅ click toggle
+                      navigate("/profile");
+                      setOpen(false);
                     }}
                     aria-label="User menu"
                   >
@@ -282,7 +281,7 @@ const Header = ({
                   {open && (
                     <div
                       className="absolute top-12 right-0 z-50 bg-white shadow-lg border rounded-xl min-w-[240px] overflow-hidden"
-                      onMouseEnter={() => setOpen(true)} // ✅ keep open when hovering menu
+                      onMouseEnter={openDropdown}
                     >
                       <div className="px-4 py-3 border-b bg-muted/30">
                       

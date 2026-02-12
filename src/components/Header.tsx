@@ -129,7 +129,8 @@ const Header = ({
     };
 
     window.addEventListener("cc:searchDock", handler as EventListener);
-    return () => window.removeEventListener("cc:searchDock", handler as EventListener);
+    return () =>
+      window.removeEventListener("cc:searchDock", handler as EventListener);
   }, []);
 
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -149,14 +150,18 @@ const Header = ({
 
   return (
     <>
-<header className="border-b border-border/40 bg-background/80 backdrop-blur-md sticky top-0 z-[9999]">
-<div className="container mx-auto px-4 py-3 lg:py-4">
+      <header className="border-b border-border/40 bg-background/80 backdrop-blur-md sticky top-0 z-[9999]">
+        <div className="container mx-auto px-4 py-3 lg:py-4">
           <div className="flex items-center justify-between gap-4">
             {/* Logo */}
-            <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
+            <Link
+              to="/"
+              className="flex items-center space-x-2 flex-shrink-0 ml-0 lg:-ml-2"
+            >
               <div className="bg-primary p-1.5 lg:p-2 rounded-lg">
                 <Shield className="h-5 w-5 lg:h-6 lg:w-6 text-primary-foreground" />
               </div>
+
               <div className="flex flex-col">
                 <h1 className="text-lg lg:text-2xl font-bold text-primary leading-tight">
                   Cure Cottage
@@ -182,10 +187,11 @@ const Header = ({
                   <Link
                     key={link.to}
                     to={link.to}
-                    className={`transition-colors ${link.isActive
+                    className={`transition-colors ${
+                      link.isActive
                         ? "text-primary font-medium"
                         : "text-foreground hover:text-primary"
-                      }`}
+                    }`}
                   >
                     {link.label}
                   </Link>
@@ -238,9 +244,9 @@ const Header = ({
                 state={
                   !isAuthenticated
                     ? {
-                      backgroundLocation: location, // ✅ this makes it open as modal (SS-2)
-                      from: `/become-provider?service=${activePage}`, // ✅ keep redirect
-                    }
+                        backgroundLocation: location, // ✅ this makes it open as modal (SS-2)
+                        from: `/become-provider?service=${activePage}`, // ✅ keep redirect
+                      }
                     : undefined
                 }
                 onClick={() => setIsOpen(false)}
@@ -255,10 +261,10 @@ const Header = ({
                   <button
                     type="button"
                     className="bg-primary/10 p-2 rounded-full cursor-pointer hover:bg-primary/20 transition-colors"
-                    onMouseEnter={() => setOpen(true)}     // ✅ hover open
+                    onMouseEnter={() => setOpen(true)} // ✅ hover open
                     onClick={(e) => {
                       e.stopPropagation();
-                      setOpen((prev) => !prev);           // ✅ click toggle
+                      setOpen((prev) => !prev); // ✅ click toggle
                     }}
                     aria-label="User menu"
                   >
@@ -268,13 +274,15 @@ const Header = ({
                   {open && (
                     <div
                       className="absolute top-12 right-0 z-50 bg-white shadow-lg border rounded-xl min-w-[240px] overflow-hidden"
-                      onMouseEnter={() => setOpen(true)}  // ✅ keep open when hovering menu
+                      onMouseEnter={() => setOpen(true)} // ✅ keep open when hovering menu
                     >
                       <div className="px-4 py-3 border-b bg-muted/30">
                         <p className="text-sm font-semibold capitalize leading-tight">
                           {user?.firstName} {user?.lastName}
                         </p>
-                        <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {user?.email}
+                        </p>
                       </div>
 
                       <div className="p-2">
@@ -297,7 +305,6 @@ const Header = ({
                       </div>
                     </div>
                   )}
-
                 </div>
               ) : (
                 <>
@@ -339,10 +346,11 @@ const Header = ({
                         key={link.to}
                         to={link.to}
                         onClick={() => setIsOpen(false)}
-                        className={`text-lg py-2 px-4 rounded-lg transition-colors ${link.isActive
+                        className={`text-lg py-2 px-4 rounded-lg transition-colors ${
+                          link.isActive
                             ? "bg-primary/10 text-primary font-medium"
                             : "text-foreground hover:bg-muted"
-                          }`}
+                        }`}
                       >
                         {link.label}
                       </Link>

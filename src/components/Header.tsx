@@ -264,10 +264,13 @@ const Header = ({
               {isAuthenticated ? (
                 <div className="relative" ref={menuRef}>
                   <button
+                  
                     type="button"
                     className="bg-primary/10 p-2 rounded-full cursor-pointer hover:bg-primary/20 transition-colors"
                     onMouseEnter={() => setOpen(true)} // ✅ hover open
                     onClick={(e) => {
+                        navigate("/profile");
+                            setOpen(false);
                       e.stopPropagation();
                       setOpen((prev) => !prev); // ✅ click toggle
                     }}
@@ -282,6 +285,7 @@ const Header = ({
                       onMouseEnter={() => setOpen(true)} // ✅ keep open when hovering menu
                     >
                       <div className="px-4 py-3 border-b bg-muted/30">
+                      
                         <p className="text-sm font-semibold capitalize leading-tight">
                           {user?.firstName} {user?.lastName}
                         </p>
@@ -291,7 +295,7 @@ const Header = ({
                       </div>
 
                       <div className="p-2">
-                        <button
+                        {/* <button
                           className="w-full text-left px-3 py-2 rounded-lg hover:bg-muted transition-colors text-sm"
                           onClick={() => {
                             navigate("/profile");
@@ -299,7 +303,7 @@ const Header = ({
                           }}
                         >
                           Profile
-                        </button>
+                        </button> */}
 
                         <button
                           className="w-full text-left px-3 py-2 rounded-lg hover:bg-muted transition-colors text-sm text-red-600"

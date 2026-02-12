@@ -1,7 +1,7 @@
 // ✅ Header.tsx (FULL FILE)
 // Place this as: src/components/Header.tsx (or your existing path)
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Shield, Heart, Menu, User, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,7 @@ const Header = ({
 }: HeaderProps) => {
   const [isOpen, setIsOpen] = useState(false); // mobile sheet
   const [open, setOpen] = useState(false); // desktop dropdown
+  const [isDocked, setIsDocked] = useState(false); // search bar docking state
 
   // ✅ logout modal states
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
@@ -121,6 +122,16 @@ const Header = ({
     }
   };
 
+  // Listen to search dock event from SearchBar
+  useEffect(() => {
+    const handler = (e: CustomEvent) => {
+      setIsDocked(!!e.detail?.docked);
+    };
+
+    window.addEventListener("cc:searchDock", handler as EventListener);
+    return () => window.removeEventListener("cc:searchDock", handler as EventListener);
+  }, []);
+
   return (
     <>
       <header className="border-b border-border/40 bg-background/80 backdrop-blur-md sticky top-0 z-50">
@@ -142,25 +153,47 @@ const Header = ({
             </Link>
 
             {/* ✅ Desktop Center Area (Nav OR Searchbar like Airbnb) */}
-            <div className="hidden lg:flex items-center justify-center flex-1 mx-2">
-              {hideCenterNav ? (
-                <div className="w-full max-w-[820px]">{centerContent}</div>
-              ) : (
-                <nav className="flex items-center space-x-8">
-                  {navLinks.map((link) => (
-                    <Link
-                      key={link.to}
-                      to={link.to}
-                      className={`transition-colors ${
-                        link.isActive
-                          ? "text-primary font-medium"
-                          : "text-foreground hover:text-primary"
-                      }`}
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
-                </nav>
+            <div className="hidden lg:flex items-center justify-center flex-1 mx-2 relative h-[64px]">
+              {/* Nav Links - fade out when docked */}
+              <nav
+                className={[
+                  "absolute inset-0 flex items-center justify-center space-x-8 transform-gpu will-change-[opacity,transform] transition-all duration-500 ease-out",
+                  isDocked && centerContent
+                    ? "opacity-0 scale-95 pointer-events-none"
+                    : "opacity-100 scale-100 pointer-events-auto",
+                ].join(" ")}
+              >
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.to}
+                    to={link.to}
+                    className={`transition-colors ${
+                      link.isActive
+                        ? "text-primary font-medium"
+                        : "text-foreground hover:text-primary"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </nav>
+
+              {/* SearchBar in Header - fade in when docked */}
+              {centerContent && (
+                <div
+                  className={[
+                    "absolute inset-0 flex items-center justify-center transform-gpu will-change-[opacity,transform] transition-all duration-500 ease-out",
+                    isDocked
+                      ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
+                      : "opacity-0 scale-95 translate-y-2 pointer-events-none",
+                  ].join(" ")}
+                >
+                  <div className="w-full max-w-[820px]">
+                    {React.isValidElement(centerContent)
+                      ? React.cloneElement(centerContent, { variant: "header" })
+                      : centerContent}
+                  </div>
+                </div>
               )}
             </div>
 

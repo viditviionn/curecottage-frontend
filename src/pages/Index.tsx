@@ -46,9 +46,6 @@ const Index = () => {
   // For auto-scroll to results
   const resultsRef = useRef<HTMLDivElement | null>(null);
 
-  // For Airbnb-style docking (when scrolling)
-  const [dockSearch, setDockSearch] = useState(false);
-
   const [queryArgs, setQueryArgs] = useState<GetAvailablePropertiesArgs>({
     page: 1,
     limit: 100,
@@ -80,14 +77,6 @@ const Index = () => {
       resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   }, [hasSearched, selectedCity]);
-
-  // Dock search into header after scrolling
-  useEffect(() => {
-    const onScroll = () => setDockSearch(window.scrollY > 120);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
 
   const cities = ['Bangalore', 'Chennai', 'Delhi', 'Mumbai', 'Hyderabad'];
 
@@ -345,29 +334,20 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
-      {/* ✅ Header: when dockSearch true, searchbar goes into header center */}
+      {/* ✅ Header: SearchBar will animate in when docked */}
       <Header
         activePage="health-homes"
-        hideCenterNav={dockSearch}
-        centerContent={
-          dockSearch ? (
-            <div className="origin-center scale-[0.92]">
-              <SearchBar onSearch={handleSearch} loading={showSkeleton} />
-            </div>
-          ) : null
-        }
+        centerContent={<SearchBar onSearch={handleSearch} loading={showSkeleton} />}
       />
 
-      {/* ✅ SearchBar BELOW header (only when NOT docked on desktop) */}
+      {/* ✅ SearchBar BELOW header (page variant - hides when docked) */}
       <div className="container mx-auto px-4">
-  {/* Desktop (only when NOT docked) */}
-  {!dockSearch && (
-    <div className="hidden md:block pt-6">
-      <div className="mx-auto w-full max-w-[820px]">
-        <SearchBar onSearch={handleSearch} loading={showSkeleton} />
-      </div>
+  {/* Desktop */}
+  <div className="hidden md:block pt-6">
+    <div className="mx-auto w-full max-w-[820px]">
+      <SearchBar variant="page" onSearch={handleSearch} loading={showSkeleton} />
     </div>
-  )}
+  </div>
 
   {/* Mobile (always visible) */}
   <div className="md:hidden pt-4">

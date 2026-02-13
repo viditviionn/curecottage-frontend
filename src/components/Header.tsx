@@ -116,7 +116,7 @@ const Header = ({
       window.setTimeout(() => {
         setLogoutModalOpen(false);
         // Navigate to home and force a full reload so app state resets
-        window.location.href = '/';
+        window.location.href = "/";
       }, 900);
     } finally {
       setLoggingOut(false);
@@ -126,9 +126,9 @@ const Header = ({
   // Listen to search dock event from SearchBar
   useEffect(() => {
     const handler = (e: CustomEvent) => {
-      if(!!e.detail?.docked)
-        {setIsDocked(!!e.detail?.docked);}
-      else{
+      if (!!e.detail?.docked) {
+        setIsDocked(!!e.detail?.docked);
+      } else {
         // Undock after short delay to allow SearchBar to animate out
         setTimeout(() => setIsDocked(false), -0);
       }
@@ -164,17 +164,21 @@ const Header = ({
               to="/"
               className="flex items-center space-x-2 flex-shrink-0 ml-0 lg:-ml-2"
             >
-              <div className="bg-primary p-1.5 lg:p-2 rounded-lg">
+              {/* <div className="bg-primary p-1.5 lg:p-2 rounded-lg">
                 <Shield className="h-5 w-5 lg:h-6 lg:w-6 text-primary-foreground" />
-              </div>
+              </div> */}
 
               <div className="flex flex-col">
-                <h1 className="text-lg lg:text-2xl font-bold text-primary leading-tight">
-                  Cure Cottage
+                <h1
+                  className="text-lg lg:text-3xl font-bold leading-tight"
+                  style={{ color: "#14B8A6" }}
+                >
+                  QureHome
                 </h1>
-                <p className="text-[0.6rem] lg:text-xs text-muted-foreground hidden sm:block">
+
+                {/* <p className="text-[0.6rem] lg:text-xs text-muted-foreground hidden sm:block">
                   Heal faster. Save more. Feel at home.
-                </p>
+                </p> */}
               </div>
             </Link>
 
@@ -263,9 +267,12 @@ const Header = ({
               </Link>
 
               {isAuthenticated ? (
-                <div className="relative" ref={menuRef} onMouseLeave={closeDropdown}>
+                <div
+                  className="relative"
+                  ref={menuRef}
+                  onMouseLeave={closeDropdown}
+                >
                   <button
-                  
                     type="button"
                     className="bg-primary/10 p-2 rounded-full cursor-pointer hover:bg-primary/20 transition-colors"
                     onMouseEnter={openDropdown}
@@ -285,7 +292,6 @@ const Header = ({
                       onMouseEnter={openDropdown}
                     >
                       <div className="px-4 py-3 border-b bg-muted/30">
-                      
                         <p className="text-sm font-semibold capitalize leading-tight">
                           {user?.firstName} {user?.lastName}
                         </p>
@@ -345,7 +351,7 @@ const Header = ({
                       <div className="bg-primary p-1.5 rounded-lg">
                         <Shield className="h-5 w-5 text-primary-foreground" />
                       </div>
-                      <span className="text-primary">Cure Cottage</span>
+                      <span className="text-primary">Cure Cottage hello</span>
                     </SheetTitle>
                   </SheetHeader>
 

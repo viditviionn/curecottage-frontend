@@ -253,7 +253,7 @@ export const SearchBar = ({
 
   return (
     <div ref={rootRef} className="relative">
-      {active && (
+      {active && variant === "page" && (
         <div
           className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px]"
           onClick={() => setActive(null)}
@@ -304,7 +304,7 @@ export const SearchBar = ({
 
             <div className="pr-1">
               <Button
-                className="rounded-full h-12 w-12 p-0 bg-[rgb(255_56_92)] hover:bg-[rgb(230_45_80)] text-white shadow-md flex items-center justify-center"
+                className="rounded-full h-12 w-12 p-0 bg-[#14B8A6] hover:bg-[#0D9488] text-white shadow-md flex items-center justify-center"
                 onClick={runSearch}
                 disabled={loading}
                 aria-label={loading ? "Searching" : "Search"}
@@ -477,7 +477,7 @@ export const SearchBar = ({
                 onChange={setPets}
               />
 
-              <div className="flex items-center justify-between pt-5">
+              <div className="flex items-center justify-between pt-5 ">
                 <button
                   type="button"
                   className="text-sm underline text-muted-foreground hover:text-foreground"
@@ -492,7 +492,7 @@ export const SearchBar = ({
                 </button>
 
                 <Button
-                  className="rounded-full px-6"
+                  className="rounded-full px-6 bg-[#14B8A6] hover:bg-[#0D9488] text-white"
                   onClick={runSearch}
                   disabled={loading}
                 >
@@ -584,7 +584,7 @@ export const SearchBar = ({
 
           <div className="col-span-2">
             <Button
-              className="w-full h-10 rounded-xl"
+              className="w-full h-10 rounded-xl bg-[#14B8A6] hover:bg-[#0D9488] text-white"
               onClick={runSearch}
               disabled={loading}
             >

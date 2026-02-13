@@ -75,7 +75,7 @@ const Header = ({
     location.pathname === "/home-conversion";
 
   const navLinks = [
-    { to: "/", label: "Health Homes", isActive: isHealthHomesActive },
+    // { to: "/", label: "Health Homes", isActive: isHealthHomesActive, color: "black" },
     {
       to: "/home-conversion",
       // label: "Home Conversion",
@@ -203,7 +203,7 @@ const Header = ({
                         : "text-foreground hover:text-primary"
                     }`}
                   >
-                    {link.label}
+                    {/* {link.label} */}
                   </Link>
                 ))}
               </nav>
@@ -367,7 +367,7 @@ const Header = ({
                             : "text-foreground hover:bg-muted"
                         }`}
                       >
-                        {link.label}
+                        {/* {link.label} */}
                       </Link>
                     ))}
 

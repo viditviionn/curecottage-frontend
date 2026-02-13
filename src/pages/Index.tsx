@@ -1,6 +1,9 @@
 // ✅ Index.tsx (FULL FILE)
 // Place this as: src/pages/Index.tsx (or your existing path)
+import { ArrowRight, CheckCircle2, Plane, User, Phone, Mail } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
+import { listings, features } from "../data/listing";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Heart,
@@ -36,6 +39,7 @@ import {
   Property,
   useGetAvailablePropertiesQuery,
 } from "@/rtk/api/showproperty";
+import Footer from "../components/Footer.tsx";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -529,66 +533,93 @@ const Index = () => {
       {/* Hero Section: hide after search */}
       {/* ✅ NEW HERO SECTION */}
       {!hasSearched && (
-        <section className="py-16">
-          <div className="container mx-auto px-4">
-            <div className="bg-[#eaf3f1] rounded-3xl p-8 md:p-12">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-                {/* LEFT CONTENT */}
-                <div>
-                  {/* Badges */}
-                  <div className="flex flex-wrap gap-3 mb-6">
-                    <span className="px-4 py-1.5 text-sm rounded-full border border-[#14B8A6] text-[#14B8A6] bg-white">
-                      Prime location — Within 3 Km of hospital
-                    </span>
+        <>
+          <section className="py-16">
+            <div className="container mx-auto px-4">
+              <div className="bg-[#eaf3f1] rounded-3xl p-8 md:p-12">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+                  {/* LEFT CONTENT */}
+                  <div>
+                    {/* Badges */}
+                    <div className="flex flex-wrap gap-3 mb-6">
+                      <span className="px-4 py-1.5 text-sm rounded-full border border-[#14B8A6] text-[#14B8A6] bg-white">
+                        Prime location — Within 3 Km of hospital
+                      </span>
 
-                    <span className="px-4 py-1.5 text-sm rounded-full border border-[#14B8A6] text-[#14B8A6] bg-white">
-                      Multilingual support
-                    </span>
+                      <span className="px-4 py-1.5 text-sm rounded-full border border-[#14B8A6] text-[#14B8A6] bg-white">
+                        Multilingual support
+                      </span>
+                    </div>
+
+                    {/* Heading */}
+                    <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-6">
+                      Your Comfort.
+                      <br />
+                      Your Recovery.
+                      <br />
+                      <span className="text-[#14B8A6]">Our Priority.</span>
+                    </h1>
+
+                    {/* Description */}
+                    <p className="text-gray-600 text-lg mb-8 max-w-lg">
+                      Hospital-adjacent recovery homes designed for healing. Full
+                      medical concierge and nutritious meal plans included.
+                    </p>
+
+                    {/* CTA */}
+                    <Button className="rounded-full px-8 py-6 text-lg bg-[#14B8A6] hover:bg-[#119e8f] text-white shadow-lg">
+                      Book your stay today
+                    </Button>
                   </div>
 
-                  {/* Heading */}
-                  <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-6">
-                    Your Comfort.
-                    <br />
-                    Your Recovery.
-                    <br />
-                    <span className="text-[#14B8A6]">Our Priority.</span>
-                  </h1>
+                  {/* RIGHT IMAGE */}
+                  <div className="relative">
+                    <img
+                      src={healthHomesImage}
+                      alt="Premium Recovery Suites"
+                      className="rounded-3xl shadow-xl w-full h-[420px] object-cover"
+                    />
 
-                  {/* Description */}
-                  <p className="text-gray-600 text-lg mb-8 max-w-lg">
-                    Hospital-adjacent recovery homes designed for healing. Full
-                    medical concierge and nutritious meal plans included.
-                  </p>
-
-                  {/* CTA */}
-                  <Button className="rounded-full px-8 py-6 text-lg bg-[#14B8A6] hover:bg-[#119e8f] text-white shadow-lg">
-                    Book your stay today
-                  </Button>
-                </div>
-
-                {/* RIGHT IMAGE */}
-                <div className="relative">
-                  <img
-                    src={healthHomesImage}
-                    alt="Premium Recovery Suites"
-                    className="rounded-3xl shadow-xl w-full h-[420px] object-cover"
-                  />
-
-                  {/* Overlay Text */}
-                  <div className="absolute bottom-6 left-6 text-white">
-                    <h3 className="text-xl font-semibold">
-                      Premium Recovery Suites
-                    </h3>
-                    <p className="text-sm opacity-90">
-                      Designed for post-surgical care
-                    </p>
+                    {/* Overlay Text */}
+                    <div className="absolute bottom-6 left-6 text-white">
+                      <h3 className="text-xl font-semibold">
+                        Premium Recovery Suites
+                      </h3>
+                      <p className="text-sm opacity-90">
+                        Designed for post-surgical care
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+
+          <section className="container mx-auto px-6 md:px-12 mb-20">
+            <h2 className="text-2xl font-bold text-gray-900 mb-8 font-heading">Why Choose QureHome?</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {features.map((feature, idx) => (
+                <div
+                  key={idx}
+                  className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-[#14B8A6] hover:border-2 transition-all"
+                >
+                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-4">
+                    <feature.icon size={24} strokeWidth={2} />
+                  </div>
+                  <h3 className="font-bold text-gray-900 mb-3">{feature.title}</h3>
+                  <ul className="space-y-2">
+                    {feature.items.map((item, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
+                        <CheckCircle2 size={14} className="mt-0.5 text-primary shrink-0" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </section>
+        </>
       )}
 
       {/* Anchor for auto-scroll */}
@@ -620,62 +651,140 @@ const Index = () => {
           );
         })
       )}
-
-      {/* Trust Section */}
-      <section className="py-12 md:py-20">
-        <div className="container mx-auto px-4">
-          <div className="text-center">
-            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-6 md:mb-8">
-              Trusted Health Home Network
-            </h2>
-            <div className="grid grid-cols-3 gap-4 md:gap-8">
-              <div className="text-center">
-                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-1 md:mb-2">
-                  150+
-                </div>
-                <p className="text-xs sm:text-sm md:text-base text-muted-foreground">
-                  Verified Health Homes
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-1 md:mb-2">
-                  24/7
-                </div>
-                <p className="text-xs sm:text-sm md:text-base text-muted-foreground">
-                  Nursing Support
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-1 md:mb-2">
-                  100%
-                </div>
-                <p className="text-xs sm:text-sm md:text-base text-muted-foreground">
-                  Medical-Ready
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {!hasSearched && (
         <>
-          <section className="container mx-auto px-6 md:px-12 mb-16">
-            <div className="bg-gradient-to-r from-teal-900 to-teal-700 rounded-2xl p-8 text-white text-center shadow-lg relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-              <h3 className="text-2xl font-bold mb-2 relative z-10">
-                WEEKLY PACKAGES AVAILABLE
-              </h3>
-              <p className="text-white/90 font-medium relative z-10">
-                Save 10-15% on 7, 14, 21-day stays
-              </p>
+          <section className="bg-gray-50 py-16 mb-16 border-y border-gray-100">
+            <div className="container mx-auto px-6 md:px-12">
+              <h2 className="text-2xl font-bold text-gray-900 mb-12 font-heading text-center">How QureHome Works</h2>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative">
+                {/* Connector Line (Desktop) */}
+                <div className="hidden md:block absolute top-6 left-0 w-full h-0.5 bg-gray-200 -z-10"></div>
+
+                {[
+                  { title: "1. Book Your Stay", desc: "Match your medical needs." },
+                  { title: "2. Arrive and Settle", desc: "Airport pickup included. Meet coordinator." },
+                  { title: "3. Focus on Treatment", desc: "We handle transport and meals. You heal." },
+                  { title: "4. Recover Comfortably", desc: "Post-discharge nursing and support." }
+                ].map((step, idx) => (
+                  <div key={idx} className="flex flex-col items-center text-center bg-gray-50">
+                    <div className="w-12 h-12 bg-white border-2 border-primary text-primary font-bold rounded-full flex items-center justify-center mb-4 shadow-sm z-10">
+                      {idx + 1}
+                    </div>
+                    <h3 className="font-bold text-gray-900 mb-2">{step.title}</h3>
+                    <p className="text-gray-600 text-sm">{step.desc}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </section>
+
+          {/* Trust Section */}
+
+          <section className="container mx-auto px-4 sm:px-6 md:px-12 mb-24 max-w-8xl">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-10 font-heading text-center">
+              Frequently Asked Questions
+            </h2>
+
+            {/* ✅ IMPORTANT: each AccordionItem value must be UNIQUE */}
+            <Accordion type="single" collapsible className="w-full space-y-3">
+              <AccordionItem
+                value="item-1"
+                className="rounded-2xl border bg-white/70 px-4 md:px-6 shadow-sm transition-all hover:shadow-md hover:bg-white"
+              >
+                <AccordionTrigger>How close are you to the hospitals?</AccordionTrigger>
+                <AccordionContent>
+                  All our properties are within 3km (10-minute drive) of Apollo and Fortis hospitals on
+                  Bannerghatta Road.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem
+                value="item-2"
+                className="rounded-2xl border bg-white/70 px-4 md:px-6 shadow-sm transition-all hover:shadow-md hover:bg-white"
+              >
+                <AccordionTrigger>Can I cook my own food?</AccordionTrigger>
+                <AccordionContent>
+                  Yes! All rooms have kitchenettes. We also offer therapeutic meal services if you prefer
+                  home-style nutritious food.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem
+                value="item-3"
+                className="rounded-2xl border bg-white/70 px-4 md:px-6 shadow-sm transition-all hover:shadow-md hover:bg-white"
+              >
+                <AccordionTrigger>Is airport pickup included?</AccordionTrigger>
+                <AccordionContent>
+                  Airport transfers are included in our weekly packages or available as an affordable add-on
+                  service.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem
+                value="item-4"
+                className="rounded-2xl border bg-white/70 px-4 md:px-6 shadow-sm transition-all hover:shadow-md hover:bg-white"
+              >
+                <AccordionTrigger>Do you have wheelchair access?</AccordionTrigger>
+                <AccordionContent>
+                  Absolutely. All properties have elevator access, wheelchair-friendly entrances, and adapted
+                  bathrooms with grab rails.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem
+                value="item-5"
+                className="rounded-2xl border bg-white/70 px-4 md:px-6 shadow-sm transition-all hover:shadow-md hover:bg-white"
+              >
+                <AccordionTrigger>What if I need nursing care?</AccordionTrigger>
+                <AccordionContent>
+                  We coordinate post-discharge nursing visits through our vetted agency partners to ensure
+                  medical safety.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </section>
+
+          <section className="py-12 md:py-20">
+            <div className="container mx-auto px-4">
+              <div className="text-center">
+                <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-6 md:mb-8">
+                  Trusted Health Home Network
+                </h2>
+                <div className="grid grid-cols-3 gap-4 md:gap-8">
+                  <div className="text-center">
+                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-1 md:mb-2">
+                      150+
+                    </div>
+                    <p className="text-xs sm:text-sm md:text-base text-muted-foreground">
+                      Verified Health Homes
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-1 md:mb-2">
+                      24/7
+                    </div>
+                    <p className="text-xs sm:text-sm md:text-base text-muted-foreground">
+                      Nursing Support
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-1 md:mb-2">
+                      100%
+                    </div>
+                    <p className="text-xs sm:text-sm md:text-base text-muted-foreground">
+                      Medical-Ready
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
         </>
       )}
 
       {/* Footer */}
-      <footer className="py-8 md:py-12 border-t border-border">
+      {/* <footer className="py-8 md:py-12 border-t border-border">
         <div className="container mx-auto px-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center space-x-2">
@@ -691,7 +800,8 @@ const Index = () => {
             </p>
           </div>
         </div>
-      </footer>
+      </footer> */}
+      <Footer />
     </div>
   );
 };

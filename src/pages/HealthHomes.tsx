@@ -187,7 +187,7 @@ const HealthHomes = () => {
                 className="inline-flex items-center gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors px-6 py-3 rounded-lg font-medium"
               >
                 <Heart className="h-5 w-5" />
-                Be the Host
+                Be the Host hii
               </Link>
             </div>
             <div className="flex flex-wrap gap-4 text-muted-foreground justify-center mb-8">

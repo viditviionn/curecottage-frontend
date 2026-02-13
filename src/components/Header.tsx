@@ -1,21 +1,21 @@
 // ✅ Header.tsx (FULL FILE)
 // Place this as: src/components/Header.tsx (or your existing path)
 
-import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Shield, Heart, Menu, User, CheckCircle2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '@/rtk/store';
-import { logout } from '@/rtk/slices/authSlice';
+import React, { useState, useEffect, useRef } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Shield, Heart, Menu, User, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "@/rtk/store";
+import { logout } from "@/rtk/slices/authSlice";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from '@/components/ui/sheet';
-import { useUserProfileQuery } from '@/rtk/api/authApi';
+} from "@/components/ui/sheet";
+import { useUserProfileQuery } from "@/rtk/api/authApi";
 
 // ✅ shadcn alert-dialog
 import {
@@ -27,31 +27,36 @@ import {
   AlertDialogFooter,
   AlertDialogCancel,
   AlertDialogAction,
-} from '@/components/ui/alert-dialog';
+} from "@/components/ui/alert-dialog";
 
 interface HeaderProps {
-  activePage?: 'health-homes' | 'home-conversion';
-  hideCenterNav?: boolean;              // when true => center switches to search bar
-  centerContent?: React.ReactNode;      // the searchbar rendered in header center
+  activePage?: "health-homes" | "home-conversion";
+  hideCenterNav?: boolean; // when true => center switches to search bar
+  centerContent?: React.ReactNode; // the searchbar rendered in header center
 }
 
 const Header = ({
-  activePage = 'health-homes',
+  activePage = "health-homes",
   hideCenterNav = false,
   centerContent,
 }: HeaderProps) => {
   const [isOpen, setIsOpen] = useState(false); // mobile sheet
   const [open, setOpen] = useState(false); // desktop dropdown
+  const [isDocked, setIsDocked] = useState(false); // search bar docking state
 
   // ✅ logout modal states
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
-  const [logoutStep, setLogoutStep] = useState<'confirm' | 'success'>('confirm');
+  const [logoutStep, setLogoutStep] = useState<"confirm" | "success">(
+    "confirm",
+  );
   const [loggingOut, setLoggingOut] = useState(false);
 
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { isAuthenticated, user: storeUser } = useSelector((state: RootState) => state.auth);
+  const { isAuthenticated, user: storeUser } = useSelector(
+    (state: RootState) => state.auth,
+  );
 
   const { data: profileUser } = useUserProfileQuery(undefined, {
     skip: !isAuthenticated,
@@ -60,17 +65,22 @@ const Header = ({
   const user = profileUser || storeUser;
 
   const isHealthHomesActive =
-    activePage === 'health-homes' ||
-    location.pathname === '/' ||
-    location.pathname === '/health-homes' ||
-    location.pathname === '/browse';
+    activePage === "health-homes" ||
+    location.pathname === "/" ||
+    location.pathname === "/health-homes" ||
+    location.pathname === "/browse";
 
   const isHomeConversionActive =
-    activePage === 'home-conversion' || location.pathname === '/home-conversion';
+    activePage === "home-conversion" ||
+    location.pathname === "/home-conversion";
 
   const navLinks = [
-    { to: '/', label: 'Health Homes', isActive: isHealthHomesActive },
-    { to: '/home-conversion', label: 'Home Conversion', isActive: isHomeConversionActive },
+    { to: "/", label: "Health Homes", isActive: isHealthHomesActive },
+    {
+      to: "/home-conversion",
+      // label: "Home Conversion",
+      isActive: isHomeConversionActive,
+    },
   ];
 
   const closeTimer = React.useRef<number | null>(null);
@@ -86,9 +96,9 @@ const Header = ({
 
   // ✅ open confirm modal
   const requestLogout = () => {
-    setOpen(false);     // close desktop dropdown
-    setIsOpen(false);   // close mobile sheet
-    setLogoutStep('confirm');
+    setOpen(false); // close desktop dropdown
+    setIsOpen(false); // close mobile sheet
+    setLogoutStep("confirm");
     setLogoutModalOpen(true);
   };
 
@@ -100,28 +110,63 @@ const Header = ({
       // If you have an API logout call, await it here.
       dispatch(logout());
 
-      setLogoutStep('success');
+      setLogoutStep("success");
 
       // show tick then redirect
       window.setTimeout(() => {
         setLogoutModalOpen(false);
-        navigate('/');
+        navigate("/");
       }, 900);
     } finally {
       setLoggingOut(false);
     }
   };
 
+  // Listen to search dock event from SearchBar
+  useEffect(() => {
+    const handler = (e: CustomEvent) => {
+      if(!!e.detail?.docked)
+        {setIsDocked(!!e.detail?.docked);}
+      else{
+        // Undock after short delay to allow SearchBar to animate out
+        setTimeout(() => setIsDocked(false), -0);
+      }
+    };
+
+    window.addEventListener("cc:searchDock", handler as EventListener);
+    return () =>
+      window.removeEventListener("cc:searchDock", handler as EventListener);
+  }, []);
+
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const onDocMouseDown = (e: MouseEvent) => {
+      if (!open) return;
+      const target = e.target as Node;
+      if (menuRef.current && !menuRef.current.contains(target)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", onDocMouseDown);
+    return () => document.removeEventListener("mousedown", onDocMouseDown);
+  }, [open]);
+
   return (
     <>
-      <header className="border-b border-border/40 bg-background/80 backdrop-blur-md sticky top-0 z-50">
+      <header className="border-b border-border/40 bg-background/80 backdrop-blur-md sticky top-0 z-[9999]">
         <div className="container mx-auto px-4 py-3 lg:py-4">
           <div className="flex items-center justify-between gap-4">
             {/* Logo */}
-            <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
+            <Link
+              to="/"
+              className="flex items-center space-x-2 flex-shrink-0 ml-0 lg:-ml-2"
+            >
               <div className="bg-primary p-1.5 lg:p-2 rounded-lg">
                 <Shield className="h-5 w-5 lg:h-6 lg:w-6 text-primary-foreground" />
               </div>
+
               <div className="flex flex-col">
                 <h1 className="text-lg lg:text-2xl font-bold text-primary leading-tight">
                   Cure Cottage
@@ -133,34 +178,54 @@ const Header = ({
             </Link>
 
             {/* ✅ Desktop Center Area (Nav OR Searchbar like Airbnb) */}
-            <div className="hidden lg:flex items-center justify-center flex-1 mx-2">
-              {hideCenterNav ? (
-                <div className="w-full max-w-[820px]">
-                  {centerContent}
+            <div className="hidden lg:flex items-center justify-center flex-1 mx-2 relative h-[64px]">
+              {/* Nav Links - fade out when docked */}
+              <nav
+                className={[
+                  "absolute inset-0 flex items-center justify-center space-x-8 transform-gpu will-change-[opacity,transform] transition-all duration-500 ease-out",
+                  isDocked && centerContent
+                    ? "opacity-0 scale-95 pointer-events-none"
+                    : "opacity-100 scale-100 pointer-events-auto",
+                ].join(" ")}
+              >
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.to}
+                    to={link.to}
+                    className={`transition-colors ${
+                      link.isActive
+                        ? "text-primary font-medium"
+                        : "text-foreground hover:text-primary"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </nav>
+
+              {/* SearchBar in Header - fade in when docked */}
+              {centerContent && (
+                <div
+                  className={[
+                    "absolute inset-0 flex items-center justify-center transform-gpu will-change-[opacity,transform] transition-all duration-500 ease-out",
+                    isDocked
+                      ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
+                      : "opacity-0 scale-95 translate-y-2 pointer-events-none",
+                  ].join(" ")}
+                >
+                  <div className="w-full max-w-[820px]">
+                    {React.isValidElement(centerContent)
+                      ? React.cloneElement(centerContent, { variant: "header" })
+                      : centerContent}
+                  </div>
                 </div>
-              ) : (
-                <nav className="flex items-center space-x-8">
-                  {navLinks.map((link) => (
-                    <Link
-                      key={link.to}
-                      to={link.to}
-                      className={`transition-colors ${
-                        link.isActive
-                          ? 'text-primary font-medium'
-                          : 'text-foreground hover:text-primary'
-                      }`}
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
-                </nav>
               )}
             </div>
 
             {/* ✅ Desktop Right Side (Be the Host + Auth/User always visible) */}
             <div className="hidden lg:flex items-center space-x-4 flex-shrink-0">
               {/* Be the Host stays right always */}
-              <Link
+              {/* <Link
                 to={isAuthenticated ? `/become-provider?service=${activePage}` : '/auth'}
                 state={!isAuthenticated ? { from: `/become-provider?service=${activePage}` } : undefined}
                 onClick={(e) => {
@@ -172,17 +237,41 @@ const Header = ({
                 className="inline-flex items-center gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap"
               >
                 <Heart className="h-4 w-4" />
+                Be the Host hello 1
+              </Link> */}
+
+              <Link
+                to={
+                  isAuthenticated
+                    ? `/become-provider?service=${activePage}`
+                    : "/auth"
+                }
+                state={
+                  !isAuthenticated
+                    ? {
+                        backgroundLocation: location, // ✅ this makes it open as modal (SS-2)
+                        from: `/become-provider?service=${activePage}`, // ✅ keep redirect
+                      }
+                    : undefined
+                }
+                onClick={() => setIsOpen(false)}
+                className="inline-flex items-center gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap"
+              >
+                <Heart className="h-4 w-4" />
                 Be the Host
               </Link>
 
               {isAuthenticated ? (
-                <div className="relative" onMouseEnter={openDropdown} onMouseLeave={closeDropdown}>
+                <div className="relative" ref={menuRef} onMouseLeave={closeDropdown}>
                   <button
+                  
                     type="button"
                     className="bg-primary/10 p-2 rounded-full cursor-pointer hover:bg-primary/20 transition-colors"
+                    onMouseEnter={openDropdown}
                     onClick={(e) => {
                       e.stopPropagation();
-                      setOpen((prev) => !prev);
+                      navigate("/profile");
+                      setOpen(false);
                     }}
                     aria-label="User menu"
                   >
@@ -193,25 +282,27 @@ const Header = ({
                     <div
                       className="absolute top-12 right-0 z-50 bg-white shadow-lg border rounded-xl min-w-[240px] overflow-hidden"
                       onMouseEnter={openDropdown}
-                      onMouseLeave={closeDropdown}
                     >
                       <div className="px-4 py-3 border-b bg-muted/30">
+                      
                         <p className="text-sm font-semibold capitalize leading-tight">
                           {user?.firstName} {user?.lastName}
                         </p>
-                        <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {user?.email}
+                        </p>
                       </div>
 
                       <div className="p-2">
-                        <button
+                        {/* <button
                           className="w-full text-left px-3 py-2 rounded-lg hover:bg-muted transition-colors text-sm"
                           onClick={() => {
-                            navigate('/profile');
+                            navigate("/profile");
                             setOpen(false);
                           }}
                         >
                           Profile
-                        </button>
+                        </button> */}
 
                         <button
                           className="w-full text-left px-3 py-2 rounded-lg hover:bg-muted transition-colors text-sm text-red-600"
@@ -230,9 +321,9 @@ const Header = ({
                       Sign In
                     </Button>
                   </Link>
-                  <Link to="/auth" state={{ backgroundLocation: location }}>
+                  {/* <Link to="/auth" state={{ backgroundLocation: location }}>
                     <Button size="sm">Get Started</Button>
-                  </Link>
+                  </Link> */}
                 </>
               )}
             </div>
@@ -265,8 +356,8 @@ const Header = ({
                         onClick={() => setIsOpen(false)}
                         className={`text-lg py-2 px-4 rounded-lg transition-colors ${
                           link.isActive
-                            ? 'bg-primary/10 text-primary font-medium'
-                            : 'text-foreground hover:bg-muted'
+                            ? "bg-primary/10 text-primary font-medium"
+                            : "text-foreground hover:bg-muted"
                         }`}
                       >
                         {link.label}
@@ -274,13 +365,23 @@ const Header = ({
                     ))}
 
                     <Link
-                      to={isAuthenticated ? `/become-provider?service=${activePage}` : '/auth'}
-                      state={!isAuthenticated ? { from: `/become-provider?service=${activePage}` } : undefined}
+                      to={
+                        isAuthenticated
+                          ? `/become-provider?service=${activePage}`
+                          : "/auth"
+                      }
+                      state={
+                        !isAuthenticated
+                          ? { from: `/become-provider?service=${activePage}` }
+                          : undefined
+                      }
                       onClick={(e) => {
                         if (!isAuthenticated) {
                           e.preventDefault();
-                          navigate('/auth', {
-                            state: { from: `/become-provider?service=${activePage}` },
+                          navigate("/auth", {
+                            state: {
+                              from: `/become-provider?service=${activePage}`,
+                            },
                           });
                         }
                         setIsOpen(false);
@@ -354,11 +455,11 @@ const Header = ({
         onOpenChange={(v) => {
           if (loggingOut) return;
           setLogoutModalOpen(v);
-          if (!v) setLogoutStep('confirm');
+          if (!v) setLogoutStep("confirm");
         }}
       >
         <AlertDialogContent className="rounded-2xl">
-          {logoutStep === 'confirm' ? (
+          {logoutStep === "confirm" ? (
             <>
               <AlertDialogHeader className="text-center">
                 <AlertDialogTitle className="text-base sm:text-lg">
@@ -370,7 +471,10 @@ const Header = ({
               </AlertDialogHeader>
 
               <AlertDialogFooter className="flex flex-row gap-3 sm:gap-4 justify-center sm:justify-end">
-                <AlertDialogCancel className="rounded-full px-6" disabled={loggingOut}>
+                <AlertDialogCancel
+                  className="rounded-full px-6"
+                  disabled={loggingOut}
+                >
                   Cancel
                 </AlertDialogCancel>
 
@@ -382,7 +486,7 @@ const Header = ({
                   }}
                   disabled={loggingOut}
                 >
-                  {loggingOut ? 'Logging out...' : 'Logout'}
+                  {loggingOut ? "Logging out..." : "Logout"}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </>

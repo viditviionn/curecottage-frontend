@@ -161,8 +161,7 @@ export const propertyApi = authApi.injectEndpoints({
         if (args?.checkOutDate) params.set("checkOutDate", args.checkOutDate);
         if (typeof args?.minPrice === "number") params.set("minPrice", String(args.minPrice));
         if (typeof args?.maxPrice === "number") params.set("maxPrice", String(args.maxPrice));
-
-        // if (args?.city) params.set("city", args.city); // only if backend supports
+        if (args?.city) params.set("city", args.city);
 
         return `/properties/available?${params.toString()}`;
       },

@@ -40,14 +40,15 @@ import {
 const Index = () => {
   const navigate = useNavigate();
 
-  const [selectedCity, setSelectedCity] = useState<string>('');
+  const [selectedCity, setSelectedCity] = useState<string>('All');
+  const [selectedCheckIn, setSelectedCheckIn] = useState<string>('');
+  const [selectedCheckOut, setSelectedCheckOut] = useState<string>('');
+  const [selectedAdults, setSelectedAdults] = useState<number>(1);
+  const [selectedChildren, setSelectedChildren] = useState<number>(0);
   const [hasSearched, setHasSearched] = useState(false);
 
   // For auto-scroll to results
   const resultsRef = useRef<HTMLDivElement | null>(null);
-
-  // For Airbnb-style docking (when scrolling)
-  const [dockSearch, setDockSearch] = useState(false);
 
   const [queryArgs, setQueryArgs] = useState<GetAvailablePropertiesArgs>({
     page: 1,
@@ -60,13 +61,23 @@ const Index = () => {
   const healthHomes = data?.properties ?? [];
 
   const handleSearch = (location: string, checkIn: string, checkOut: string, guests: number) => {
-    setHasSearched(true);
     setSelectedCity(location);
+    setSelectedCheckIn(checkIn);
+    setSelectedCheckOut(checkOut);
+    setSelectedAdults(guests > 0 ? guests : 1); // Simplified: using guests as adults
+    setSelectedChildren(0); // Reset children for simplicity
+    
+    // Only mark as searched if specific city is selected (not "All")
+    if (location !== 'All') {
+      setHasSearched(true);
+    } else {
+      setHasSearched(false);
+    }
 
     setQueryArgs({
       page: 1,
       limit: 100,
-      city: location,
+      city: location === 'All' ? undefined : location,
       checkInDate: checkIn || undefined,
       checkOutDate: checkOut || undefined,
     });
@@ -81,24 +92,17 @@ const Index = () => {
     });
   }, [hasSearched, selectedCity]);
 
-  // Dock search into header after scrolling
-  useEffect(() => {
-    const onScroll = () => setDockSearch(window.scrollY > 120);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
   const cities = ['Bangalore', 'Chennai', 'Delhi', 'Mumbai', 'Hyderabad'];
 
   const filteredHomes = useMemo(() => {
-    if (!selectedCity) return healthHomes;
+    if (!selectedCity || selectedCity === 'All') return healthHomes;
     const city = selectedCity.trim().toLowerCase();
     return healthHomes.filter((p) => (p.city || '').trim().toLowerCase() === city);
   }, [healthHomes, selectedCity]);
 
   const citiesToRender = useMemo(() => {
-    return selectedCity ? [selectedCity] : cities;
+    if (!selectedCity || selectedCity === 'All') return cities;
+    return [selectedCity];
   }, [selectedCity]);
 
   const getCardImage = (p: Property) =>
@@ -116,10 +120,12 @@ const Index = () => {
     city,
     cityHomes,
     displayedHomes,
+    hasSearched,
   }: {
     city: string;
     cityHomes: Property[];
     displayedHomes: Property[];
+    hasSearched: boolean;
   }) => {
     const autoplayPlugin = useRef(Autoplay({ delay: 3000, stopOnInteraction: true }));
 
@@ -144,154 +150,231 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Mobile Carousel */}
-          <div className="md:hidden">
-            <Carousel
-              plugins={[autoplayPlugin.current]}
-              opts={{ align: 'start', loop: displayedHomes.length > 1 }}
-              className="w-full relative"
-              onMouseEnter={autoplayPlugin.current.stop}
-              onMouseLeave={autoplayPlugin.current.reset}
-            >
-              <CarouselContent className="-ml-4">
-                {displayedHomes.map((home) => (
-                  <CarouselItem key={home.id} className="pl-4 basis-full">
-                    <Card
-                      className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-primary/30 overflow-hidden w-full"
-                      onClick={() => navigate(`/health-home/${home.id}`)}
-                    >
-                      <div className="relative h-40 overflow-hidden">
-                        <img
-                          src={getCardImage(home)}
-                          alt={home.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-
-                        <div className="absolute top-2 right-2 bg-green-600 text-white backdrop-blur-sm rounded-lg px-2 py-1">
-                          <span className="text-xs font-semibold">{home.status.toUpperCase()}</span>
-                        </div>
-
-                        <div className="absolute top-2 left-2 bg-primary text-primary-foreground rounded-lg px-2 py-1">
-                          <span className="text-xs font-semibold">
-                            {home.propertyType.toUpperCase()}
-                          </span>
-                        </div>
-                      </div>
-
-                      <CardContent className="p-4">
-                        <h3 className="text-base font-semibold mb-1 group-hover:text-primary transition-colors line-clamp-1">
-                          {home.name}
-                        </h3>
-
-                        <div className="flex items-center gap-1 text-muted-foreground mb-2">
-                          <MapPin className="h-3 w-3" />
-                          <span className="text-xs line-clamp-1">{getLocation(home)}</span>
-                        </div>
-
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
-                          <div className="flex items-center gap-1">
-                            <Users className="h-3 w-3" />
-                            <span>{home.totalRooms} rooms</span>
-                          </div>
-                        </div>
-
-                        <Button variant="outline" size="sm" className="w-full text-sm">
-                          View Details
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-
-              <CarouselPrevious className="left-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
-              <CarouselNext className="right-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
-            </Carousel>
-          </div>
-
-          {/* Desktop Carousel */}
-          <div className="hidden md:block">
-            <Carousel opts={{ align: 'start', loop: displayedHomes.length > 3 }} className="w-full relative">
-              <CarouselContent className="-ml-4">
-                {displayedHomes.map((home) => (
-                  <CarouselItem key={home.id} className="pl-4 basis-1/3">
-                    <Card
-                      className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden w-full"
-                      onClick={() => navigate(`/health-home/${home.id}`)}
-                    >
-                      <div className="relative h-32 md:h-40 overflow-hidden">
-                        <img
-                          src={getCardImage(home)}
-                          alt={home.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1">
-                          <div className="flex items-center gap-1">
-                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                            <span className="text-xs font-semibold">New</span>
-                          </div>
-                        </div>
-                        <div className="absolute top-2 left-2 bg-primary text-primary-foreground rounded-lg px-2 py-1">
-                          <span className="text-xs font-semibold">₹{home.totalRooms * 500}/day</span>
-                        </div>
-                      </div>
-
-                      <CardContent className="p-4">
-                        <div className="mb-3">
-                          <h3 className="text-base md:text-lg font-semibold mb-1 text-foreground group-hover:text-primary transition-colors line-clamp-1">
-                            {home.name}
-                          </h3>
-                          <div className="flex items-center gap-1 text-muted-foreground mb-2">
-                            <MapPin className="h-3 w-3" />
-                            <span className="text-xs line-clamp-1">{getLocation(home)}</span>
-                          </div>
-                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <Users className="h-3 w-3" />
-                              <span>{home.totalRooms} rooms</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Hospital className="h-3 w-3" />
-                              <span>Nearby hospital</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="mb-3">
-                          <div className="flex flex-wrap gap-1">
-                            <Badge variant="secondary" className="text-xs py-0 px-2 h-5">
-                              {home.propertyType.toUpperCase()}
-                            </Badge>
-                            <Badge
-                              variant="outline"
-                              className="text-xs bg-green-600 text-white py-0 px-2 h-5"
-                            >
-                              {home.status.toUpperCase()}
-                            </Badge>
-                          </div>
-                        </div>
-
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full text-sm group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/health-home/${home.id}`);
-                          }}
+          {/* When NOT searched: show carousels (mobile + desktop) */}
+          {!hasSearched ? (
+            <>
+              {/* Mobile Carousel */}
+              <div className="md:hidden">
+                <Carousel
+                  plugins={[autoplayPlugin.current]}
+                  opts={{ align: 'start', loop: displayedHomes.length > 1 }}
+                  className="w-full relative"
+                  onMouseEnter={autoplayPlugin.current.stop}
+                  onMouseLeave={autoplayPlugin.current.reset}
+                >
+                  <CarouselContent className="-ml-4">
+                    {displayedHomes.map((home) => (
+                      <CarouselItem key={home.id} className="pl-4 basis-full">
+                        <Card
+                          className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-primary/30 overflow-hidden w-full"
+                          onClick={() => navigate(`/health-home/${home.id}`)}
                         >
-                          View Details
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
+                          <div className="relative h-40 overflow-hidden">
+                            <img
+                              src={getCardImage(home)}
+                              alt={home.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
 
-              <CarouselPrevious className="left-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
-              <CarouselNext className="right-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
-            </Carousel>
-          </div>
+                            <div className="absolute top-2 right-2 bg-green-600 text-white backdrop-blur-sm rounded-lg px-2 py-1">
+                              <span className="text-xs font-semibold">{home.status.toUpperCase()}</span>
+                            </div>
+
+                            <div className="absolute top-2 left-2 bg-primary text-primary-foreground rounded-lg px-2 py-1">
+                              <span className="text-xs font-semibold">
+                                {home.propertyType.toUpperCase()}
+                              </span>
+                            </div>
+                          </div>
+
+                          <CardContent className="p-4">
+                            <h3 className="text-base font-semibold mb-1 group-hover:text-primary transition-colors line-clamp-1">
+                              {home.name}
+                            </h3>
+
+                            <div className="flex items-center gap-1 text-muted-foreground mb-2">
+                              <MapPin className="h-3 w-3" />
+                              <span className="text-xs line-clamp-1">{getLocation(home)}</span>
+                            </div>
+
+                            <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
+                              <div className="flex items-center gap-1">
+                                <Users className="h-3 w-3" />
+                                <span>{home.totalRooms} rooms</span>
+                              </div>
+                            </div>
+
+                            <Button variant="outline" size="sm" className="w-full text-sm">
+                              View Details
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+
+                  <CarouselPrevious className="left-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
+                  <CarouselNext className="right-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
+                </Carousel>
+              </div>
+
+              {/* Desktop Carousel */}
+              <div className="hidden md:block">
+                <Carousel opts={{ align: 'start', loop: displayedHomes.length > 3 }} className="w-full relative">
+                  <CarouselContent className="-ml-4">
+                    {displayedHomes.map((home) => (
+                      <CarouselItem key={home.id} className="pl-4 basis-1/4">
+                        <Card
+                          className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden w-full"
+                          onClick={() => navigate(`/health-home/${home.id}`)}
+                        >
+                          <div className="relative h-32 md:h-40 overflow-hidden">
+                            <img
+                              src={getCardImage(home)}
+                              alt={home.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                            <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1">
+                              <div className="flex items-center gap-1">
+                                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                <span className="text-xs font-semibold">New</span>
+                              </div>
+                            </div>
+                            <div className="absolute top-2 left-2 bg-primary text-primary-foreground rounded-lg px-2 py-1">
+                              <span className="text-xs font-semibold">₹{home.totalRooms * 500}/day</span>
+                            </div>
+                          </div>
+
+                          <CardContent className="p-4">
+                            <div className="mb-3">
+                              <h3 className="text-base md:text-lg font-semibold mb-1 text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                                {home.name}
+                              </h3>
+                              <div className="flex items-center gap-1 text-muted-foreground mb-2">
+                                <MapPin className="h-3 w-3" />
+                                <span className="text-xs line-clamp-1">{getLocation(home)}</span>
+                              </div>
+                              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                                <div className="flex items-center gap-1">
+                                  <Users className="h-3 w-3" />
+                                  <span>{home.totalRooms} rooms</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <Hospital className="h-3 w-3" />
+                                  <span>Nearby hospital</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="mb-3">
+                              <div className="flex flex-wrap gap-1">
+                                <Badge variant="secondary" className="text-xs py-0 px-2 h-5">
+                                  {home.propertyType.toUpperCase()}
+                                </Badge>
+                                <Badge
+                                  variant="outline"
+                                  className="text-xs bg-green-600 text-white py-0 px-2 h-5"
+                                >
+                                  {home.status.toUpperCase()}
+                                </Badge>
+                              </div>
+                            </div>
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full text-sm group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/health-home/${home.id}`);
+                              }}
+                            >
+                              View Details
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+
+                  <CarouselPrevious className="left-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
+                  <CarouselNext className="right-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
+                </Carousel>
+              </div>
+            </>
+          ) : (
+            /* When searched: show simple grid (3 per row on desktop) */
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {displayedHomes.map((home) => (
+                <Card
+                  key={home.id}
+                  className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden w-full"
+                >
+                  <div className="relative h-40 overflow-hidden">
+                    <img
+                      src={getCardImage(home)}
+                      alt={home.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1">
+                      <div className="flex items-center gap-1">
+                        <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                        <span className="text-xs font-semibold">New</span>
+                      </div>
+                    </div>
+                    <div className="absolute top-2 left-2 bg-primary text-primary-foreground rounded-lg px-2 py-1">
+                      <span className="text-xs font-semibold">₹{home.totalRooms * 500}/day</span>
+                    </div>
+                  </div>
+
+                  <CardContent className="p-4">
+                    <div className="mb-3">
+                      <h3 className="text-base md:text-lg font-semibold mb-1 text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                        {home.name}
+                      </h3>
+                      <div className="flex items-center gap-1 text-muted-foreground mb-2">
+                        <MapPin className="h-3 w-3" />
+                        <span className="text-xs line-clamp-1">{getLocation(home)}</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Users className="h-3 w-3" />
+                          <span>{home.totalRooms} rooms</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Hospital className="h-3 w-3" />
+                          <span>Nearby hospital</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mb-3">
+                      <div className="flex flex-wrap gap-1">
+                        <Badge variant="secondary" className="text-xs py-0 px-2 h-5">
+                          {home.propertyType.toUpperCase()}
+                        </Badge>
+                        <Badge
+                          variant="outline"
+                          className="text-xs bg-green-600 text-white py-0 px-2 h-5"
+                        >
+                          {home.status.toUpperCase()}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full text-sm group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300"
+                      onClick={() => navigate(`/health-home/${home.id}`)}
+                    >
+                      View Details
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
 
           {cityHomes.length === 0 && (
             <div className="text-center py-8 md:py-12">
@@ -345,34 +428,52 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
-      {/* ✅ Header: when dockSearch true, searchbar goes into header center */}
+      {/* ✅ Header: SearchBar will animate in when docked */}
       <Header
         activePage="health-homes"
-        hideCenterNav={dockSearch}
         centerContent={
-          dockSearch ? (
-            <div className="origin-center scale-[0.92]">
-              <SearchBar onSearch={handleSearch} loading={showSkeleton} />
-            </div>
-          ) : null
+          <SearchBar
+            onSearch={handleSearch}
+            loading={showSkeleton}
+            location={selectedCity}
+            checkIn={selectedCheckIn}
+            checkOut={selectedCheckOut}
+            adults={selectedAdults}
+            children={selectedChildren}
+          />
         }
       />
 
-      {/* ✅ SearchBar BELOW header (only when NOT docked on desktop) */}
+      {/* ✅ SearchBar BELOW header (page variant - hides when docked) */}
       <div className="container mx-auto px-4">
-  {/* Desktop (only when NOT docked) */}
-  {!dockSearch && (
-    <div className="hidden md:block pt-6">
-      <div className="mx-auto w-full max-w-[820px]">
-        <SearchBar onSearch={handleSearch} loading={showSkeleton} />
-      </div>
+  {/* Desktop */}
+  <div className="hidden md:block pt-6">
+    <div className="mx-auto w-full max-w-[820px]">
+      <SearchBar
+        variant="page"
+        onSearch={handleSearch}
+        loading={showSkeleton}
+        location={selectedCity}
+        checkIn={selectedCheckIn}
+        checkOut={selectedCheckOut}
+        adults={selectedAdults}
+        children={selectedChildren}
+      />
     </div>
-  )}
+  </div>
 
   {/* Mobile (always visible) */}
   <div className="md:hidden pt-4">
     <div className="mx-auto w-full max-w-[820px]">
-      <SearchBar onSearch={handleSearch} loading={showSkeleton} />
+      <SearchBar
+        onSearch={handleSearch}
+        loading={showSkeleton}
+        location={selectedCity}
+        checkIn={selectedCheckIn}
+        checkOut={selectedCheckOut}
+        adults={selectedAdults}
+        children={selectedChildren}
+      />
     </div>
   </div>
 </div>
@@ -474,6 +575,7 @@ const Index = () => {
               city={city}
               cityHomes={cityHomes}
               displayedHomes={displayedHomes}
+              hasSearched={hasSearched}
             />
           );
         })

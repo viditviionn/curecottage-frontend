@@ -4,13 +4,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 interface SearchBarProps {
+  variant?: "page" | "header";
   onSearch?: (location: string, checkIn: string, checkOut: string, guests: number) => void;
-  loading?: boolean; // ✅ added
+  loading?: boolean;
+  location?: string;
+  checkIn?: string;
+  checkOut?: string;
+  adults?: number;
+  children?: number;
 }
 
 type ActivePanel = "where" | "when" | "who" | null;
 
 const SUGGESTIONS = [
+  { title: "All", subtitle: "View properties from all cities", icon: MapPin },
   { title: "Bangalore", subtitle: "Because your wishlist has stays in Bangalore", icon: MapPin },
   { title: "Mumbai", subtitle: "Because your wishlist has stays in Mumbai", icon: MapPin },
   { title: "Delhi", subtitle: "Because your wishlist has stays in Delhi", icon: MapPin },
@@ -20,15 +27,33 @@ const SUGGESTIONS = [
 
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
 
-export const SearchBar = ({ onSearch, loading = false }: SearchBarProps = {}) => {
-  const [location, setLocation] = useState("Bangalore");
-  const [checkIn, setCheckIn] = useState("");
-  const [checkOut, setCheckOut] = useState("");
+export const SearchBar = ({
+  variant = "page",
+  onSearch,
+  loading = false,
+  location: propLocation = "All",
+  checkIn: propCheckIn = "",
+  checkOut: propCheckOut = "",
+  adults: propAdults = 1,
+  children: propChildren = 0,
+}: SearchBarProps) => {
+  const [location, setLocation] = useState(propLocation);
+  const [checkIn, setCheckIn] = useState(propCheckIn);
+  const [checkOut, setCheckOut] = useState(propCheckOut);
 
-  const [adults, setAdults] = useState(1);
-  const [children, setChildren] = useState(0);
+  const [adults, setAdults] = useState(propAdults);
+  const [children, setChildren] = useState(propChildren);
   const [infants, setInfants] = useState(0);
   const [pets, setPets] = useState(0);
+
+  // Sync with props when they change (e.g., when docked to header)
+  useEffect(() => {
+    setLocation(propLocation);
+    setCheckIn(propCheckIn);
+    setCheckOut(propCheckOut);
+    setAdults(propAdults);
+    setChildren(propChildren);
+  }, [propLocation, propCheckIn, propCheckOut, propAdults, propChildren]);
 
   const guests = useMemo(() => adults + children, [adults, children]);
 
@@ -43,6 +68,61 @@ export const SearchBar = ({ onSearch, loading = false }: SearchBarProps = {}) =>
 
   const [active, setActive] = useState<ActivePanel>(null);
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const dockRef = useRef<HTMLDivElement | null>(null);
+  const [docked, setDocked] = useState(false);
+
+  // IntersectionObserver for docking detection (only for page variant)
+  useEffect(() => {
+    if (variant !== "page") return;
+
+    const mq = window.matchMedia("(min-width: 1024px)");
+    if (!mq.matches) return;
+
+    const el = dockRef.current;
+    if (!el) return;
+
+    const HEADER_OFFSET = 80; // Header height offset
+    let rafId: number | null = null;
+    let lastState: boolean | null = null;
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (rafId) cancelAnimationFrame(rafId);
+        
+        rafId = requestAnimationFrame(() => {
+          const shouldDock = !entry.isIntersecting;
+          
+          // Only update if state changed
+          if (lastState === shouldDock) return;
+          lastState = shouldDock;
+          
+          setDocked(shouldDock);
+          window.dispatchEvent(
+            new CustomEvent("cc:searchDock", { detail: { docked: shouldDock } })
+          );
+        });
+      },
+      { 
+        threshold: 0, 
+        rootMargin: `-${HEADER_OFFSET}px 0px 0px 0px` 
+      }
+    );
+
+    // Small delay to ensure element is positioned
+    const timeoutId = setTimeout(() => {
+      io.observe(el);
+    }, 50);
+
+    return () => {
+      clearTimeout(timeoutId);
+      if (rafId) cancelAnimationFrame(rafId);
+      io.disconnect();
+      setDocked(false);
+      window.dispatchEvent(
+        new CustomEvent("cc:searchDock", { detail: { docked: false } })
+      );
+    };
+  }, [variant]);
 
   useEffect(() => {
     function onDown(e: MouseEvent) {
@@ -150,8 +230,26 @@ export const SearchBar = ({ onSearch, loading = false }: SearchBarProps = {}) =>
         />
       )}
 
+      {/* Intersection observer sentinel (only for page variant) */}
+      {variant === "page" && (
+        <div 
+          ref={dockRef} 
+          className="hidden lg:block h-px w-full pointer-events-none absolute top-0 left-0 right-0" 
+        />
+      )}
+
       {/* DESKTOP */}
-      <div className="hidden md:block relative z-50">
+      <div
+        className={[
+          "hidden md:block relative z-50 transform-gpu will-change-[opacity,transform]",
+          variant === "header"
+            ? "opacity-100 scale-100 translate-y-0"
+            : docked
+            ? "lg:opacity-0 lg:scale-95 lg:-translate-y-2 lg:pointer-events-none"
+            : "lg:opacity-100 lg:scale-100 lg:translate-y-0",
+          "transition-all duration-500 ease-out",
+        ].join(" ")}
+      >
         <div className="bg-muted/40 border border-border rounded-full shadow-lg p-1">
           <div className="flex items-center gap-1">
             <Seg id="where" label="Where" value={location} placeholder="Search destinations" />

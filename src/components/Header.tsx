@@ -115,7 +115,8 @@ const Header = ({
       // show tick then redirect
       window.setTimeout(() => {
         setLogoutModalOpen(false);
-        navigate("/");
+        // Navigate to home and force a full reload so app state resets
+        window.location.href = '/';
       }, 900);
     } finally {
       setLoggingOut(false);

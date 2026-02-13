@@ -46,6 +46,14 @@ const Index = () => {
   const [selectedAdults, setSelectedAdults] = useState<number>(1);
   const [selectedChildren, setSelectedChildren] = useState<number>(0);
   const [hasSearched, setHasSearched] = useState(false);
+  const [isLogedIn, setIsLoggedIn] = useState(false); // Placeholder for auth state
+  console.log("isLogedIn", isLogedIn);
+
+useEffect(() => {
+  const token = localStorage.getItem('auth_token');
+  setIsLoggedIn(!!token); // converts to true/false
+}, []);
+
 
   // For auto-scroll to results
   const resultsRef = useRef<HTMLDivElement | null>(null);
@@ -128,6 +136,7 @@ const Index = () => {
     hasSearched: boolean;
   }) => {
     const autoplayPlugin = useRef(Autoplay({ delay: 3000, stopOnInteraction: true }));
+
 
     return (
       <section className="py-8 md:py-12">
@@ -220,7 +229,7 @@ const Index = () => {
 
               {/* Desktop Carousel */}
               <div className="hidden md:block">
-                <Carousel opts={{ align: 'start', loop: displayedHomes.length > 3 }} className="w-full relative">
+                <Carousel opts={{ align: 'start', loop: displayedHomes.length > 4 }} className="w-full relative">
                   <CarouselContent className="-ml-4">
                     {displayedHomes.map((home) => (
                       <CarouselItem key={home.id} className="pl-4 basis-1/4">
@@ -479,7 +488,7 @@ const Index = () => {
 </div>
 
       {/* Hero Section: hide after search */}
-      {!hasSearched && (
+      {!hasSearched && !isLogedIn &&  (
         <section className="py-10 sm:py-16 md:py-20 bg-gradient-to-br from-background via-accent/5 to-primary/5">
           <div className="container mx-auto px-4">
             <div className="text-center mb-8 md:mb-12 font-sans">
@@ -502,7 +511,7 @@ const Index = () => {
       )}
 
       {/* Medical-Ready Accommodations: hide after search */}
-      {!hasSearched && (
+      {!hasSearched && !isLogedIn && (
         <section className="py-8 md:py-12 bg-accent/20">
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 items-center">

@@ -116,7 +116,8 @@ const Auth = () => {
             title: 'Welcome back!',
             description: result.message || 'You have successfully logged in.',
           });
-          navigate('/');
+          // Navigate to home and force a full reload so app state resets
+          window.location.href = '/';
         }
       } else {
         const result = await signup({

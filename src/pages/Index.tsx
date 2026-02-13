@@ -658,34 +658,21 @@ const Index = () => {
         </div>
       </section>
 
-
- {!hasSearched && (
-<>
-  <section className="container mx-auto px-6 md:px-12 mb-16">
-          <div className="bg-gradient-to-r from-teal-900 to-teal-700 rounded-2xl p-8 text-white text-center shadow-lg relative overflow-hidden">
-             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-             <h3 className="text-2xl font-bold mb-2 relative z-10">WEEKLY PACKAGES AVAILABLE</h3>
-             <p className="text-white/90 font-medium relative z-10">Save 10-15% on 7, 14, 21-day stays</p>
-          </div>
-        </section>
-
-        
-</>
-        
- )}
-
-
-
-
-
-
-
-
-
-
-
-
-
+      {!hasSearched && (
+        <>
+          <section className="container mx-auto px-6 md:px-12 mb-16">
+            <div className="bg-gradient-to-r from-teal-900 to-teal-700 rounded-2xl p-8 text-white text-center shadow-lg relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+              <h3 className="text-2xl font-bold mb-2 relative z-10">
+                WEEKLY PACKAGES AVAILABLE
+              </h3>
+              <p className="text-white/90 font-medium relative z-10">
+                Save 10-15% on 7, 14, 21-day stays
+              </p>
+            </div>
+          </section>
+        </>
+      )}
 
       {/* Footer */}
       <footer className="py-8 md:py-12 border-t border-border">

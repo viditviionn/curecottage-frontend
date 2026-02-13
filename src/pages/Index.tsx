@@ -223,7 +223,7 @@ const Index = () => {
                 <Carousel opts={{ align: 'start', loop: displayedHomes.length > 3 }} className="w-full relative">
                   <CarouselContent className="-ml-4">
                     {displayedHomes.map((home) => (
-                      <CarouselItem key={home.id} className="pl-4 basis-1/3">
+                      <CarouselItem key={home.id} className="pl-4 basis-1/4">
                         <Card
                           className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden w-full"
                           onClick={() => navigate(`/health-home/${home.id}`)}

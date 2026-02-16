@@ -61,7 +61,22 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				/* Qure Home Brand Colors - Direct access */
+				'qure-primary': 'hsl(var(--qure-primary))',
+				'qure-secondary': 'hsl(var(--qure-secondary))',
+				'qure-grounding': 'hsl(var(--qure-grounding))',
+				'qure-neutral': 'hsl(var(--qure-neutral))',
+				'qure-background': 'hsl(var(--qure-background))'
+			},
+			fontFamily: {
+				/* Primary Typeface: Inter / Source Sans 3 - Default for UI, decks, website, pricing, and operational documents */
+				sans: ['Inter', 'Source Sans 3', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'sans-serif'],
+				/* Secondary Typeface: Merriweather / Libre Baskerville - For long-form reading */
+				reading: ['Merriweather', 'Libre Baskerville', 'Georgia', 'Times New Roman', 'serif'],
+				/* Alias for convenience */
+				primary: ['Inter', 'Source Sans 3', 'sans-serif'],
+				secondary: ['Merriweather', 'Libre Baskerville', 'serif']
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

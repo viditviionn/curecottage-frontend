@@ -16,6 +16,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useUserProfileQuery } from "@/rtk/api/authApi";
+import logoWithoutName from "@/assets/logo_cure.png";
+import logoWithName from "@/assets/logo_cure_name.png";
 
 // ✅ shadcn alert-dialog
 import {
@@ -126,7 +128,7 @@ const Header = ({
   // Listen to search dock event from SearchBar
   useEffect(() => {
     const handler = (e: CustomEvent) => {
-      if (!!e.detail?.docked) {
+      if (e.detail?.docked) {
         setIsDocked(!!e.detail?.docked);
       } else {
         // Undock after short delay to allow SearchBar to animate out
@@ -164,22 +166,12 @@ const Header = ({
               to="/"
               className="flex items-center space-x-2 flex-shrink-0 ml-0 lg:-ml-2"
             >
-              {/* <div className="bg-primary p-1.5 lg:p-2 rounded-lg">
-                <Shield className="h-5 w-5 lg:h-6 lg:w-6 text-primary-foreground" />
-              </div> */}
 
-              <div className="flex flex-col">
-                <h1
-                  className="text-lg lg:text-3xl font-bold leading-tight"
-                  style={{ color: "#14B8A6" }}
-                >
-                  QureHome
-                </h1>
-
-                {/* <p className="text-[0.6rem] lg:text-xs text-muted-foreground hidden sm:block">
-                  Heal faster. Save more. Feel at home.
-                </p> */}
-              </div>
+              <img
+                src={logoWithName}
+                alt="QureHome"
+                className="h-16 w-auto"
+              />
             </Link>
 
             {/* ✅ Desktop Center Area (Nav OR Searchbar like Airbnb) */}

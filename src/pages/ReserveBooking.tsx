@@ -3,9 +3,8 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Shield, Calendar, Users } from "lucide-react";
+import { CheckCircle2, Loader2, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { useGetPropertyByIdQuery } from "@/rtk/api/showproperty";
 
@@ -14,9 +13,6 @@ type ReserveState = {
   checkOut?: string;
   guests?: number;
 };
-
-const fallbackImg =
-  "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=1200&h=600&fit=crop";
 
 function diffNights(checkIn: string, checkOut: string) {
   const a = new Date(checkIn);
@@ -30,62 +26,151 @@ function money(n: number) {
   return `₹${Math.round(n).toLocaleString("en-IN")}`;
 }
 
+type Plan = {
+  id: "standard" | "premium" | "family";
+  title: string;
+  subtitle: string;
+  pricePerNight: number;
+  badge?: string;
+  points: string[];
+};
+
+type AddOn = {
+  id: string;
+  title: string;
+  price: number;
+  unit: "/trip" | "/day" | "/session";
+};
+
+const PLANS: Plan[] = [
+  {
+    id: "standard",
+    title: "Standard Recovery",
+    subtitle: "Ideal for short stays (3–7 days)",
+    pricePerNight: 2500,
+    points: [
+      "1BHK with adjustable bed",
+      "Medical-grade cleaning & Wi-Fi",
+      "Wheelchair accessible",
+      "Near hospitals",
+    ],
+  },
+  {
+    id: "premium",
+    title: "Premium Recovery",
+    subtitle: "Perfect for international patients (7–21 days)",
+    pricePerNight: 4500,
+    badge: "MOST POPULAR",
+    points: [
+      "Everything in Standard PLUS",
+      "Adjustable bed + attendant bed",
+      "Oxygen concentrator & grab rails",
+      "Dedicated medical concierge",
+      "Hospital liaison services",
+    ],
+  },
+  {
+    id: "family",
+    title: "Family Recovery Suite",
+    subtitle: "For extended stays & families (14–45 days)",
+    pricePerNight: 7000,
+    points: [
+      "2BHK with separate patient room",
+      "Full kitchen & washing machine",
+      "Premium concierge & all services",
+    ],
+  },
+];
+
+const ADDONS: AddOn[] = [
+  { id: "shuttle", title: "Cab / Hospital Shuttle", price: 500, unit: "/trip" },
+  { id: "cook", title: "Cook", price: 800, unit: "/day" },
+  { id: "meals", title: "Therapeutic Meals", price: 600, unit: "/day" },
+  { id: "physio", title: "Physiotherapy", price: 1200, unit: "/session" },
+  { id: "helper", title: "Helper / Attendant", price: 700, unit: "/day" },
+];
+
+function AirbnbDateInput({
+  value,
+  onChange,
+  placeholder = "Add date",
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}) {
+  const [focused, setFocused] = React.useState(false);
+  const type = focused || value ? "date" : "text";
+
+  return (
+    <input
+      type={type}
+      value={value}
+      placeholder={placeholder}
+      onChange={(e) => onChange(e.target.value)}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      className="w-full bg-transparent text-base text-muted-foreground outline-none placeholder:text-muted-foreground/80"
+    />
+  );
+}
+
 export default function ReserveBooking() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const state = (location.state || {}) as ReserveState;
 
-  const [checkIn, setCheckIn] = React.useState(state.checkIn ?? "");
-  const [checkOut, setCheckOut] = React.useState(state.checkOut ?? "");
-  const [guests, setGuests] = React.useState<number>(state.guests ?? 1);
-
   const { data: property, isLoading, isError } = useGetPropertyByIdQuery(id ?? "", {
     skip: !id,
   });
 
+  const [checkIn, setCheckIn] = React.useState(state.checkIn ?? "");
+  const [checkOut, setCheckOut] = React.useState(state.checkOut ?? "");
+  const [guests, setGuests] = React.useState<number>(state.guests ?? 1);
+
+  const [selectedPlanId, setSelectedPlanId] = React.useState<Plan["id"] | null>(null);
+  const [selectedAddOns, setSelectedAddOns] = React.useState<Record<string, boolean>>({});
+  const [confirming, setConfirming] = React.useState(false);
+
   if (isLoading) return <div className="p-6 text-muted-foreground">Loading...</div>;
   if (isError || !property) return <div className="p-6 text-red-500">Failed to load property</div>;
 
-  const locationText = [property.addressLine1, property.city].filter(Boolean).join(", ");
-
-  const activePricing =
-    property.pricing?.find((p) => p.isActive) ?? property.pricing?.[0] ?? null;
-
-  const nightly = activePricing?.basePricePerNight ?? 0;
-  const cleaningFee = activePricing?.cleaningFee ?? 0;
-  const serviceFeePct = activePricing?.serviceFeePercentage ?? 0;
-  const taxPct = activePricing?.taxPercentage ?? 0;
-  const minStay = activePricing?.minStayNights ?? property.minStayNights ?? 1;
+  const selectedPlan = selectedPlanId ? PLANS.find((p) => p.id === selectedPlanId) : null;
 
   const nightsSelected = checkIn && checkOut ? diffNights(checkIn, checkOut) : 0;
-  const nights = Math.max(nightsSelected, minStay);
+  const nights = Math.max(nightsSelected, 0);
 
-  const subtotal = nightly * nights;
-  const serviceFee = (serviceFeePct / 100) * subtotal;
-  const tax = (taxPct / 100) * subtotal;
-  const total = subtotal + cleaningFee + serviceFee + tax;
+  const addOnTotal = ADDONS.reduce((sum, a) => {
+    if (!selectedAddOns[a.id]) return sum;
+    const mul = a.unit === "/day" ? Math.max(1, nights) : 1;
+    return sum + a.price * mul;
+  }, 0);
 
-  const cover =
-    property.images?.find((x) => x.isPrimary)?.imageUrl ||
-    property.images?.[0]?.imageUrl ||
-    fallbackImg;
+  const planSubtotal = selectedPlan ? selectedPlan.pricePerNight * Math.max(1, nights) : 0;
+  const total = planSubtotal + addOnTotal;
 
-  const canContinue = Boolean(checkIn && checkOut && nightsSelected > 0);
+  const canConfirm = Boolean(selectedPlan) && Boolean(checkIn && checkOut && nightsSelected > 0);
 
-  const onConfirm = () => {
-    if (!canContinue) {
-      toast.error("Please select valid check-in and check-out dates");
+  const toggleAddon = (id: string) => {
+    setSelectedAddOns((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const onConfirm = async () => {
+    if (!canConfirm) {
+      toast.error("Select plan + valid dates first");
       return;
     }
 
-    // ✅ later: call booking API here
-    toast.success("Booking step ready", {
-      description: "Next: connect POST /bookings API",
-    });
-
-    // Example: navigate to success page
-    // navigate(`/reserve/${property.id}/success`);
+    try {
+      setConfirming(true);
+      await new Promise((r) => setTimeout(r, 900));
+      toast.success("Booking confirmed (UI ready)", {
+        description: "Next: connect POST /bookings API",
+      });
+    } finally {
+      setConfirming(false);
+    }
   };
 
   return (
@@ -93,12 +178,12 @@ export default function ReserveBooking() {
       <Header activePage="health-homes" />
 
       <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-10">
-        {/* top row */}
+        {/* top header row */}
         <div className="flex items-start justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold">Confirm and reserve</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold">Choose your recovery plan</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Review your trip details and confirm your booking.
+              Select a plan and confirm your booking.
             </p>
           </div>
 
@@ -107,178 +192,240 @@ export default function ReserveBooking() {
           </Button>
         </div>
 
+        {/* MAIN GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* LEFT */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Trip details */}
-            <Card className="rounded-2xl">
-              <CardContent className="p-6 space-y-4">
-                <h2 className="text-lg font-semibold flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Your trip
-                </h2>
+          {/* LEFT: Plans (cards) */}
+          <div className="lg:col-span-2 space-y-4">
+            {PLANS.map((plan) => {
+              const active = plan.id === selectedPlanId;
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <div className="text-sm font-medium">Check-in</div>
-                    <Input type="date" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="text-sm font-medium">Check-out</div>
-                    <Input type="date" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} />
-                  </div>
-                </div>
+              return (
+                <button
+                  key={plan.id}
+                  type="button"
+                  onClick={() => setSelectedPlanId(plan.id)}
+                  className="w-full text-left"
+                >
+                  <Card
+                    className={[
+                      "rounded-2xl border transition-all",
+                      active ? "border-primary shadow-lg" : "hover:shadow-md",
+                    ].join(" ")}
+                  >
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="text-lg sm:text-xl font-bold text-foreground">
+                            {plan.title}
+                          </div>
+                          <div className="text-sm text-muted-foreground mt-1 italic">
+                            {plan.subtitle}
+                          </div>
+                        </div>
 
-                <div className="flex items-center justify-between rounded-xl border p-4">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <div className="text-sm font-medium">Guests</div>
-                      <div className="text-xs text-muted-foreground">Select number of guests</div>
+                        {plan.badge && (
+                          <Badge className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
+                            {plan.badge}
+                          </Badge>
+                        )}
+                      </div>
+
+                      <div className="mt-4 space-y-2">
+                        {plan.points.map((p) => (
+                          <div
+                            key={p}
+                            className="flex items-start gap-2 text-sm text-muted-foreground"
+                          >
+                            <CheckCircle2 className="h-4 w-4 text-primary mt-0.5" />
+                            <span>{p}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {active && (
+                        <div className="mt-4 text-sm font-medium text-primary">
+                          Selected
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* RIGHT: Trip Details (Airbnb) + Booking Summary + Add-ons */}
+          <div className="space-y-4">
+            <div className="lg:sticky lg:top-24 space-y-4">
+              {/* ✅ Airbnb Trip Details on RIGHT */}
+              <Card className="rounded-2xl">
+                <CardContent className="p-6 space-y-4">
+                  <div className="text-xl font-bold">Add dates for prices</div>
+
+                  {/* Airbnb inner box */}
+                  <div className="rounded-xl border-2 border-foreground/80 overflow-hidden">
+                    <div className="grid grid-cols-2">
+                      <div className="p-4 border-r border-foreground/80">
+                        <div className="text-[11px] font-semibold tracking-wide text-foreground uppercase">
+                          Check-in
+                        </div>
+                        <AirbnbDateInput value={checkIn} onChange={setCheckIn} />
+                      </div>
+
+                      <div className="p-4">
+                        <div className="text-[11px] font-semibold tracking-wide text-foreground uppercase">
+                          Checkout
+                        </div>
+                        <AirbnbDateInput value={checkOut} onChange={setCheckOut} />
+                      </div>
+                    </div>
+
+                    <div className="border-t border-foreground/80 p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <div className="text-[11px] font-semibold tracking-wide text-foreground uppercase">
+                            Guests
+                          </div>
+                          <div className="text-base text-muted-foreground">
+                            {guests} guest{guests > 1 ? "s" : ""}
+                          </div>
+                        </div>
+
+                        <div className="relative">
+                          <select
+                            value={guests}
+                            onChange={(e) => setGuests(Number(e.target.value))}
+                            className="appearance-none bg-transparent pr-8 pl-2 py-2 text-sm outline-none cursor-pointer"
+                            aria-label="Guests"
+                          >
+                            {[1, 2, 3, 4, 5, 6].map((g) => (
+                              <option key={g} value={g}>
+                                {g} guest{g > 1 ? "s" : ""}
+                              </option>
+                            ))}
+                          </select>
+                          <ChevronDown className="h-4 w-4 absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  <select
-                    value={guests}
-                    onChange={(e) => setGuests(Number(e.target.value))}
-                    className="text-sm border rounded-md px-3 py-2 bg-background"
+                  {checkIn && checkOut && nightsSelected === 0 && (
+                    <p className="text-xs text-red-500">
+                      Checkout must be after check-in.
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Booking Summary */}
+              <Card className="rounded-2xl">
+                <CardContent className="p-6 space-y-4">
+                  <div className="text-lg font-bold">Booking Summary</div>
+
+                  {!selectedPlan ? (
+                    <p className="text-sm text-muted-foreground">
+                      Select a residence to see pricing.
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Selected plan</span>
+                        <span className="font-semibold">{selectedPlan.title}</span>
+                      </div>
+
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Price</span>
+                        <span className="font-semibold">
+                          {money(selectedPlan.pricePerNight)}/night
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Nights</span>
+                        <span className="font-semibold">{nightsSelected || 0}</span>
+                      </div>
+
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Add-ons</span>
+                        <span className="font-semibold">{money(addOnTotal)}</span>
+                      </div>
+
+                      <div className="border-t pt-3 flex items-center justify-between">
+                        <span className="font-semibold">Total</span>
+                        <span className="font-semibold">{money(total)}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  <Button
+                    className="w-full h-11 rounded-xl font-semibold"
+                    onClick={onConfirm}
+                    disabled={!canConfirm || confirming}
                   >
-                    {[1, 2, 3, 4, 5, 6].map((g) => (
-                      <option key={g} value={g}>
-                        {g} guest{g > 1 ? "s" : ""}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                    {confirming ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Confirming...
+                      </>
+                    ) : (
+                      "Confirm Booking"
+                    )}
+                  </Button>
 
-                {checkIn && checkOut && nightsSelected === 0 && (
-                  <p className="text-xs text-red-500">
-                    Checkout must be after check-in.
+                  <p className="text-center text-xs text-muted-foreground">
+                    You won’t be charged yet
                   </p>
-                )}
+                </CardContent>
+              </Card>
 
-                {/* {nightsSelected > 0 && nightsSelected < minStay && (
-                  <p className="text-xs text-amber-600">
-                    Minimum stay is {minStay} night(s). Total will be calculated for {minStay}.
-                  </p>
-                )} */}
-              </CardContent>
-            </Card>
+              {/* Add-On Services */}
+              <Card className="rounded-2xl">
+                <CardContent className="p-6">
+                  <div className="text-lg font-bold mb-4">Add-On Services</div>
 
-            {/* Rules / Safety */}
-            <Card className="rounded-2xl">
-              <CardContent className="p-6 space-y-3">
-                <h2 className="text-lg font-semibold flex items-center gap-2">
-                  <Shield className="h-5 w-5" />
-                  House rules & policies
-                </h2>
+                  <div className="space-y-3">
+                    {ADDONS.map((a) => {
+                      const on = Boolean(selectedAddOns[a.id]);
+                      return (
+                        <button
+                          key={a.id}
+                          type="button"
+                          onClick={() => toggleAddon(a.id)}
+                          className={[
+                            "w-full rounded-xl border px-4 py-3 flex items-center justify-between transition",
+                            on ? "border-primary bg-primary/5" : "hover:bg-muted/40",
+                          ].join(" ")}
+                        >
+                          <div className="text-left">
+                            <div className="text-sm font-semibold">{a.title}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {money(a.price)}
+                              {a.unit}
+                            </div>
+                          </div>
 
-                <div className="text-sm text-muted-foreground leading-relaxed">
-                  By selecting “Confirm and reserve”, you agree to the host’s rules and the cancellation policy.
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary">{property.propertyType.toUpperCase()}</Badge>
-                  <Badge variant="outline">{property.status.toUpperCase()}</Badge>
-                </div>
-              </CardContent>
-            </Card>
-
-
-            {/* Confirm button (mobile) */}
-            <div className="lg:hidden">
-              <Button className="w-full h-12 rounded-full text-base font-semibold" onClick={onConfirm}>
-                Confirm and reserve
-              </Button>
-              <p className="text-center text-xs text-muted-foreground mt-2">
-                You won’t be charged yet
-              </p>
+                          <div
+                            className={[
+                              "h-5 w-5 rounded-full border flex items-center justify-center",
+                              on
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : "border-muted-foreground/30",
+                            ].join(" ")}
+                          >
+                            {on && <CheckCircle2 className="h-4 w-4" />}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
-
-          {/* RIGHT Sticky Summary */}
-          <div className="space-y-4">
-            <Card className="rounded-2xl shadow-lg sticky top-24">
-              <CardContent className="p-6 space-y-5">
-                {/* Property mini card */}
-                <div className="flex gap-4">
-                  <img
-                    src={cover}
-                    alt={property.name}
-                    className="h-20 w-28 rounded-xl object-cover border"
-                  />
-                  <div className="min-w-0">
-                    <div className="font-semibold line-clamp-2">{property.name}</div>
-                    <div className="mt-1 text-xs text-muted-foreground flex items-center gap-1">
-                      <MapPin className="h-3 w-3" />
-                      <span className="line-clamp-1">{locationText}</span>
-                    </div>
-                    <div className="mt-2 text-xs text-muted-foreground">
-                      {property.totalRooms} room(s)
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border-t pt-4 space-y-2">
-                  <div className="flex items-baseline justify-between">
-                    <div className="text-lg font-semibold">Price details</div>
-                    <div className="text-sm text-muted-foreground">
-                      {money(nightly)}/night
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between text-sm">
-                    <span>
-                      {money(nightly)} × {nights} night{nights > 1 ? "s" : ""}
-                    </span>
-                    <span>{money(subtotal)}</span>
-                  </div>
-
-                  <div className="flex justify-between text-sm">
-                    <span>Cleaning fee</span>
-                    <span>{money(cleaningFee)}</span>
-                  </div>
-
-                  <div className="flex justify-between text-sm">
-                    <span>Service fee ({serviceFeePct}%)</span>
-                    <span>{money(serviceFee)}</span>
-                  </div>
-
-                  <div className="flex justify-between text-sm">
-                    <span>Taxes ({taxPct}%)</span>
-                    <span>{money(tax)}</span>
-                  </div>
-
-                  <div className="border-t pt-3 flex justify-between font-semibold">
-                    <span>Total</span>
-                    <span>{money(total)}</span>
-                  </div>
-                </div>
-
-                <Button
-                  className="w-full h-12 rounded-full text-base font-semibold"
-                  onClick={onConfirm}
-                  disabled={!canContinue}
-                >
-                  Confirm and reserve
-                </Button>
-
-                <p className="text-center text-xs text-muted-foreground">
-                  You won’t be charged yet
-                </p>
-              </CardContent>
-            </Card>
-
-            <button
-              type="button"
-              className="mx-auto flex items-center gap-2 text-sm text-muted-foreground underline hover:text-foreground"
-              onClick={() => toast.success("Reported", { description: "Thanks for the report." })}
-            >
-              <span className="text-base">🏳️</span>
-              Report this listing
-            </button>
-          </div>
         </div>
+
+        <div className="h-8" />
       </div>
     </div>
   );

@@ -2,6 +2,7 @@
 import React from 'react';
 import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import logoWithoutName from "@/assets/logo_cure.png"; 
 
 const Footer = () => {
   return (
@@ -11,7 +12,17 @@ const Footer = () => {
           
           {/* Brand Column */}
           <div className="space-y-4">
-            <Link to="/" className="text-2xl font-bold text-qure-teal">QureHome</Link>
+          <Link
+              to="/"
+              className="flex items-center space-x-2 flex-shrink-0 ml-0 lg:-ml-2"
+            >
+
+              <img
+                src={logoWithoutName}
+                alt="QureHome"
+                className="h-16 w-auto"
+              />
+            </Link>
             <p className="text-gray-500 leading-relaxed">
               Purpose-built recovery residences for patients seeking comfort, care, and convenience near major hospitals.
             </p>

@@ -568,9 +568,9 @@ const onToggleStatus = async () => {
                 </div>
 
                 <div className="mt-5 flex flex-wrap gap-2">
-                  <Badge variant="outline" className="rounded-full px-3 py-1">
+                  {/* <Badge variant="outline" className="rounded-full px-3 py-1">
                     {property.propertyType.toUpperCase()}
-                  </Badge>
+                  </Badge> */}
                   <Badge variant="outline" className="rounded-full px-3 py-1">
                     {property.status.toUpperCase()}
                   </Badge>

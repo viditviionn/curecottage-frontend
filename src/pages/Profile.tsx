@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { User, Briefcase, Users, MessageSquare, Edit, Building } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { User, Briefcase, Users, MessageSquare, Edit, Building, ArrowLeft } from 'lucide-react';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -26,6 +26,7 @@ type ProfileTab = "about" | "property";
 
 const Profile = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isEditOpen, setIsEditOpen] = useState(false);
 
   const [editForm, setEditForm] = useState({
@@ -34,7 +35,17 @@ const Profile = () => {
     dateOfBirth: "", 
   });
 
-  const [activeTab, setActiveTab] = useState<ProfileTab>('about');
+  // Check if we should open property tab from navigation state
+  const initialTab = (location.state as { activeTab?: ProfileTab })?.activeTab ?? 'about';
+  const [activeTab, setActiveTab] = useState<ProfileTab>(initialTab);
+  
+  // Update tab if location state changes
+  useEffect(() => {
+    const tabFromState = (location.state as { activeTab?: ProfileTab })?.activeTab;
+    if (tabFromState) {
+      setActiveTab(tabFromState);
+    }
+  }, [location.state]);
 
   const { user: storeUser } = useSelector((state: RootState) => state.auth) as { user: UserType };
   const { data: profileUser, isLoading, error } = useUserProfileQuery();
@@ -280,6 +291,16 @@ useEffect(() => {
 
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8">
+          {/* Back button */}
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back to Home</span>
+          </button>
+          
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Sidebar */}
             <aside className="w-full lg:w-64 flex-shrink-0">
@@ -565,7 +586,9 @@ useEffect(() => {
                               variant="outline"
                               size="sm"
                               className="w-full mt-2"
-                              onClick={() => navigate(`/health-home/${p.id}`)}
+                              onClick={() => navigate(`/health-home/${p.id}`, {
+                                state: { fromProfile: true }
+                              })}
                             >
                               View Details
                             </Button>

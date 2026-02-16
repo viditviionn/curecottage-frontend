@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import {
   MapPin,
   Star,
@@ -8,6 +8,7 @@ import {
   Phone,
   Heart,
   Shield,
+  ArrowLeft,
 } from "lucide-react";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
@@ -192,6 +193,7 @@ const fallbackImg =
 
 const HealthHomeDetails = () => {
   const navigate = useNavigate();
+  const routerLocation = useLocation();
   const { id } = useParams();
   const [showGallery, setShowGallery] = React.useState(false);
 const [activeIndex, setActiveIndex] = React.useState(0);
@@ -234,9 +236,10 @@ React.useEffect(() => {
   setLocalStatus(s === "active" ? "active" : "inactive");
 }, [property?.status]);
 
-// show only to host owner
+// show only to host owner AND when navigating from profile page
+const fromProfile = (routerLocation.state as { fromProfile?: boolean })?.fromProfile ?? false;
 const canToggleStatus =
-  !!authUser?.id && authUser.id === property?.host?.id;
+  !!authUser?.id && authUser.id === property?.host?.id && fromProfile;
 
   if (isLoading) return <HealthHomeDetailsSkeleton />;
 
@@ -289,8 +292,8 @@ const onToggleStatus = async () => {
     toast.success("Status updated", {
       description: `Property is now ${nextStatus.toUpperCase()}`,
     });
-
     refetch();
+    window.location.reload();
   } catch (err) {
     toast.error("Failed to update status");
     console.error(err);
@@ -310,6 +313,22 @@ const onToggleStatus = async () => {
           {/* ✅ Hero Image Grid (Airbnb style) */}
           <section className="relative">
             <div className="container mx-auto px-3 sm:px-4 pt-6">
+              {/* Back button */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (fromProfile) {
+                    navigate('/profile', { state: { activeTab: 'property' } });
+                  } else {
+                    navigate(-1);
+                  }
+                }}
+                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back</span>
+              </button>
+              
               {/* Title row */}
               <div className="flex items-start justify-between gap-4 mb-4">
                 <div>

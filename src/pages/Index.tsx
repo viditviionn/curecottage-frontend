@@ -310,12 +310,12 @@ const Index = () => {
 
                             <div className="mb-3">
                               <div className="flex flex-wrap gap-1">
-                                <Badge
+                                {/* <Badge
                                 variant="outline"
                                   className="text-xs py-0 px-2 h-5"
                                 >
                                   {home.propertyType.toUpperCase()}
-                                </Badge>
+                                </Badge> */}
                                 <Badge
                                   variant="outline"
                                   className="text-xs bg-green-600 text-white py-0 px-2 h-5"
@@ -399,11 +399,11 @@ const Index = () => {
 
                     <div className="mb-3">
                       <div className="flex flex-wrap gap-1">
-                        <Badge
+                        {/* <Badge
                           className="text-xs py-0 px-2 h-5"
                         >
                           {home.propertyType.toUpperCase()}
-                        </Badge>
+                        </Badge> */}
                         <Badge
                           variant="outline"
                           className="text-xs bg-green-600 text-white py-0 px-2 h-5"

@@ -323,7 +323,7 @@ const onToggleStatus = async () => {
                     navigate(-1);
                   }
                 }}
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
+                className="hover:bg-primary bg-primary text-white flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4 p-1 hover:rounded-md rounded-md"
               >
                 <ArrowLeft className="h-4 w-4" />
                 <span>Back</span>

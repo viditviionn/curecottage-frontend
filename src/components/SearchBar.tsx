@@ -5,7 +5,12 @@ import { Input } from "@/components/ui/input";
 
 interface SearchBarProps {
   variant?: "page" | "header";
-  onSearch?: (location: string, checkIn: string, checkOut: string, guests: number) => void;
+  onSearch?: (
+    location: string,
+    checkIn: string,
+    checkOut: string,
+    guests: number,
+  ) => void;
   loading?: boolean;
   location?: string;
   checkIn?: string;
@@ -18,14 +23,35 @@ type ActivePanel = "where" | "when" | "who" | null;
 
 const SUGGESTIONS = [
   { title: "All", subtitle: "View properties from all cities", icon: MapPin },
-  { title: "Bangalore", subtitle: "Because your wishlist has stays in Bangalore", icon: MapPin },
-  { title: "Mumbai", subtitle: "Because your wishlist has stays in Mumbai", icon: MapPin },
-  { title: "Delhi", subtitle: "Because your wishlist has stays in Delhi", icon: MapPin },
-  { title: "Chennai", subtitle: "Because your wishlist has stays in Chennai", icon: MapPin },
-  { title: "Hyderabad", subtitle: "Because your wishlist has stays in Hyderabad", icon: MapPin },
+  {
+    title: "Bangalore",
+    subtitle: "Because your wishlist has stays in Bangalore",
+    icon: MapPin,
+  },
+  {
+    title: "Mumbai",
+    subtitle: "Because your wishlist has stays in Mumbai",
+    icon: MapPin,
+  },
+  {
+    title: "Delhi",
+    subtitle: "Because your wishlist has stays in Delhi",
+    icon: MapPin,
+  },
+  {
+    title: "Chennai",
+    subtitle: "Because your wishlist has stays in Chennai",
+    icon: MapPin,
+  },
+  {
+    title: "Hyderabad",
+    subtitle: "Because your wishlist has stays in Hyderabad",
+    icon: MapPin,
+  },
 ];
 
-const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
+const clamp = (n: number, min: number, max: number) =>
+  Math.max(min, Math.min(max, n));
 
 export const SearchBar = ({
   variant = "page",
@@ -88,24 +114,26 @@ export const SearchBar = ({
     const io = new IntersectionObserver(
       ([entry]) => {
         if (rafId) cancelAnimationFrame(rafId);
-        
+
         rafId = requestAnimationFrame(() => {
           const shouldDock = !entry.isIntersecting;
-          
+
           // Only update if state changed
           if (lastState === shouldDock) return;
           lastState = shouldDock;
-          
+
           setDocked(shouldDock);
           window.dispatchEvent(
-            new CustomEvent("cc:searchDock", { detail: { docked: shouldDock } })
+            new CustomEvent("cc:searchDock", {
+              detail: { docked: shouldDock },
+            }),
           );
         });
       },
-      { 
-        threshold: 0, 
-        rootMargin: `-${HEADER_OFFSET}px 0px 0px 0px` 
-      }
+      {
+        threshold: 0,
+        rootMargin: `-${HEADER_OFFSET}px 0px 0px 0px`,
+      },
     );
 
     // Small delay to ensure element is positioned
@@ -119,7 +147,7 @@ export const SearchBar = ({
       io.disconnect();
       setDocked(false);
       window.dispatchEvent(
-        new CustomEvent("cc:searchDock", { detail: { docked: false } })
+        new CustomEvent("cc:searchDock", { detail: { docked: false } }),
       );
     };
   }, [variant]);
@@ -161,7 +189,9 @@ export const SearchBar = ({
         className={[
           "flex-1 text-left px-6 py-3 rounded-full transition-all",
           "hover:bg-muted/50",
-          isActive ? "bg-background shadow-md ring-1 ring-border" : "bg-transparent",
+          isActive
+            ? "bg-background shadow-md ring-1 ring-border"
+            : "bg-transparent",
         ].join(" ")}
       >
         <div className="text-[12px] font-semibold text-foreground">{label}</div>
@@ -223,7 +253,7 @@ export const SearchBar = ({
 
   return (
     <div ref={rootRef} className="relative">
-      {active && (
+      {active && variant === "page" && (
         <div
           className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px]"
           onClick={() => setActive(null)}
@@ -231,12 +261,7 @@ export const SearchBar = ({
       )}
 
       {/* Intersection observer sentinel (only for page variant) */}
-      {variant === "page" && (
-        <div 
-          ref={dockRef} 
-          className="hidden lg:block h-px w-full pointer-events-none absolute top-0 left-0 right-0" 
-        />
-      )}
+      {variant === "page" && <div ref={dockRef} className="" />}
 
       {/* DESKTOP */}
       <div
@@ -245,14 +270,19 @@ export const SearchBar = ({
           variant === "header"
             ? "opacity-100 scale-100 translate-y-0"
             : docked
-            ? "lg:opacity-0 lg:scale-95 lg:-translate-y-2 lg:pointer-events-none"
-            : "lg:opacity-100 lg:scale-100 lg:translate-y-0",
+              ? "lg:opacity-0 lg:scale-95 lg:-translate-y-2 lg:pointer-events-none"
+              : "lg:opacity-100 lg:scale-100 lg:translate-y-0",
           "transition-all duration-500 ease-out",
         ].join(" ")}
       >
-        <div className="bg-muted/40 border border-border rounded-full shadow-lg p-1">
+        <div className="bg-muted/40 border border-border rounded-full shadow-lg p-1 mx-auto w-full max-w-[600px]">
           <div className="flex items-center gap-1">
-            <Seg id="where" label="Where" value={location} placeholder="Search destinations" />
+            <Seg
+              id="where"
+              label="Where"
+              value={location}
+              placeholder="Search destinations"
+            />
 
             <div className="h-8 w-px bg-border" />
 
@@ -265,19 +295,29 @@ export const SearchBar = ({
 
             <div className="h-8 w-px bg-border" />
 
-            <Seg id="who" label="Who" value={whoLabel} placeholder="Add guests" />
+            <Seg
+              id="who"
+              label="Who"
+              value={whoLabel}
+              placeholder="Add guests"
+            />
 
             <div className="pr-1">
-              <Button className="rounded-full h-12 px-6" onClick={runSearch} disabled={loading}>
+              <Button
+                className="rounded-full h-12 w-12 p-0 bg-[#14B8A6] hover:bg-[#0D9488] text-white shadow-md flex items-center justify-center"
+                onClick={runSearch}
+                disabled={loading}
+                aria-label={loading ? "Searching" : "Search"}
+              >
                 {loading ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Searching...
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span className="sr-only">Searching...</span>
                   </>
                 ) : (
                   <>
-                    <Search className="h-4 w-4 mr-2" />
-                    Search
+                    <Search className="h-5 w-5" />
+                    <span className="sr-only">Search</span>
                   </>
                 )}
               </Button>
@@ -288,7 +328,9 @@ export const SearchBar = ({
         <div
           className={[
             "absolute left-0 right-0 mt-3 z-50 transition-all duration-200 ease-out",
-            active ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none",
+            active
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 -translate-y-2 pointer-events-none",
           ].join(" ")}
         >
           {active === "where" && (
@@ -314,8 +356,12 @@ export const SearchBar = ({
                         <Icon className="h-5 w-5 text-muted-foreground" />
                       </div>
                       <div>
-                        <div className="font-semibold text-foreground">{s.title}</div>
-                        <div className="text-sm text-muted-foreground">{s.subtitle}</div>
+                        <div className="font-semibold text-foreground">
+                          {s.title}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {s.subtitle}
+                        </div>
                       </div>
                     </button>
                   );
@@ -323,7 +369,9 @@ export const SearchBar = ({
               </div>
 
               <div className="px-2 pt-3">
-                <div className="text-xs font-semibold text-muted-foreground mb-2">Or type a city</div>
+                <div className="text-xs font-semibold text-muted-foreground mb-2">
+                  Or type a city
+                </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
                   <Input
@@ -340,9 +388,15 @@ export const SearchBar = ({
           {active === "when" && (
             <div className="bg-background border rounded-3xl shadow-2xl p-6 max-w-5xl">
               <div className="flex items-center justify-center gap-2 mb-6">
-                <button className="px-5 py-2 rounded-full bg-muted font-semibold">Dates</button>
-                <button className="px-5 py-2 rounded-full hover:bg-muted/60">Months</button>
-                <button className="px-5 py-2 rounded-full hover:bg-muted/60">Flexible</button>
+                <button className="px-5 py-2 rounded-full bg-muted font-semibold">
+                  Dates
+                </button>
+                <button className="px-5 py-2 rounded-full hover:bg-muted/60">
+                  Months
+                </button>
+                <button className="px-5 py-2 rounded-full hover:bg-muted/60">
+                  Flexible
+                </button>
               </div>
 
               <div className="grid grid-cols-2 gap-6">
@@ -351,7 +405,11 @@ export const SearchBar = ({
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <div className="font-semibold">Check-in</div>
                   </div>
-                  <Input type="date" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} />
+                  <Input
+                    type="date"
+                    value={checkIn}
+                    onChange={(e) => setCheckIn(e.target.value)}
+                  />
                 </div>
 
                 <div className="rounded-2xl border p-4">
@@ -359,12 +417,23 @@ export const SearchBar = ({
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <div className="font-semibold">Check-out</div>
                   </div>
-                  <Input type="date" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} />
+                  <Input
+                    type="date"
+                    value={checkOut}
+                    onChange={(e) => setCheckOut(e.target.value)}
+                  />
                 </div>
               </div>
 
               <div className="flex flex-wrap gap-2 mt-6">
-                {["Exact dates", "± 1 day", "± 2 days", "± 3 days", "± 7 days", "± 14 days"].map((x) => (
+                {[
+                  "Exact dates",
+                  "± 1 day",
+                  "± 2 days",
+                  "± 3 days",
+                  "± 7 days",
+                  "± 14 days",
+                ].map((x) => (
                   <button
                     key={x}
                     type="button"
@@ -380,12 +449,35 @@ export const SearchBar = ({
 
           {active === "who" && (
             <div className="bg-background border rounded-3xl shadow-2xl p-6 max-w-xl ml-auto">
-              <CounterRow title="Adults" subtitle="Ages 13 or above" value={adults} min={1} onChange={setAdults} />
-              <CounterRow title="Children" subtitle="Ages 2–12" value={children} onChange={setChildren} />
-              <CounterRow title="Infants" subtitle="Under 2" value={infants} max={10} onChange={setInfants} />
-              <CounterRow title="Pets" subtitle="Bringing a service animal?" value={pets} max={5} onChange={setPets} />
+              <CounterRow
+                title="Adults"
+                subtitle="Ages 13 or above"
+                value={adults}
+                min={1}
+                onChange={setAdults}
+              />
+              <CounterRow
+                title="Children"
+                subtitle="Ages 2–12"
+                value={children}
+                onChange={setChildren}
+              />
+              <CounterRow
+                title="Infants"
+                subtitle="Under 2"
+                value={infants}
+                max={10}
+                onChange={setInfants}
+              />
+              <CounterRow
+                title="Pets"
+                subtitle="Bringing a service animal?"
+                value={pets}
+                max={5}
+                onChange={setPets}
+              />
 
-              <div className="flex items-center justify-between pt-5">
+              <div className="flex items-center justify-between pt-5 ">
                 <button
                   type="button"
                   className="text-sm underline text-muted-foreground hover:text-foreground"
@@ -399,7 +491,11 @@ export const SearchBar = ({
                   Clear all
                 </button>
 
-                <Button className="rounded-full px-6" onClick={runSearch} disabled={loading}>
+                <Button
+                  className="rounded-full px-6 bg-[#14B8A6] hover:bg-[#0D9488] text-white"
+                  onClick={runSearch}
+                  disabled={loading}
+                >
                   {loading ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -422,7 +518,9 @@ export const SearchBar = ({
       <div className="md:hidden bg-card rounded-2xl shadow-xl p-2 border border-border/50 backdrop-blur-sm relative z-10">
         <div className="grid grid-cols-2 gap-2">
           <div className="flex flex-col p-2 rounded-xl hover:bg-accent/50 transition-colors">
-            <label className="text-xs font-medium text-foreground mb-1">Location</label>
+            <label className="text-xs font-medium text-foreground mb-1">
+              Location
+            </label>
             <div className="flex items-center gap-2">
               <MapPin className="h-3 w-3 text-muted-foreground" />
               <Input
@@ -435,7 +533,9 @@ export const SearchBar = ({
           </div>
 
           <div className="flex flex-col p-2 rounded-xl hover:bg-accent/50 transition-colors">
-            <label className="text-xs font-medium text-foreground mb-1">Guests</label>
+            <label className="text-xs font-medium text-foreground mb-1">
+              Guests
+            </label>
             <div className="flex items-center gap-2">
               <Users className="h-3 w-3 text-muted-foreground" />
               <Input
@@ -453,7 +553,9 @@ export const SearchBar = ({
           </div>
 
           <div className="flex flex-col p-2 rounded-xl hover:bg-accent/50 transition-colors">
-            <label className="text-xs font-medium text-foreground mb-1">Check-in</label>
+            <label className="text-xs font-medium text-foreground mb-1">
+              Check-in
+            </label>
             <div className="flex items-center gap-2">
               <Calendar className="h-3 w-3 text-muted-foreground" />
               <Input
@@ -466,7 +568,9 @@ export const SearchBar = ({
           </div>
 
           <div className="flex flex-col p-2 rounded-xl hover:bg-accent/50 transition-colors">
-            <label className="text-xs font-medium text-foreground mb-1">Check-out</label>
+            <label className="text-xs font-medium text-foreground mb-1">
+              Check-out
+            </label>
             <div className="flex items-center gap-2">
               <Calendar className="h-3 w-3 text-muted-foreground" />
               <Input
@@ -479,7 +583,11 @@ export const SearchBar = ({
           </div>
 
           <div className="col-span-2">
-            <Button className="w-full h-10 rounded-xl" onClick={runSearch} disabled={loading}>
+            <Button
+              className="w-full h-10 rounded-xl bg-[#14B8A6] hover:bg-[#0D9488] text-white"
+              onClick={runSearch}
+              disabled={loading}
+            >
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />

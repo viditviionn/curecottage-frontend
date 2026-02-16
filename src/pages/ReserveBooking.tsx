@@ -243,7 +243,7 @@ export default function ReserveBooking() {
                       </div>
 
                       {active && (
-                        <div className="mt-4 text-sm font-medium text-primary">
+                        <div className="mt-4 text-sm font-medium text-red-600">
                           Selected
                         </div>
                       )}

@@ -9,11 +9,9 @@
 
 @layer base {
   :root {
-    /* Qure Home Brand Colors */
     /* Primary - Medical Teal: #2F8F8B - Calm, hygienic, and trustworthy */
     --brand-primary: 177 50% 37%;
-    /* Secondary - Care Amber: #F2B233 - Human warmth and reassurance */
-    --brand-secondary: 40 87% 57%;
+ 
     /* Grounding - Terra Red: #C7473A - Urgency under control */
     --brand-grounding: 6 55% 50%;
     /* Neutral - Charcoal Grey: #3E3E3E - Operational clarity and authority */
@@ -63,7 +61,7 @@
     --health-primary: 177 50% 37%;
     --health-secondary: 40 87% 57%;
     --health-accent: 40 87% 57%;
-    --health-gradient: linear-gradient(135deg, hsl(177 50% 37%), hsl(40 87% 57%));
+  
     --wellness-color: 177 50% 37%;
     --senior-care-color: 40 87% 57%;
 

@@ -252,7 +252,7 @@ const Header = ({
                     : undefined
                 }
                 onClick={() => setIsOpen(false)}
-                className="inline-flex items-center gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap"
+                className="inline-flex items-center gap-2  text-secondary-foreground  transition-colors px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap"
               >
                 <Heart className="h-4 w-4" />
                 Be the Host

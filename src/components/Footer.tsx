@@ -38,10 +38,12 @@ const Footer = () => {
           <div>
             <h3 className="font-semibold text-gray-900 mb-4">Explore</h3>
             <ul className="space-y-3">
-              <li><Link to="/listings" className="text-gray-600 hover:text-qure-teal">Recovery Homes</Link></li>
-              <li><Link to="/services" className="text-gray-600 hover:text-qure-teal">Services & Care</Link></li>
-              <li><Link to="/partners" className="text-gray-600 hover:text-qure-teal">Partner With Us</Link></li>
+              {/* <li><Link to="/listings" className="text-gray-600 hover:text-qure-teal">Recovery Homes</Link></li> */}
+              {/* <li><Link to="/services" className="text-gray-600 hover:text-qure-teal">Services & Care</Link></li> */}
+              {/* <li><Link to="/partners" className="text-gray-600 hover:text-qure-teal">Partner With Us</Link></li> */}
               <li><Link to="/about" className="text-gray-600 hover:text-qure-teal">About Us</Link></li>
+              <li><Link to="/terms" className="text-gray-600 hover:text-qure-teal">Terms of Service</Link></li>
+
             </ul>
           </div>
 
@@ -51,8 +53,8 @@ const Footer = () => {
             <ul className="space-y-3">
               <li><Link to="/faq" className="text-gray-600 hover:text-qure-teal">FAQ</Link></li>
               <li><Link to="/contact" className="text-gray-600 hover:text-qure-teal">Contact Us</Link></li>
-              <li><a href="#" className="text-gray-600 hover:text-qure-teal">Terms of Service</a></li>
-              <li><a href="#" className="text-gray-600 hover:text-qure-teal">Privacy Policy</a></li>
+              {/* <li><a href="#" className="text-gray-600 hover:text-qure-teal">Terms of Service</a></li> */}
+              {/* <li><a href="#" className="text-gray-600 hover:text-qure-teal">Privacy Policy</a></li> */}
             </ul>
           </div>
 

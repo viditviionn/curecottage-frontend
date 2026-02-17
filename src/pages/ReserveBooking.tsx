@@ -136,7 +136,21 @@ export default function ReserveBooking() {
   if (isLoading) return <div className="p-6 text-muted-foreground">Loading...</div>;
   if (isError || !property) return <div className="p-6 text-red-500">Failed to load property</div>;
 
-  const selectedPlan = selectedPlanId ? PLANS.find((p) => p.id === selectedPlanId) : null;
+  // Get actual property price from API
+  const propertyPricePerNight =
+    property.pricing?.find((p) => p.isActive)?.basePricePerNight ??
+    property.pricing?.[0]?.basePricePerNight ??
+    0;
+
+  // Update plans with actual property price
+  const plansWithActualPrice = PLANS.map((plan) => ({
+    ...plan,
+    pricePerNight: propertyPricePerNight || plan.pricePerNight, // Use property price if available, else fallback to plan price
+  }));
+
+  const selectedPlan = selectedPlanId ? plansWithActualPrice.find((p) => p.id === selectedPlanId) : null;
+  // Default plan for display when no plan is selected
+  const displayPlan = selectedPlan || plansWithActualPrice[0]; // Use first plan (Standard) as default
 
   const nightsSelected = checkIn && checkOut ? diffNights(checkIn, checkOut) : 0;
   const nights = Math.max(nightsSelected, 0);
@@ -147,7 +161,8 @@ export default function ReserveBooking() {
     return sum + a.price * mul;
   }, 0);
 
-  const planSubtotal = selectedPlan ? selectedPlan.pricePerNight * Math.max(1, nights) : 0;
+  // Calculate price based on selected plan or default plan
+  const planSubtotal = displayPlan.pricePerNight * Math.max(1, nights);
   const total = planSubtotal + addOnTotal;
 
   const canConfirm = Boolean(selectedPlan) && Boolean(checkIn && checkOut && nightsSelected > 0);
@@ -196,7 +211,7 @@ export default function ReserveBooking() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* LEFT: Plans (cards) */}
           <div className="lg:col-span-2 space-y-4">
-            {PLANS.map((plan) => {
+            {plansWithActualPrice.map((plan) => {
               const active = plan.id === selectedPlanId;
 
               return (
@@ -323,40 +338,47 @@ export default function ReserveBooking() {
                 <CardContent className="p-6 space-y-4">
                   <div className="text-lg font-bold">Booking Summary</div>
 
-                  {!selectedPlan ? (
-                    <p className="text-sm text-muted-foreground">
-                      Select a residence to see pricing.
-                    </p>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Selected plan</span>
-                        <span className="font-semibold">{selectedPlan.title}</span>
-                      </div>
-
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Price</span>
-                        <span className="font-semibold">
-                          {money(selectedPlan.pricePerNight)}/night
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Nights</span>
-                        <span className="font-semibold">{nightsSelected || 0}</span>
-                      </div>
-
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Add-ons</span>
-                        <span className="font-semibold">{money(addOnTotal)}</span>
-                      </div>
-
-                      <div className="border-t pt-3 flex items-center justify-between">
-                        <span className="font-semibold">Total</span>
-                        <span className="font-semibold">{money(total)}</span>
-                      </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">
+                        {selectedPlan ? "Selected plan" : "Plan"}
+                      </span>
+                      <span className={`font-semibold ${!selectedPlan ? "text-muted-foreground" : ""}`}>
+                        {displayPlan.title}
+                        {!selectedPlan && " (Default)"}
+                      </span>
                     </div>
-                  )}
+
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Price</span>
+                      <span className={`font-semibold ${!selectedPlan ? "text-muted-foreground" : ""}`}>
+                        {money(displayPlan.pricePerNight)}/night
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Nights</span>
+                      <span className="font-semibold">{nightsSelected || 0}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Add-ons</span>
+                      <span className="font-semibold">{money(addOnTotal)}</span>
+                    </div>
+
+                    <div className="border-t pt-3 flex items-center justify-between">
+                      <span className="font-semibold">Total</span>
+                      <span className={`font-semibold ${!selectedPlan ? "text-muted-foreground" : ""}`}>
+                        {money(total)}
+                      </span>
+                    </div>
+
+                    {!selectedPlan && (
+                      <p className="text-xs text-muted-foreground pt-2 border-t">
+                        Select a plan to confirm booking
+                      </p>
+                    )}
+                  </div>
 
                   <Button
                     className="w-full h-11 rounded-xl font-semibold"

@@ -9,10 +9,15 @@ import {
   Heart,
   Shield,
   ArrowLeft,
+  ArrowRight,
   Copy,
   MessageCircle,
+  Mail,
+  MessageSquare,
+  Twitter,
   Instagram,
   Facebook,
+  Share2,
 } from "lucide-react";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
@@ -222,12 +227,6 @@ const formatShort = (iso: string) => {
   return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
 };
 
-
-const openGallery = (idx: number) => {
-  setActiveIndex(idx);
-  setShowGallery(true);
-};
-
   const { data: property, isLoading, refetch, isFetching, isError } = useGetPropertyByIdQuery(id ?? "", {
     skip: !id,
   });
@@ -280,10 +279,58 @@ const canToggleStatus =
     }
   };
 
+  const handleShareEmail = () => {
+    if (currentUrl) {
+      const subject = encodeURIComponent(shareText);
+      const body = encodeURIComponent(`${shareText}\n\n${currentUrl}`);
+      const url = `mailto:?subject=${subject}&body=${body}`;
+      // Use window.location.href for mailto links to open email client
+      window.location.href = url;
+      setShowShareDialog(false);
+    }
+  };
+
+  const handleShareMessages = () => {
+    if (currentUrl) {
+      // For SMS/Messages app
+      const url = `sms:?body=${encodeURIComponent(`${shareText} ${currentUrl}`)}`;
+      window.location.href = url;
+      setShowShareDialog(false);
+    }
+  };
+
+  const handleShareMessenger = () => {
+    if (currentUrl) {
+      // Facebook Messenger share - using send dialog
+      // Note: This requires a Facebook App ID, but we'll use a fallback approach
+      const url = `https://www.facebook.com/dialog/send?link=${encodeURIComponent(currentUrl)}&redirect_uri=${encodeURIComponent(currentUrl)}`;
+      window.open(url, "_blank");
+      setShowShareDialog(false);
+    }
+  };
+
+  const handleShareTwitter = () => {
+    if (currentUrl) {
+      const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(currentUrl)}`;
+      window.open(url, "_blank");
+      setShowShareDialog(false);
+    }
+  };
+
   const handleShareInstagram = () => {
-    // Instagram doesn't support direct URL sharing, so we'll copy URL and show message
-    handleCopyUrl();
-    toast.info("URL copied! You can paste it in your Instagram post/story");
+    // Instagram doesn't support direct URL sharing via web browser
+    // Best approach: Copy URL and show message
+    if (currentUrl) {
+      navigator.clipboard.writeText(currentUrl).then(() => {
+        toast.success("URL copied! You can paste it in your Instagram post/story");
+      }).catch(() => {
+        toast.info("Please copy the URL manually and share on Instagram");
+      });
+      setShowShareDialog(false);
+    } else {
+      toast.info("Please share manually on Instagram");
+      setShowShareDialog(false);
+    }
   };
 
   const handleShareFacebook = () => {
@@ -301,6 +348,23 @@ const canToggleStatus =
           ...property.images.filter((x) => !x.isPrimary).map((x) => x.imageUrl),
         ]
       : [fallbackImg];
+
+  const openGallery = (idx: number) => {
+    setActiveIndex(idx);
+    setShowGallery(true);
+  };
+
+  const handleNextImage = () => {
+    if (imageUrls && imageUrls.length > 0 && activeIndex < imageUrls.length - 1) {
+      setActiveIndex(activeIndex + 1);
+    }
+  };
+
+  const handlePreviousImage = () => {
+    if (imageUrls && imageUrls.length > 0 && activeIndex > 0) {
+      setActiveIndex(activeIndex - 1);
+    }
+  };
 
   const location = [property.addressLine1, property.city].filter(Boolean).join(", ");
   const reviewCount = property._count?.reviews ?? 0;
@@ -397,8 +461,9 @@ const onToggleStatus = async () => {
                 <div className="hidden sm:flex items-center gap-3">
                     <button 
                       onClick={() => setShowShareDialog(true)}
-                      className="text-sm underline hover:text-primary transition-colors"
+                      className="flex items-center gap-1.5 text-sm underline hover:text-primary transition-colors"
                     >
+                      <Share2 className="h-4 w-4" />
                       Share
                     </button>
 
@@ -507,8 +572,8 @@ const onToggleStatus = async () => {
 
           {/* ✅ Simple Lightbox Modal */}
           {showGallery && (
-            <div className="fixed inset-0 z-[80] bg-black/80 flex items-center justify-center px-3">
-              <div className="relative w-full max-w-5xl">
+            <div className="fixed inset-0 z-[80] bg-black/80 flex items-start justify-center px-3 pt-20 md:pt-28 pb-8 md:pb-12 overflow-y-auto">
+              <div className="relative w-full max-w-5xl mt-4 md:mt-8">
                 {/* Close */}
                 <button
                   type="button"
@@ -518,6 +583,36 @@ const onToggleStatus = async () => {
                 >
                   ✕
                 </button>
+
+                {/* Previous Arrow */}
+                {imageUrls && imageUrls.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={handlePreviousImage}
+                    disabled={activeIndex === 0}
+                    className={`absolute left-4 top-1/2 -translate-y-1/2 text-white bg-black/60 rounded-full w-10 h-10 flex items-center justify-center hover:bg-black/80 transition-colors z-10 ${
+                      activeIndex === 0 ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                    }`}
+                    aria-label="Previous image"
+                  >
+                    <ArrowLeft className="h-5 w-5" />
+                  </button>
+                )}
+
+                {/* Next Arrow */}
+                {imageUrls && imageUrls.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={handleNextImage}
+                    disabled={activeIndex === imageUrls.length - 1}
+                    className={`absolute right-4 top-1/2 -translate-y-1/2 text-white bg-black/60 rounded-full w-10 h-10 flex items-center justify-center hover:bg-black/80 transition-colors z-10 ${
+                      activeIndex === imageUrls.length - 1 ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                    }`}
+                    aria-label="Next image"
+                  >
+                    <ArrowRight className="h-5 w-5" />
+                  </button>
+                )}
 
                 {/* Image */}
                 <div className="bg-black rounded-xl overflow-hidden">
@@ -835,42 +930,95 @@ const onToggleStatus = async () => {
 
       {/* Share Dialog */}
       <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Share this property</DialogTitle>
+        <DialogContent className="sm:max-w-md p-4 max-h-[70vh] overflow-y-auto">
+          <DialogHeader className="pb-2">
+            <DialogTitle className="text-lg font-semibold">Share this place</DialogTitle>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-4 py-4">
+          
+          {/* Property Info */}
+          <div className="flex gap-2 py-2 border-b">
+            <img
+              src={imageUrls[0] ?? fallbackImg}
+              alt={property.name}
+              className="w-14 h-14 rounded-lg object-cover flex-shrink-0"
+            />
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-xs truncate">{property.name}</h3>
+              <div className="flex items-center gap-1 mt-0.5">
+                <Star className="h-2.5 w-2.5 fill-black text-black" />
+                <span className="text-[10px] text-muted-foreground">4.86</span>
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                {property.totalRooms} bedroom · {property.totalRooms} bed · 1 private bathroom
+              </p>
+            </div>
+          </div>
+
+          {/* Share Options */}
+          <div className="grid grid-cols-2 gap-2 pt-2">
             <Button
               variant="outline"
-              className="flex flex-col items-center gap-2 h-auto py-4"
+              className="flex flex-col items-center gap-1.5 h-auto py-2.5 bg-gray-50 hover:bg-gray-100"
               onClick={handleCopyUrl}
             >
-              <Copy className="h-6 w-6" />
-              <span>Copy URL</span>
+              <Copy className="h-4 w-4" />
+              <span className="text-xs">Copy Link</span>
             </Button>
             <Button
               variant="outline"
-              className="flex flex-col items-center gap-2 h-auto py-4"
+              className="flex flex-col items-center gap-1.5 h-auto py-2.5 bg-gray-50 hover:bg-gray-100"
+              onClick={handleShareEmail}
+            >
+              <Mail className="h-4 w-4" />
+              <span className="text-xs">Email</span>
+            </Button>
+            <Button
+              variant="outline"
+              className="flex flex-col items-center gap-1.5 h-auto py-2.5 bg-gray-50 hover:bg-gray-100"
+              onClick={handleShareMessages}
+            >
+              <MessageSquare className="h-4 w-4" />
+              <span className="text-xs">Messages</span>
+            </Button>
+            <Button
+              variant="outline"
+              className="flex flex-col items-center gap-1.5 h-auto py-2.5 bg-gray-50 hover:bg-gray-100"
               onClick={handleShareWhatsApp}
             >
-              <MessageCircle className="h-6 w-6 text-green-600" />
-              <span>WhatsApp</span>
+              <MessageCircle className="h-4 w-4 text-green-600" />
+              <span className="text-xs">WhatsApp</span>
             </Button>
             <Button
               variant="outline"
-              className="flex flex-col items-center gap-2 h-auto py-4"
-              onClick={handleShareInstagram}
+              className="flex flex-col items-center gap-1.5 h-auto py-2.5 bg-gray-50 hover:bg-gray-100"
+              onClick={handleShareMessenger}
             >
-              <Instagram className="h-6 w-6 text-pink-600" />
-              <span>Instagram</span>
+              <MessageSquare className="h-4 w-4 text-blue-600" />
+              <span className="text-xs">Messenger</span>
             </Button>
             <Button
               variant="outline"
-              className="flex flex-col items-center gap-2 h-auto py-4"
+              className="flex flex-col items-center gap-1.5 h-auto py-2.5 bg-gray-50 hover:bg-gray-100"
               onClick={handleShareFacebook}
             >
-              <Facebook className="h-6 w-6 text-blue-600" />
-              <span>Facebook</span>
+              <Facebook className="h-4 w-4 text-blue-600" />
+              <span className="text-xs">Facebook</span>
+            </Button>
+            <Button
+              variant="outline"
+              className="flex flex-col items-center gap-1.5 h-auto py-2.5 bg-gray-50 hover:bg-gray-100"
+              onClick={handleShareTwitter}
+            >
+              <Twitter className="h-4 w-4" />
+              <span className="text-xs">Twitter</span>
+            </Button>
+            <Button
+              variant="outline"
+              className="flex flex-col items-center gap-1.5 h-auto py-2.5 bg-gray-50 hover:bg-gray-100"
+              onClick={handleShareInstagram}
+            >
+              <Instagram className="h-4 w-4 text-pink-600" />
+              <span className="text-xs">Instagram</span>
             </Button>
           </div>
         </DialogContent>

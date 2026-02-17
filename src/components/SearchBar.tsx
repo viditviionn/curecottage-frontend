@@ -275,7 +275,7 @@ export const SearchBar = ({
           "transition-all duration-500 ease-out",
         ].join(" ")}
       >
-        <div className="bg-muted/40 border border-border rounded-full shadow-lg p-1 mx-auto w-full max-w-[600px]">
+        <div className={`bg-muted/40 border border-border rounded-full shadow-lg p-1 mx-auto w-full transition-colors duration-200 hover:bg-black/20 ${variant === "header" ? "max-w-[800px]" : "max-w-[700px]"}`}>
           <div className="flex items-center gap-1">
             <Seg
               id="where"

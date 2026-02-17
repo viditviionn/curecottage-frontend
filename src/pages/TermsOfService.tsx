@@ -123,9 +123,9 @@ const TermsOfService = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
       <Header activePage="terms" />
       
-      <div className="container mx-auto px-4 sm:px-6 md:px-12 pt-6 pb-8">
+      <div className="container mx-auto px-4 sm:px-6 md:px-6 pt-6 pb-8 max-w-7xl">
         {/* Back to Home Button */}
-        <div className="mb-6">
+        <div className="mb-4">
           <Button
             variant="ghost"
             onClick={() => navigate("/")}
@@ -137,31 +137,31 @@ const TermsOfService = () => {
         </div>
 
         {/* Hero Section */}
-        <section className="max-w-4xl mx-auto mb-12">
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <FileText className="h-10 w-10 text-[#14B8A6]" />
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 font-heading">
+        <section className="max-w-4xl mx-auto mb-8">
+          <div className="text-center mb-6">
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <FileText className="h-8 w-8 text-[#14B8A6]" />
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 font-heading">
                 Terms of Service
               </h1>
             </div>
-            <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-sm md:text-base text-gray-600 max-w-2xl mx-auto">
               Please read these terms carefully before using QureHome services.
             </p>
-            <p className="text-sm text-gray-500 mt-2">
+            <p className="text-xs text-gray-500 mt-2">
               Last updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
           </div>
         </section>
 
         {/* Important Notice */}
-        <section className="max-w-4xl mx-auto mb-12">
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 md:p-8">
-            <div className="flex items-start gap-4">
-              <AlertCircle className="h-6 w-6 text-amber-600 shrink-0 mt-1" />
+        <section className="max-w-4xl mx-auto mb-8">
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 md:p-6">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
               <div>
-                <h3 className="font-bold text-amber-900 mb-2">Important Notice</h3>
-                <p className="text-amber-800 leading-relaxed">
+                <h3 className="font-semibold text-amber-900 mb-1 text-sm">Important Notice</h3>
+                <p className="text-amber-800 leading-relaxed text-xs md:text-sm">
                   By using QureHome's services, you agree to be bound by these Terms of Service. If you do not agree with any part of these terms, you must not use our services. We recommend reviewing these terms periodically as they may be updated.
                 </p>
               </div>
@@ -170,15 +170,15 @@ const TermsOfService = () => {
         </section>
 
         {/* Terms Content */}
-        <section className="max-w-4xl mx-auto mb-16">
-          <div className="bg-white rounded-2xl border border-gray-200 p-8 md:p-12 shadow-sm">
-            <div className="space-y-8">
+        <section className="max-w-4xl mx-auto mb-12">
+          <div className="bg-white rounded-xl border border-gray-200 p-6 md:p-8 shadow-sm">
+            <div className="space-y-6">
               {sections.map((section, index) => (
-                <div key={index} className="border-b border-gray-200 last:border-b-0 pb-8 last:pb-0">
-                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 font-heading">
+                <div key={index} className="border-b border-gray-200 last:border-b-0 pb-6 last:pb-0">
+                  <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 font-heading">
                     {section.title}
                   </h2>
-                  <div className="text-gray-700 leading-relaxed text-base md:text-lg whitespace-pre-line">
+                  <div className="text-gray-700 leading-relaxed text-sm md:text-base whitespace-pre-line">
                     {section.content}
                   </div>
                 </div>
@@ -188,26 +188,26 @@ const TermsOfService = () => {
         </section>
 
         {/* Agreement Section */}
-        <section className="max-w-4xl mx-auto mb-16">
-          <div className="bg-[#eaf3f1] rounded-2xl p-8 md:p-12 text-center">
-            <Shield className="h-12 w-12 text-[#14B8A6] mx-auto mb-4" />
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 font-heading">
+        <section className="max-w-4xl mx-auto mb-12">
+          <div className="bg-[#eaf3f1] rounded-xl p-6 md:p-8 text-center">
+            <Shield className="h-10 w-10 text-[#14B8A6] mx-auto mb-3" />
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 font-heading">
               Your Agreement
             </h2>
-            <p className="text-gray-700 text-lg mb-6 max-w-2xl mx-auto">
+            <p className="text-gray-700 text-sm md:text-base mb-4 max-w-2xl mx-auto">
               By using QureHome services, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service. If you have any questions, please contact our support team.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button
                 onClick={() => navigate("/contact")}
-                className="bg-[#14B8A6] hover:bg-[#119e8f] text-white px-8 py-6 text-base font-semibold rounded-full"
+                className="bg-[#14B8A6] hover:bg-[#119e8f] text-white px-6 py-4 text-sm font-semibold rounded-full"
               >
                 Contact Support
               </Button>
               <Button
                 variant="outline"
                 onClick={() => navigate("/")}
-                className="border-[#14B8A6] text-[#14B8A6] hover:bg-[#14B8A6] hover:text-white px-8 py-6 text-base font-semibold rounded-full"
+                className="border-[#14B8A6] text-[#14B8A6] hover:bg-[#14B8A6] hover:text-white px-6 py-4 text-sm font-semibold rounded-full"
               >
                 Back to Home
               </Button>

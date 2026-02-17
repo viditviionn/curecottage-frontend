@@ -74,9 +74,9 @@ const FAQ = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
       <Header activePage="faq" />
       
-      <div className="container mx-auto px-4 sm:px-6 md:px-12 pt-6 pb-8">
+      <div className="container mx-auto px-4 sm:px-6 md:px-6 pt-6 pb-8 max-w-7xl">
         {/* Back to Home Button */}
-        <div className="mb-6">
+        <div className="mb-4">
           <Button
             variant="ghost"
             onClick={() => navigate("/")}
@@ -88,34 +88,34 @@ const FAQ = () => {
         </div>
 
         {/* FAQ Section */}
-        <section className="max-w-4xl mx-auto mb-24">
-          <div className="text-center mb-12">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 font-heading">
+        <section className="max-w-4xl mx-auto mb-16">
+          <div className="text-center mb-8">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3 font-heading">
               Frequently Asked Questions
             </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-sm md:text-base text-gray-600 max-w-2xl mx-auto">
               Find answers to common questions about our recovery homes, services, and booking process.
             </p>
           </div>
 
-          <div className="space-y-8">
+          <div className="space-y-5">
             {faqData.map((faq, index) => (
               <div
                 key={index}
-                className="bg-white rounded-2xl border border-gray-200 p-6 md:p-8 shadow-sm hover:shadow-md transition-shadow"
+                className="bg-white rounded-xl border border-gray-200 p-5 md:p-6 shadow-sm hover:shadow-md transition-shadow"
               >
-                <div className="mb-4">
-                  <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-10 h-10 bg-[#14B8A6] text-white rounded-full flex items-center justify-center font-bold text-lg">
+                <div className="mb-3">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 bg-[#14B8A6] text-white rounded-full flex items-center justify-center font-bold text-sm">
                       {index + 1}
                     </div>
-                    <h3 className="text-xl md:text-2xl font-bold text-gray-900 pt-1">
+                    <h3 className="text-base md:text-lg font-semibold text-gray-900 pt-0.5">
                       {faq.question}
                     </h3>
                   </div>
                 </div>
-                <div className="ml-14">
-                  <p className="text-gray-700 leading-relaxed text-base md:text-lg">
+                <div className="ml-11">
+                  <p className="text-gray-700 leading-relaxed text-sm md:text-base">
                     {faq.answer}
                   </p>
                 </div>

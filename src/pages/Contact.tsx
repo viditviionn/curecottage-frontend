@@ -72,9 +72,9 @@ const Contact = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
       <Header activePage="contact" />
       
-      <div className="container mx-auto px-4 sm:px-6 md:px-12 pt-6 pb-8">
+      <div className="container mx-auto px-4 sm:px-6 md:px-6 pt-6 pb-8 max-w-7xl">
         {/* Back to Home Button */}
-        <div className="mb-6">
+        <div className="mb-4">
           <Button
             variant="ghost"
             onClick={() => navigate("/")}
@@ -86,12 +86,12 @@ const Contact = () => {
         </div>
 
         {/* Hero Section */}
-        <section className="max-w-4xl mx-auto mb-16">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 font-heading">
+        <section className="max-w-4xl mx-auto mb-12">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 font-heading">
               Contact Us
             </h1>
-            <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
               Have questions? We're here to help! Get in touch with our team and we'll respond as soon as possible.
             </p>
           </div>
@@ -193,9 +193,9 @@ const Contact = () => {
 
                 <Button
                   type="submit"
-                  className="w-full bg-[#14B8A6] hover:bg-[#119e8f] text-white py-6 text-base font-semibold rounded-full"
+                  className="w-full bg-[#14B8A6] hover:bg-[#119e8f] text-white py-4 text-sm font-semibold rounded-full"
                 >
-                  <Send className="h-5 w-5 mr-2" />
+                  <Send className="h-4 w-4 mr-2" />
                   Send Message
                 </Button>
               </form>

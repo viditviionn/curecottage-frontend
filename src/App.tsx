@@ -16,12 +16,11 @@ import Index from "./pages/Index";
 import BecomeProvider from "./pages/BecomeProvider";
 import HealthHomes from "./pages/HealthHomes";
 import HealthHomeDetails from "./pages/HealthHomeDetails";
-import HomeConversion from "./pages/HomeConversion";
-import HomeConversionDetails from "./pages/HomeConversionDetails";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import ReserveBooking from "./pages/ReserveBooking";
+import Homes from "./pages/Homes";
 import FAQ from "./pages/FAQ";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
@@ -45,11 +44,10 @@ function AppRoutes() {
       {/* ✅ Background routes (render normally) */}
       <Routes location={backgroundLocation || location}>
         <Route path="/" element={<Index />} />
+        <Route path="/homes" element={<Homes />} />
         <Route path="/browse" element={<HealthHomes />} />
         <Route path="/health-homes" element={<HealthHomes />} />
         <Route path="/health-home/:id" element={<HealthHomeDetails />} />
-        <Route path="/home-conversion" element={<HomeConversion />} />
-        <Route path="/home-conversion/:id" element={<HomeConversionDetails />} />
         <Route path="/become-provider" element={<BecomeProvider />} />
 
         {/* ✅ direct /auth open => full page */}

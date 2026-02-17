@@ -167,19 +167,19 @@ const Index = () => {
     );
 
     return (
-      <section className="py-8 md:py-12">
-        <div className="container mx-auto px-4">
-          <div className="mb-6 md:mb-8">
-            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3 md:mb-4">
+      <section className="py-6 md:py-6">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <div className="mb-4 md:mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2 md:mb-3">
               Health Homes in {city}
             </h2>
-            <div className="flex flex-wrap gap-2 sm:gap-4 text-muted-foreground text-sm">
+            <div className="flex flex-wrap gap-2 sm:gap-4 text-muted-foreground text-xs">
               <div className="flex items-center gap-1 sm:gap-2">
-                <MapPin className="h-3 w-3 sm:h-4 sm:w-4" />
+                <MapPin className="h-3 w-3" />
                 <span>{city}</span>
               </div>
               <div className="flex items-center gap-1 sm:gap-2">
-                <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
+                <Heart className="h-3 w-3" />
                 <span>
                   {displayedHomes.length} of {cityHomes.length} health homes
                 </span>
@@ -206,7 +206,7 @@ const Index = () => {
                           className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-primary/30 overflow-hidden w-full"
                           onClick={() => navigate(`/health-home/${home.id}`)}
                         >
-                          <div className="relative h-40 overflow-hidden">
+                          <div className="relative h-36 overflow-hidden">
                             <img
                               src={getCardImage(home)}
                               alt={home.name}
@@ -258,8 +258,12 @@ const Index = () => {
                     ))}
                   </CarouselContent>
 
-                  <CarouselPrevious className="left-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
-                  <CarouselNext className="right-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
+                  {displayedHomes.length > 4 && (
+                    <>
+                      <CarouselPrevious className="left-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
+                      <CarouselNext className="right-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
+                    </>
+                  )}
                 </Carousel>
               </div>
 
@@ -276,7 +280,7 @@ const Index = () => {
                           className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden w-full"
                           onClick={() => navigate(`/health-home/${home.id}`)}
                         >
-                          <div className="relative h-32 md:h-40 overflow-hidden">
+                          <div className="relative h-28 md:h-36 overflow-hidden">
                             <img
                               src={getCardImage(home)}
                               alt={home.name}
@@ -354,8 +358,12 @@ const Index = () => {
                     ))}
                   </CarouselContent>
 
-                  <CarouselPrevious className="left-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
-                  <CarouselNext className="right-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
+                  {displayedHomes.length > 4 && (
+                    <>
+                      <CarouselPrevious className="left-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
+                      <CarouselNext className="right-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
+                    </>
+                  )}
                 </Carousel>
               </div>
             </>
@@ -367,7 +375,7 @@ const Index = () => {
                   key={home.id}
                   className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden w-full"
                 >
-                  <div className="relative h-40 overflow-hidden">
+                  <div className="relative h-36 overflow-hidden">
                     <img
                       src={getCardImage(home)}
                       alt={home.name}
@@ -545,25 +553,25 @@ const Index = () => {
       {/* ✅ NEW HERO SECTION */}
       {!hasSearched && (
         <>
-          <section className="py-16">
-            <div className="container mx-auto px-4">
-              <div className="bg-[#eaf3f1] rounded-3xl p-8 md:p-12">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+          <section className="py-12">
+            <div className="container mx-auto px-4 max-w-7xl">
+              <div className="bg-[#eaf3f1] rounded-2xl p-6 md:p-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
                   {/* LEFT CONTENT */}
                   <div>
                     {/* Badges */}
-                    <div className="flex flex-wrap gap-3 mb-6">
-                      <span className="px-4 py-1.5 text-sm rounded-full border border-[#14B8A6] text-[#14B8A6] bg-white">
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <span className="px-3 py-1 text-xs rounded-full border border-[#14B8A6] text-[#14B8A6] bg-white">
                         Prime location — Within 3 Km of hospital
                       </span>
 
-                      <span className="px-4 py-1.5 text-sm rounded-full border border-[#14B8A6] text-[#14B8A6] bg-white">
+                      <span className="px-3 py-1 text-xs rounded-full border border-[#14B8A6] text-[#14B8A6] bg-white">
                         Multilingual support
                       </span>
                     </div>
 
                     {/* Heading */}
-                    <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-6">
+                    <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight mb-4">
                       Your Comfort.
                       <br />
                       Your Recovery.
@@ -572,13 +580,21 @@ const Index = () => {
                     </h1>
 
                     {/* Description */}
-                    <p className="text-gray-600 text-lg mb-8 max-w-lg">
+                    <p className="text-gray-600 text-base mb-6 max-w-lg">
                       Hospital-adjacent recovery homes designed for healing.
                       Full medical concierge and nutritious meal plans included.
                     </p>
 
                     {/* CTA */}
-                    <Button className="rounded-full px-8 py-6 text-lg bg-[#14B8A6] hover:bg-[#119e8f] text-white shadow-lg">
+                    <Button 
+                      onClick={() => {
+                        resultsRef.current?.scrollIntoView({
+                          behavior: "smooth",
+                          block: "start",
+                        });
+                      }}
+                      className="rounded-full px-6 py-4 text-base bg-[#14B8A6] hover:bg-[#119e8f] text-white shadow-lg"
+                    >
                       Book your stay today
                     </Button>
                   </div>
@@ -588,15 +604,15 @@ const Index = () => {
                     <img
                       src={healthHomesImage}
                       alt="Premium Recovery Suites"
-                      className="rounded-3xl shadow-xl w-full h-[420px] object-cover"
+                      className="rounded-2xl shadow-xl w-full h-[320px] object-cover"
                     />
 
                     {/* Overlay Text */}
-                    <div className="absolute bottom-6 left-6 text-white">
-                      <h3 className="text-xl font-semibold">
+                    <div className="absolute bottom-4 left-4 text-white">
+                      <h3 className="text-lg font-semibold">
                         Premium Recovery Suites
                       </h3>
-                      <p className="text-sm opacity-90">
+                      <p className="text-xs opacity-90">
                         Designed for post-surgical care
                       </p>
                     </div>
@@ -606,30 +622,30 @@ const Index = () => {
             </div>
           </section>
 
-          <section className="container mx-auto px-6 md:px-12 mb-20">
-            <h2 className="text-2xl font-bold text-gray-900 mb-8 font-heading">
+          <section className="container mx-auto px-4 md:px-6 mb-5 max-w-7xl">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-6 font-heading">
               Why Choose QureHome?
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {features.map((feature, idx) => (
                 <div
                   key={idx}
-                  className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-[#14B8A6] hover:border-2 transition-all"
+                  className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-[#14B8A6] hover:border-2 transition-all"
                 >
-                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-4">
-                    <feature.icon size={24} strokeWidth={2} />
+                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-3">
+                    <feature.icon size={20} strokeWidth={2} />
                   </div>
-                  <h3 className="font-bold text-gray-900 mb-3">
+                  <h3 className="font-semibold text-gray-900 mb-2 text-sm">
                     {feature.title}
                   </h3>
-                  <ul className="space-y-2">
+                  <ul className="space-y-1.5">
                     {feature.items.map((item, i) => (
                       <li
                         key={i}
-                        className="flex items-start gap-2 text-sm text-gray-600"
+                        className="flex items-start gap-2 text-xs text-gray-600"
                       >
                         <CheckCircle2
-                          size={14}
+                          size={12}
                           className="mt-0.5 text-primary shrink-0"
                         />
                         <span>{item}</span>
@@ -658,13 +674,49 @@ const Index = () => {
           </div>
         </section>
       ) : (
-        citiesToRender
-          .map((city) => {
-            const cityHomes = getHealthHomesByCity(city);
-            return { city, cityHomes };
-          })
-          .filter(({ cityHomes }) => cityHomes.length > 0)
-          .map(({ city, cityHomes }) => {
+        (() => {
+          const citiesWithHomes = citiesToRender
+            .map((city) => {
+              const cityHomes = getHealthHomesByCity(city);
+              return { city, cityHomes };
+            })
+            .filter(({ cityHomes }) => cityHomes.length > 0);
+
+          // Show "no city found" message if searched but no results
+          if (hasSearched && citiesWithHomes.length === 0) {
+            return (
+              <section className="py-16">
+                <div className="container mx-auto px-4 max-w-7xl">
+                  <div className="text-center py-12">
+                    <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+                      No Health Homes Found
+                    </h2>
+                    <p className="text-gray-600 text-lg mb-6">
+                      We couldn't find any health homes in <span className="font-semibold text-[#14B8A6]">{selectedCity}</span> at the moment.
+                    </p>
+                    <p className="text-gray-500 mb-8">
+                      Please try searching for a different city or check back later as we're constantly expanding our network.
+                    </p>
+                    <Button
+                      onClick={() => {
+                        setSelectedCity("All");
+                        setHasSearched(false);
+                        setQueryArgs({
+                          page: 1,
+                          limit: 100,
+                        });
+                      }}
+                      className="bg-[#14B8A6] hover:bg-[#119e8f] text-white px-6 py-3 rounded-full"
+                    >
+                      View All Cities
+                    </Button>
+                  </div>
+                </div>
+              </section>
+            );
+          }
+
+          return citiesWithHomes.map(({ city, cityHomes }) => {
             const displayedHomes = cityHomes;
             return (
               <CityHealthHomesSection
@@ -675,18 +727,19 @@ const Index = () => {
                 hasSearched={hasSearched}
               />
             );
-          })
+          });
+        })()
       )}
       {!hasSearched && (
         <>
-          <section className="bg-gray-50 py-16 mb-16 border-y border-gray-100">
-            <div className="container mx-auto px-6 md:px-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-12 font-heading text-center">
+          <section className="bg-gray-50 py-12 mb-12 border-y border-gray-100">
+            <div className="container mx-auto px-4 md:px-6 max-w-7xl">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-8 font-heading text-center">
                 How QureHome Works
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative">
                 {/* Connector Line (Desktop) */}
-                <div className="hidden md:block absolute top-6 left-0 w-full h-0.5 bg-gray-200 -z-10"></div>
+                <div className="hidden md:block absolute top-5 left-0 w-full h-0.5 bg-gray-200 -z-10"></div>
 
                 {[
                   {
@@ -710,13 +763,13 @@ const Index = () => {
                     key={idx}
                     className="flex flex-col items-center text-center bg-gray-50"
                   >
-                    <div className="w-12 h-12 bg-white border-2 border-primary text-primary font-bold rounded-full flex items-center justify-center mb-4 shadow-sm z-10">
+                    <div className="w-10 h-10 bg-white border-2 border-primary text-primary font-bold rounded-full flex items-center justify-center mb-3 shadow-sm z-10 text-sm">
                       {idx + 1}
                     </div>
-                    <h3 className="font-bold text-gray-900 mb-2">
+                    <h3 className="font-semibold text-gray-900 mb-1 text-sm">
                       {step.title}
                     </h3>
-                    <p className="text-gray-600 text-sm">{step.desc}</p>
+                    <p className="text-gray-600 text-xs">{step.desc}</p>
                   </div>
                 ))}
               </div>
@@ -725,8 +778,8 @@ const Index = () => {
 
           {/* Trust Section */}
 
-          <section className="container mx-auto px-4 sm:px-6 md:px-12 mb-24 max-w-8xl">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-10 font-heading text-center">
+          <section className="container mx-auto px-4 sm:px-6 md:px-6 mb-20 max-w-7xl">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8 font-heading text-center">
               Frequently Asked Questions
             </h2>
 
@@ -796,45 +849,45 @@ const Index = () => {
             </Accordion>
 
             {/* More FAQ Button */}
-            <div className="text-center mt-8">
+            <div className="text-center mt-6">
               <Button
                 variant="outline"
                 onClick={() => navigate("/faq")}
-                className="border-[#14B8A6] text-[#14B8A6] hover:bg-[#14B8A6] hover:text-white px-8 py-6 text-base font-semibold rounded-full transition-all duration-300"
+                className="border-[#14B8A6] text-[#14B8A6] hover:bg-[#14B8A6] hover:text-white px-6 py-4 text-sm font-semibold rounded-full transition-all duration-300"
               >
                 More FAQs
               </Button>
             </div>
           </section>
 
-          <section className="py-12 md:py-20">
-            <div className="container mx-auto px-4">
+          <section className="pt-0 pb-6">
+            <div className="container mx-auto px-4 max-w-7xl">
               <div className="text-center">
-                <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-6 md:mb-8">
+                <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4 md:mb-6">
                   Trusted Health Home Network
                 </h2>
-                <div className="grid grid-cols-3 gap-4 md:gap-8">
+                <div className="grid grid-cols-3 gap-4 md:gap-6">
                   <div className="text-center">
-                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-1 md:mb-2">
+                    <div className="text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-1">
                       150+
                     </div>
-                    <p className="text-xs sm:text-sm md:text-base text-muted-foreground">
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       Verified Health Homes
                     </p>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-1 md:mb-2">
+                    <div className="text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-1">
                       24/7
                     </div>
-                    <p className="text-xs sm:text-sm md:text-base text-muted-foreground">
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       Nursing Support
                     </p>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-1 md:mb-2">
+                    <div className="text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-1">
                       100%
                     </div>
-                    <p className="text-xs sm:text-sm md:text-base text-muted-foreground">
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       Medical-Ready
                     </p>
                   </div>

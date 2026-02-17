@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 interface HeaderProps {
-  activePage?: "health-homes" | "home-conversion";
+  activePage?: "health-homes" | "homes";
   hideCenterNav?: boolean; // when true => center switches to search bar
   centerContent?: React.ReactNode; // the searchbar rendered in header center
 }
@@ -72,17 +72,10 @@ const Header = ({
     location.pathname === "/health-homes" ||
     location.pathname === "/browse";
 
-  const isHomeConversionActive =
-    activePage === "home-conversion" ||
-    location.pathname === "/home-conversion";
+  const isHomesActive = activePage === "homes" || location.pathname === "/homes";
 
   const navLinks = [
-    // { to: "/", label: "Health Homes", isActive: isHealthHomesActive, color: "black" },
-    {
-      to: "/home-conversion",
-      // label: "Home Conversion",
-      isActive: isHomeConversionActive,
-    },
+    { to: "/homes", label: "Homes", isActive: isHomesActive },
   ];
 
   const closeTimer = React.useRef<number | null>(null);
@@ -189,13 +182,13 @@ const Header = ({
                   <Link
                     key={link.to}
                     to={link.to}
-                    className={`transition-colors ${
+                    className={`transition-colors relative ${
                       link.isActive
-                        ? "text-primary font-medium"
+                        ? "text-primary font-medium border-b-2 border-black pb-1"
                         : "text-foreground hover:text-primary"
-                    }`}
+                    } ${link.label === "Homes" && isDocked ? "hidden" : ""}`}
                   >
-                    {/* {link.label} */}
+                    {link.label}
                   </Link>
                 ))}
               </nav>
@@ -210,7 +203,7 @@ const Header = ({
                       : "opacity-0 scale-95 translate-y-2 pointer-events-none",
                   ].join(" ")}
                 >
-                  <div className="w-full max-w-[820px]">
+                  <div className="w-full max-w-[1200px]">
                     {React.isValidElement(centerContent)
                       ? React.cloneElement(centerContent, { variant: "header" })
                       : centerContent}
@@ -355,11 +348,11 @@ const Header = ({
                         onClick={() => setIsOpen(false)}
                         className={`text-lg py-2 px-4 rounded-lg transition-colors ${
                           link.isActive
-                            ? "bg-primary/10 text-primary font-medium"
+                            ? "bg-primary/10 text-primary font-medium border-b-2 border-black"
                             : "text-foreground hover:bg-muted"
                         }`}
                       >
-                        {/* {link.label} */}
+                        {link.label}
                       </Link>
                     ))}
 

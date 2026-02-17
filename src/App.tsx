@@ -22,6 +22,8 @@ import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import ReserveBooking from "./pages/ReserveBooking";
+import FAQ from "./pages/FAQ";
+import About from "./pages/About";
 import ScrollToTop from "./components/ScrollToTop";
 import AuthModal from "./pages/AuthModel";
 
@@ -53,6 +55,8 @@ function AppRoutes() {
 
         <Route path="/profile" element={<Profile />} />
         <Route path="/reserve/:id" element={<ReserveBooking />} />
+        <Route path="/faq" element={<FAQ />} />
+        <Route path="/about" element={<About />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
 

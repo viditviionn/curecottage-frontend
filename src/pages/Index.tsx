@@ -427,7 +427,7 @@ const Index = () => {
             </div>
           )}
 
-          {cityHomes.length === 0 && (
+{/* {cityHomes.length === 0 && (
             <div className="text-center py-8 md:py-12">
               <h3 className="text-xl sm:text-2xl font-semibold text-muted-foreground mb-3 md:mb-4">
                 No health homes found in {city}
@@ -436,7 +436,7 @@ const Index = () => {
                 We're expanding to more locations. Stay tuned!
               </p>
             </div>
-          )}
+          )} */}
         </div>
       </section>
     );
@@ -636,19 +636,24 @@ const Index = () => {
           </div>
         </section>
       ) : (
-        citiesToRender.map((city) => {
-          const cityHomes = getHealthHomesByCity(city);
-          const displayedHomes = cityHomes;
-          return (
-            <CityHealthHomesSection
-              key={city}
-              city={city}
-              cityHomes={cityHomes}
-              displayedHomes={displayedHomes}
-              hasSearched={hasSearched}
-            />
-          );
-        })
+        citiesToRender
+          .map((city) => {
+            const cityHomes = getHealthHomesByCity(city);
+            return { city, cityHomes };
+          })
+          .filter(({ cityHomes }) => cityHomes.length > 0)
+          .map(({ city, cityHomes }) => {
+            const displayedHomes = cityHomes;
+            return (
+              <CityHealthHomesSection
+                key={city}
+                city={city}
+                cityHomes={cityHomes}
+                displayedHomes={displayedHomes}
+                hasSearched={hasSearched}
+              />
+            );
+          })
       )}
       {!hasSearched && (
         <>
@@ -741,6 +746,17 @@ const Index = () => {
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
+
+            {/* More FAQ Button */}
+            <div className="text-center mt-8">
+              <Button
+                variant="outline"
+                onClick={() => navigate("/faq")}
+                className="border-[#14B8A6] text-[#14B8A6] hover:bg-[#14B8A6] hover:text-white px-8 py-6 text-base font-semibold rounded-full transition-all duration-300"
+              >
+                More FAQs
+              </Button>
+            </div>
           </section>
 
           <section className="py-12 md:py-20">

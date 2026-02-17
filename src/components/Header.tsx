@@ -161,7 +161,7 @@ const Header = ({
               <img
                 src={logoWithName}
                 alt="QureHome"
-                className="h-16 w-auto transition-opacity duration-200 group-hover:opacity-90"
+                className="h-12 w-auto transition-opacity duration-200 group-hover:opacity-90"
               />
             </Link>
 

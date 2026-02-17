@@ -1,7 +1,19 @@
 // ✅ Index.tsx (FULL FILE)
 // Place this as: src/pages/Index.tsx (or your existing path)
-import { ArrowRight, CheckCircle2, Plane, User, Phone, Mail } from "lucide-react";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  ArrowRight,
+  CheckCircle2,
+  Plane,
+  User,
+  Phone,
+  Mail,
+} from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 import { listings, features } from "../data/listing";
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -278,7 +290,7 @@ const Index = () => {
                                 </span>
                               </div>
                             </div>
-                            <div className="absolute top-2 left-2 bg-primary text-primary-foreground rounded-lg px-2 py-1">
+                            <div className="absolute top-2 left-2 bg-[#14B8A6] text-primary-foreground rounded-lg px-2 py-1">
                               <span className="text-xs font-semibold">
                                 ₹{home.totalRooms * 500}/day
                               </span>
@@ -328,7 +340,7 @@ const Index = () => {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="w-full text-sm group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300"
+                              className="w-full text-sm group-hover:bg-[#14B8A6] group-hover:text-primary-foreground transition-all duration-300"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 navigate(`/health-home/${home.id}`);
@@ -427,7 +439,7 @@ const Index = () => {
             </div>
           )}
 
-{/* {cityHomes.length === 0 && (
+          {/* {cityHomes.length === 0 && (
             <div className="text-center py-8 md:py-12">
               <h3 className="text-xl sm:text-2xl font-semibold text-muted-foreground mb-3 md:mb-4">
                 No health homes found in {city}
@@ -561,8 +573,8 @@ const Index = () => {
 
                     {/* Description */}
                     <p className="text-gray-600 text-lg mb-8 max-w-lg">
-                      Hospital-adjacent recovery homes designed for healing. Full
-                      medical concierge and nutritious meal plans included.
+                      Hospital-adjacent recovery homes designed for healing.
+                      Full medical concierge and nutritious meal plans included.
                     </p>
 
                     {/* CTA */}
@@ -595,7 +607,9 @@ const Index = () => {
           </section>
 
           <section className="container mx-auto px-6 md:px-12 mb-20">
-            <h2 className="text-2xl font-bold text-gray-900 mb-8 font-heading">Why Choose QureHome?</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-8 font-heading">
+              Why Choose QureHome?
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {features.map((feature, idx) => (
                 <div
@@ -605,11 +619,19 @@ const Index = () => {
                   <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-4">
                     <feature.icon size={24} strokeWidth={2} />
                   </div>
-                  <h3 className="font-bold text-gray-900 mb-3">{feature.title}</h3>
+                  <h3 className="font-bold text-gray-900 mb-3">
+                    {feature.title}
+                  </h3>
                   <ul className="space-y-2">
                     {feature.items.map((item, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
-                        <CheckCircle2 size={14} className="mt-0.5 text-primary shrink-0" />
+                      <li
+                        key={i}
+                        className="flex items-start gap-2 text-sm text-gray-600"
+                      >
+                        <CheckCircle2
+                          size={14}
+                          className="mt-0.5 text-primary shrink-0"
+                        />
                         <span>{item}</span>
                       </li>
                     ))}
@@ -659,22 +681,41 @@ const Index = () => {
         <>
           <section className="bg-gray-50 py-16 mb-16 border-y border-gray-100">
             <div className="container mx-auto px-6 md:px-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-12 font-heading text-center">How QureHome Works</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-12 font-heading text-center">
+                How QureHome Works
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative">
                 {/* Connector Line (Desktop) */}
                 <div className="hidden md:block absolute top-6 left-0 w-full h-0.5 bg-gray-200 -z-10"></div>
 
                 {[
-                  { title: "1. Book Your Stay", desc: "Match your medical needs." },
-                  { title: "2. Arrive and Settle", desc: "Airport pickup included. Meet coordinator." },
-                  { title: "3. Focus on Treatment", desc: "We handle transport and meals. You heal." },
-                  { title: "4. Recover Comfortably", desc: "Post-discharge nursing and support." }
+                  {
+                    title: "1. Book Your Stay",
+                    desc: "Match your medical needs.",
+                  },
+                  {
+                    title: "2. Arrive and Settle",
+                    desc: "Airport pickup included. Meet coordinator.",
+                  },
+                  {
+                    title: "3. Focus on Treatment",
+                    desc: "We handle transport and meals. You heal.",
+                  },
+                  {
+                    title: "4. Recover Comfortably",
+                    desc: "Post-discharge nursing and support.",
+                  },
                 ].map((step, idx) => (
-                  <div key={idx} className="flex flex-col items-center text-center bg-gray-50">
+                  <div
+                    key={idx}
+                    className="flex flex-col items-center text-center bg-gray-50"
+                  >
                     <div className="w-12 h-12 bg-white border-2 border-primary text-primary font-bold rounded-full flex items-center justify-center mb-4 shadow-sm z-10">
                       {idx + 1}
                     </div>
-                    <h3 className="font-bold text-gray-900 mb-2">{step.title}</h3>
+                    <h3 className="font-bold text-gray-900 mb-2">
+                      {step.title}
+                    </h3>
                     <p className="text-gray-600 text-sm">{step.desc}</p>
                   </div>
                 ))}
@@ -695,10 +736,12 @@ const Index = () => {
                 value="item-1"
                 className="rounded-2xl border bg-white/70 px-4 md:px-6 shadow-sm transition-all hover:shadow-md hover:bg-white"
               >
-                <AccordionTrigger>How close are you to the hospitals?</AccordionTrigger>
+                <AccordionTrigger>
+                  How close are you to the hospitals?
+                </AccordionTrigger>
                 <AccordionContent>
-                  All our properties are within 3km (10-minute drive) of Apollo and Fortis hospitals on
-                  Bannerghatta Road.
+                  All our properties are within 3km (10-minute drive) of Apollo
+                  and Fortis hospitals on Bannerghatta Road.
                 </AccordionContent>
               </AccordionItem>
 
@@ -708,8 +751,8 @@ const Index = () => {
               >
                 <AccordionTrigger>Can I cook my own food?</AccordionTrigger>
                 <AccordionContent>
-                  Yes! All rooms have kitchenettes. We also offer therapeutic meal services if you prefer
-                  home-style nutritious food.
+                  Yes! All rooms have kitchenettes. We also offer therapeutic
+                  meal services if you prefer home-style nutritious food.
                 </AccordionContent>
               </AccordionItem>
 
@@ -719,8 +762,8 @@ const Index = () => {
               >
                 <AccordionTrigger>Is airport pickup included?</AccordionTrigger>
                 <AccordionContent>
-                  Airport transfers are included in our weekly packages or available as an affordable add-on
-                  service.
+                  Airport transfers are included in our weekly packages or
+                  available as an affordable add-on service.
                 </AccordionContent>
               </AccordionItem>
 
@@ -728,10 +771,13 @@ const Index = () => {
                 value="item-4"
                 className="rounded-2xl border bg-white/70 px-4 md:px-6 shadow-sm transition-all hover:shadow-md hover:bg-white"
               >
-                <AccordionTrigger>Do you have wheelchair access?</AccordionTrigger>
+                <AccordionTrigger>
+                  Do you have wheelchair access?
+                </AccordionTrigger>
                 <AccordionContent>
-                  Absolutely. All properties have elevator access, wheelchair-friendly entrances, and adapted
-                  bathrooms with grab rails.
+                  Absolutely. All properties have elevator access,
+                  wheelchair-friendly entrances, and adapted bathrooms with grab
+                  rails.
                 </AccordionContent>
               </AccordionItem>
 
@@ -739,10 +785,12 @@ const Index = () => {
                 value="item-5"
                 className="rounded-2xl border bg-white/70 px-4 md:px-6 shadow-sm transition-all hover:shadow-md hover:bg-white"
               >
-                <AccordionTrigger>What if I need nursing care?</AccordionTrigger>
+                <AccordionTrigger>
+                  What if I need nursing care?
+                </AccordionTrigger>
                 <AccordionContent>
-                  We coordinate post-discharge nursing visits through our vetted agency partners to ensure
-                  medical safety.
+                  We coordinate post-discharge nursing visits through our vetted
+                  agency partners to ensure medical safety.
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
@@ -794,7 +842,6 @@ const Index = () => {
               </div>
             </div>
           </section>
-
         </>
       )}
 

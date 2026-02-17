@@ -151,19 +151,18 @@ const Header = ({
 
   return (
     <>
-      <header className="border-b border-border/40 bg-background/80 backdrop-blur-md sticky top-0 z-[9999]">
+      <header className="border-b border-border/40 bg-background/95 backdrop-blur-lg sticky top-0 z-[9999] shadow-sm transition-shadow duration-300 hover:shadow-md">
         <div className="container mx-auto px-4 py-3 lg:py-4">
           <div className="flex items-center justify-between gap-4">
             {/* Logo */}
             <Link
               to="/"
-              className="flex items-center space-x-2 flex-shrink-0 ml-0 lg:-ml-2"
+              className="flex items-center space-x-2 flex-shrink-0 ml-0 lg:-ml-2 group transition-transform duration-200 hover:scale-105"
             >
-
               <img
                 src={logoWithName}
                 alt="QureHome"
-                className="h-16 w-auto"
+                className="h-16 w-auto transition-opacity duration-200 group-hover:opacity-90"
               />
             </Link>
 
@@ -182,13 +181,21 @@ const Header = ({
                   <Link
                     key={link.to}
                     to={link.to}
-                    className={`transition-colors relative ${
+                    className={`transition-all duration-300 relative group ${
                       link.isActive
-                        ? "text-primary font-medium border-b-2 border-black pb-1"
+                        ? "text-primary font-medium"
                         : "text-foreground hover:text-primary"
                     } ${link.label === "Homes" && isDocked ? "hidden" : ""}`}
                   >
-                    {link.label}
+                    <span className="relative inline-block">
+                      {link.label}
+                      {link.isActive && (
+                        <span className="absolute bottom-0 left-0 w-full h-0.5 bg-black transform origin-left transition-all duration-300"></span>
+                      )}
+                      {!link.isActive && (
+                        <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
+                      )}
+                    </span>
                   </Link>
                 ))}
               </nav>
@@ -245,9 +252,9 @@ const Header = ({
                     : undefined
                 }
                 onClick={() => setIsOpen(false)}
-                className="inline-flex items-center gap-2  text-secondary-foreground  transition-colors px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap"
+                className="inline-flex items-center gap-2 text-secondary-foreground transition-all duration-300 px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap hover:bg-primary/10 hover:text-primary hover:scale-105 active:scale-95"
               >
-                <Heart className="h-4 w-4" />
+                <Heart className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
                 Be the Host
               </Link>
 
@@ -259,7 +266,7 @@ const Header = ({
                 >
                   <button
                     type="button"
-                    className="bg-primary/10 p-2 rounded-full cursor-pointer hover:bg-primary/20 transition-colors"
+                    className="bg-primary/10 p-2 rounded-full cursor-pointer hover:bg-primary/20 transition-all duration-300 hover:scale-110 active:scale-95 hover:shadow-lg"
                     onMouseEnter={openDropdown}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -268,7 +275,7 @@ const Header = ({
                     }}
                     aria-label="User menu"
                   >
-                    <User className="h-5 w-5 text-primary" />
+                    <User className="h-5 w-5 text-primary transition-transform duration-300" />
                   </button>
 
                   {open && (

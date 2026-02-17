@@ -519,7 +519,13 @@ const Index = () => {
         <>
           <section className="py-12">
             <div className="container mx-auto px-4 max-w-7xl">
-              <div className="bg-[#eaf3f1] rounded-2xl p-6 md:p-8">
+              <div
+                className="bg-[#eaf3f1] rounded-2xl p-6 md:p-8"
+                style={{
+                  boxShadow:
+                    "rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px",
+                }}
+              >
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
                   {/* LEFT CONTENT */}
                   <div>
@@ -545,12 +551,11 @@ const Index = () => {
 
                     {/* Description */}
                     <p className="text-gray-600 text-base mb-6 max-w-lg">
-                      Hospital-adjacent recovery homes designed for healing.
-                      Full medical concierge and nutritious meal plans included.
+                      Hospital-adjacent recovery homes designed for healing. Full medical concierge and nutritious meal plans included.
                     </p>
 
                     {/* CTA */}
-                    <Button 
+                    <Button
                       onClick={() => {
                         resultsRef.current?.scrollIntoView({
                           behavior: "smooth",
@@ -573,18 +578,15 @@ const Index = () => {
 
                     {/* Overlay Text */}
                     <div className="absolute bottom-4 left-4 text-white">
-                      <h3 className="text-lg font-semibold">
-                        Premium Recovery Suites
-                      </h3>
-                      <p className="text-xs opacity-90">
-                        Designed for post-surgical care
-                      </p>
+                      <h3 className="text-lg font-semibold">Premium Recovery Suites</h3>
+                      <p className="text-xs opacity-90">Designed for post-surgical care</p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </section>
+
 
           <section className="container mx-auto px-4 md:px-6 mb-5 max-w-7xl">
             <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-6 font-heading">
@@ -620,6 +622,7 @@ const Index = () => {
               ))}
             </div>
           </section>
+          
         </>
       )}
 

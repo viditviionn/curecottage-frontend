@@ -187,15 +187,23 @@ export const SearchBar = ({
         type="button"
         onClick={() => setActive(id)}
         className={[
-          "flex-1 text-left px-6 py-3 rounded-full transition-all",
-          "hover:bg-muted/50",
+          "flex-1 text-left px-6 py-3 rounded-full transition-all duration-300 group",
+          "hover:bg-muted/60 hover:scale-[1.02]",
           isActive
-            ? "bg-background shadow-md ring-1 ring-border"
-            : "bg-transparent",
+            ? "bg-background shadow-lg ring-2 ring-primary/30 scale-[1.02]"
+            : "bg-transparent hover:shadow-md",
         ].join(" ")}
       >
-        <div className="text-[12px] font-semibold text-foreground">{label}</div>
-        <div className="text-sm text-muted-foreground mt-0.5 line-clamp-1">
+        <div className={`text-[12px] font-semibold transition-colors duration-300 ${
+          isActive ? "text-primary" : "text-foreground group-hover:text-primary"
+        }`}>
+          {label}
+        </div>
+        <div className={`text-sm mt-0.5 line-clamp-1 transition-colors duration-300 ${
+          value 
+            ? isActive ? "text-foreground font-medium" : "text-foreground"
+            : "text-muted-foreground group-hover:text-foreground/70"
+        }`}>
           {value || placeholder}
         </div>
       </button>
@@ -229,20 +237,24 @@ export const SearchBar = ({
           onClick={() => onChange(clamp(value - 1, min, max))}
           disabled={value <= min}
           className={[
-            "h-9 w-9 rounded-full border flex items-center justify-center transition",
-            value <= min ? "opacity-40 cursor-not-allowed" : "hover:bg-muted",
+            "h-9 w-9 rounded-full border flex items-center justify-center transition-all duration-200",
+            value <= min 
+              ? "opacity-40 cursor-not-allowed" 
+              : "hover:bg-primary/10 hover:border-primary hover:scale-110 active:scale-95 hover:text-primary",
           ].join(" ")}
         >
           −
         </button>
-        <div className="w-6 text-center text-foreground">{value}</div>
+        <div className="w-8 text-center text-foreground font-semibold text-lg">{value}</div>
         <button
           type="button"
           onClick={() => onChange(clamp(value + 1, min, max))}
           disabled={value >= max}
           className={[
-            "h-9 w-9 rounded-full border flex items-center justify-center transition",
-            value >= max ? "opacity-40 cursor-not-allowed" : "hover:bg-muted",
+            "h-9 w-9 rounded-full border flex items-center justify-center transition-all duration-200",
+            value >= max 
+              ? "opacity-40 cursor-not-allowed" 
+              : "hover:bg-primary/10 hover:border-primary hover:scale-110 active:scale-95 hover:text-primary",
           ].join(" ")}
         >
           +
@@ -275,7 +287,7 @@ export const SearchBar = ({
           "transition-all duration-500 ease-out",
         ].join(" ")}
       >
-        <div className={`bg-muted/40 border border-border rounded-full shadow-lg p-1 mx-auto w-full transition-colors duration-200 hover:bg-black/20 ${variant === "header" ? "max-w-[800px]" : "max-w-[700px]"}`}>
+        <div className={`bg-muted/40 border border-border rounded-full shadow-lg p-1 mx-auto w-full transition-all duration-300 hover:bg-black/10 hover:shadow-xl hover:border-primary/30 hover:scale-[1.01] ${variant === "header" ? "max-w-[800px]" : "max-w-[700px]"}`}>
           <div className="flex items-center gap-1">
             <Seg
               id="where"
@@ -284,7 +296,7 @@ export const SearchBar = ({
               placeholder="Search destinations"
             />
 
-            <div className="h-8 w-px bg-border" />
+            <div className="h-8 w-px bg-border transition-colors duration-300" />
 
             <Seg
               id="when"
@@ -293,7 +305,7 @@ export const SearchBar = ({
               placeholder="Add dates"
             />
 
-            <div className="h-8 w-px bg-border" />
+            <div className="h-8 w-px bg-border transition-colors duration-300" />
 
             <Seg
               id="who"
@@ -304,7 +316,7 @@ export const SearchBar = ({
 
             <div className="pr-1">
               <Button
-                className="rounded-full h-12 w-12 p-0 bg-[#14B8A6] hover:bg-[#0D9488] text-white shadow-md flex items-center justify-center"
+                className="rounded-full h-12 w-12 p-0 bg-[#14B8A6] hover:bg-[#0D9488] text-white shadow-md hover:shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 hover:ring-2 hover:ring-[#14B8A6]/50 group"
                 onClick={runSearch}
                 disabled={loading}
                 aria-label={loading ? "Searching" : "Search"}
@@ -316,7 +328,7 @@ export const SearchBar = ({
                   </>
                 ) : (
                   <>
-                    <Search className="h-5 w-5" />
+                    <Search className="h-5 w-5 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12" />
                     <span className="sr-only">Search</span>
                   </>
                 )}
@@ -386,21 +398,21 @@ export const SearchBar = ({
           )}
 
           {active === "when" && (
-            <div className="bg-background border rounded-3xl shadow-2xl p-6 max-w-5xl">
+            <div className="bg-background border-2 border-primary/20 rounded-3xl shadow-2xl p-6 max-w-5xl backdrop-blur-sm">
               <div className="flex items-center justify-center gap-2 mb-6">
-                <button className="px-5 py-2 rounded-full bg-muted font-semibold">
+                <button className="px-5 py-2 rounded-full bg-primary/10 text-primary font-semibold transition-all duration-200 hover:scale-105">
                   Dates
                 </button>
-                <button className="px-5 py-2 rounded-full hover:bg-muted/60">
+                <button className="px-5 py-2 rounded-full hover:bg-muted/60 transition-all duration-200 hover:scale-105 active:scale-95">
                   Months
                 </button>
-                <button className="px-5 py-2 rounded-full hover:bg-muted/60">
+                <button className="px-5 py-2 rounded-full hover:bg-muted/60 transition-all duration-200 hover:scale-105 active:scale-95">
                   Flexible
                 </button>
               </div>
 
               <div className="grid grid-cols-2 gap-6">
-                <div className="rounded-2xl border p-4">
+                <div className="rounded-2xl border-2 border-gray-200 p-4 hover:border-primary/50 transition-all duration-200 hover:shadow-md">
                   <div className="flex items-center gap-2 mb-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <div className="font-semibold">Check-in</div>
@@ -409,10 +421,11 @@ export const SearchBar = ({
                     type="date"
                     value={checkIn}
                     onChange={(e) => setCheckIn(e.target.value)}
+                    className="transition-all duration-200 focus:ring-2 focus:ring-primary/30"
                   />
                 </div>
 
-                <div className="rounded-2xl border p-4">
+                <div className="rounded-2xl border-2 border-gray-200 p-4 hover:border-primary/50 transition-all duration-200 hover:shadow-md">
                   <div className="flex items-center gap-2 mb-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <div className="font-semibold">Check-out</div>
@@ -421,6 +434,7 @@ export const SearchBar = ({
                     type="date"
                     value={checkOut}
                     onChange={(e) => setCheckOut(e.target.value)}
+                    className="transition-all duration-200 focus:ring-2 focus:ring-primary/30"
                   />
                 </div>
               </div>
@@ -437,7 +451,7 @@ export const SearchBar = ({
                   <button
                     key={x}
                     type="button"
-                    className="px-4 py-2 rounded-full border hover:bg-muted transition text-sm"
+                    className="px-4 py-2 rounded-full border hover:bg-primary/10 hover:border-primary hover:text-primary transition-all duration-200 text-sm hover:scale-105 active:scale-95"
                     onClick={() => setActive("who")}
                   >
                     {x}
@@ -448,7 +462,7 @@ export const SearchBar = ({
           )}
 
           {active === "who" && (
-            <div className="bg-background border rounded-3xl shadow-2xl p-6 max-w-xl ml-auto">
+            <div className="bg-background border-2 border-primary/20 rounded-3xl shadow-2xl p-6 max-w-xl ml-auto backdrop-blur-sm">
               <CounterRow
                 title="Adults"
                 subtitle="Ages 13 or above"

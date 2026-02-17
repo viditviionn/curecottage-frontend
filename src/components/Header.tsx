@@ -72,11 +72,10 @@ const Header = ({
     location.pathname === "/health-homes" ||
     location.pathname === "/browse";
 
-  const isHomesActive = activePage === "homes" || location.pathname === "/homes";
+  const isHomesActive =
+    activePage === "homes" || location.pathname === "/homes";
 
-  const navLinks = [
-    { to: "/homes", label: "Homes", isActive: isHomesActive },
-  ];
+  const navLinks = [{ to: "/homes", label: "Homes", isActive: isHomesActive }];
 
   const closeTimer = React.useRef<number | null>(null);
 

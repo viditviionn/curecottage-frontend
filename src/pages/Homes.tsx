@@ -1,10 +1,11 @@
-import React, { useMemo, useRef } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Autoplay from "embla-carousel-autoplay";
 import { Heart, MapPin, Users, Hospital, Star, ArrowLeft } from "lucide-react";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { SearchBar } from "@/components/SearchBar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +24,16 @@ import {
 const Homes = () => {
   const navigate = useNavigate();
 
+  const [selectedCity, setSelectedCity] = useState<string>("All");
+  const [selectedCheckIn, setSelectedCheckIn] = useState<string>("");
+  const [selectedCheckOut, setSelectedCheckOut] = useState<string>("");
+  const [selectedAdults, setSelectedAdults] = useState<number>(1);
+  const [selectedChildren, setSelectedChildren] = useState<number>(0);
+  const [hasSearched, setHasSearched] = useState(false);
+
+  // For auto-scroll to results
+  const resultsRef = useRef<HTMLDivElement | null>(null);
+
   const { data, isLoading, isFetching, isError } =
     useGetAvailablePropertiesQuery({ page: 1, limit: 100 });
 
@@ -30,6 +41,38 @@ const Homes = () => {
   const healthHomes = data?.properties ?? [];
 
   const cities = ["Bangalore", "Chennai", "Delhi", "Mumbai", "Hyderabad"];
+
+  const handleSearch = (
+    location: string,
+    checkIn: string,
+    checkOut: string,
+    guests: number,
+  ) => {
+    setSelectedCity(location);
+    setSelectedCheckIn(checkIn);
+    setSelectedCheckOut(checkOut);
+    setSelectedAdults(guests > 0 ? guests : 1);
+    setSelectedChildren(0);
+
+    // Mark as searched if specific city is selected (not "All")
+    if (location !== "All") {
+      setHasSearched(true);
+    } else {
+      setHasSearched(false);
+    }
+  };
+
+  // After search, scroll to results
+  useEffect(() => {
+    if (!hasSearched) return;
+
+    requestAnimationFrame(() => {
+      resultsRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  }, [hasSearched, selectedCity]);
 
   const getCardImage = (p: Property) =>
     p.images?.find((img) => img.isPrimary)?.imageUrl || p.images?.[0]?.imageUrl;
@@ -43,11 +86,22 @@ const Homes = () => {
     );
 
   const citiesWithHomes = useMemo(
-    () =>
-      cities
+    () => {
+      const allCitiesWithHomes = cities
         .map((city) => ({ city, cityHomes: getHealthHomesByCity(city) }))
-        .filter(({ cityHomes }) => cityHomes.length > 0),
-    [healthHomes],
+        .filter(({ cityHomes }) => cityHomes.length > 0);
+
+      // Filter by selected city if not "All"
+      if (selectedCity && selectedCity !== "All") {
+        const filteredCity = selectedCity.trim();
+        return allCitiesWithHomes.filter(
+          ({ city }) => city.trim().toLowerCase() === filteredCity.toLowerCase()
+        );
+      }
+
+      return allCitiesWithHomes;
+    },
+    [healthHomes, selectedCity],
   );
 
   const SkeletonLine = ({ className = "" }: { className?: string }) => (
@@ -246,16 +300,6 @@ const Homes = () => {
                           </div>
                         </div>
 
-                        <div className="mb-3">
-                          <div className="flex flex-wrap gap-1">
-                            <Badge
-                              variant="outline"
-                              className="text-xs bg-green-600 text-white py-0 px-2 h-5"
-                            >
-                              {home.status.toUpperCase()}
-                            </Badge>
-                          </div>
-                        </div>
 
                         <Button
                           variant="outline"
@@ -289,10 +333,57 @@ const Homes = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
-      <Header activePage="homes" />
+      <Header
+        activePage="homes"
+        centerContent={
+          <SearchBar
+            onSearch={handleSearch}
+            loading={showSkeleton}
+            location={selectedCity}
+            checkIn={selectedCheckIn}
+            checkOut={selectedCheckOut}
+            adults={selectedAdults}
+            children={selectedChildren}
+          />
+        }
+      />
+
+      {/* Search Bar */}
+      <div className="container mx-auto px-4">
+        {/* Desktop */}
+        <div className="hidden md:block pt-2">
+          <div className="mx-auto w-full max-w-[820px]">
+            <SearchBar
+              variant="page"
+              onSearch={handleSearch}
+              loading={showSkeleton}
+              location={selectedCity}
+              checkIn={selectedCheckIn}
+              checkOut={selectedCheckOut}
+              adults={selectedAdults}
+              children={selectedChildren}
+            />
+          </div>
+        </div>
+
+        {/* Mobile (always visible) */}
+        <div className="md:hidden pt-2">
+          <div className="mx-auto w-full max-w-[820px]">
+            <SearchBar
+              onSearch={handleSearch}
+              loading={showSkeleton}
+              location={selectedCity}
+              checkIn={selectedCheckIn}
+              checkOut={selectedCheckOut}
+              adults={selectedAdults}
+              children={selectedChildren}
+            />
+          </div>
+        </div>
+      </div>
 
       {/* Back Button */}
-      <div className="container mx-auto px-4 pt-4 pb-2 max-w-7xl">
+      <div className="container mx-auto px-4 pt-2 pb-2 max-w-7xl">
         <Button
           variant="ghost"
           onClick={() => navigate(-1)}
@@ -302,6 +393,9 @@ const Homes = () => {
           <span>Back</span>
         </Button>
       </div>
+
+      {/* Results section ref for scrolling */}
+      <div ref={resultsRef} />
 
       {showSkeleton ? (
         cities.map((city) => <CityHealthHomesSectionSkeleton key={city} city={city} />)
@@ -316,9 +410,25 @@ const Homes = () => {
           <div className="container mx-auto px-4 max-w-7xl">
             <div className="text-center py-12">
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-                No Health Homes Found
+                {hasSearched ? "No Health Homes Found" : "No Health Homes Available"}
               </h2>
-              <p className="text-gray-600">We couldn't find any health homes at the moment.</p>
+              <p className="text-gray-600 mb-4">
+                {hasSearched
+                  ? `We couldn't find any health homes in ${selectedCity} for your selected dates.`
+                  : "We couldn't find any health homes at the moment."}
+              </p>
+              {hasSearched && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedCity("All");
+                    setHasSearched(false);
+                  }}
+                  className="mt-4"
+                >
+                  View All Cities
+                </Button>
+              )}
             </div>
           </div>
         </section>

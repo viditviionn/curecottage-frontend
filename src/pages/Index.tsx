@@ -213,11 +213,6 @@ const Index = () => {
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             />
 
-                            <div className="absolute top-2 right-2 bg-green-600 text-white backdrop-blur-sm rounded-lg px-2 py-1">
-                              <span className="text-xs font-semibold">
-                                {home.status.toUpperCase()}
-                              </span>
-                            </div>
 
                             <div className="absolute top-2 left-2 bg-primary text-primary-foreground rounded-lg px-2 py-1">
                               <span className="text-xs font-semibold">
@@ -324,22 +319,6 @@ const Index = () => {
                               </div>
                             </div>
 
-                            <div className="mb-3">
-                              <div className="flex flex-wrap gap-1">
-                                {/* <Badge
-                                variant="outline"
-                                  className="text-xs py-0 px-2 h-5"
-                                >
-                                  {home.propertyType.toUpperCase()}
-                                </Badge> */}
-                                <Badge
-                                  variant="outline"
-                                  className="text-xs bg-green-600 text-white py-0 px-2 h-5"
-                                >
-                                  {home.status.toUpperCase()}
-                                </Badge>
-                              </div>
-                            </div>
 
                             <Button
                               variant="outline"
@@ -417,21 +396,6 @@ const Index = () => {
                       </div>
                     </div>
 
-                    <div className="mb-3">
-                      <div className="flex flex-wrap gap-1">
-                        {/* <Badge
-                          className="text-xs py-0 px-2 h-5"
-                        >
-                          {home.propertyType.toUpperCase()}
-                        </Badge> */}
-                        <Badge
-                          variant="outline"
-                          className="text-xs bg-green-600 text-white py-0 px-2 h-5"
-                        >
-                          {home.status.toUpperCase()}
-                        </Badge>
-                      </div>
-                    </div>
 
                     <Button
                       variant="outline"
@@ -518,7 +482,7 @@ const Index = () => {
       {/* ✅ SearchBar BELOW header (page variant - hides when docked) */}
       <div className="container mx-auto px-4">
         {/* Desktop */}
-        <div className="hidden md:block pt-6">
+        <div className="hidden md:block pt-2">
           <div className="mx-auto w-full max-w-[820px]">
             <SearchBar
               variant="page"
@@ -534,7 +498,7 @@ const Index = () => {
         </div>
 
         {/* Mobile (always visible) */}
-        <div className="md:hidden pt-4">
+        <div className="md:hidden pt-2">
           <div className="mx-auto w-full max-w-[820px]">
             <SearchBar
               onSearch={handleSearch}

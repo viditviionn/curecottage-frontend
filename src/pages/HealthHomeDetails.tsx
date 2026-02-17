@@ -9,11 +9,21 @@ import {
   Heart,
   Shield,
   ArrowLeft,
+  Copy,
+  MessageCircle,
+  Instagram,
+  Facebook,
 } from "lucide-react";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Carousel,
   CarouselContent,
@@ -196,10 +206,11 @@ const HealthHomeDetails = () => {
   const routerLocation = useLocation();
   const { id } = useParams();
   const [showGallery, setShowGallery] = React.useState(false);
-const [activeIndex, setActiveIndex] = React.useState(0);
-// ✅ dates (for now default)
-const [checkIn, setCheckIn] = React.useState("2026-03-13");
-const [checkOut, setCheckOut] = React.useState("2026-03-15");
+  const [activeIndex, setActiveIndex] = React.useState(0);
+  const [showShareDialog, setShowShareDialog] = React.useState(false);
+  // ✅ dates (for now default)
+  const [checkIn, setCheckIn] = React.useState("2026-03-13");
+  const [checkOut, setCheckOut] = React.useState("2026-03-15");
 
 // ✅ guests dropdown UI
 const [guests, setGuests] = React.useState(1);
@@ -236,14 +247,52 @@ React.useEffect(() => {
   setLocalStatus(s === "active" ? "active" : "inactive");
 }, [property?.status]);
 
+  if (isLoading) return <HealthHomeDetailsSkeleton />;
+
+  if (isError || !property) return <div className="p-6 text-red-500">Failed to load property</div>;
+
 // show only to host owner AND when navigating from profile page
 const fromProfile = (routerLocation.state as { fromProfile?: boolean })?.fromProfile ?? false;
 const canToggleStatus =
   !!authUser?.id && authUser.id === property?.host?.id && fromProfile;
 
-  if (isLoading) return <HealthHomeDetailsSkeleton />;
+  // Share functionality
+  const currentUrl = typeof window !== "undefined" ? window.location.href : "";
+  const shareText = `Check out this health home: ${property.name || "Health Home"}`;
 
-  if (isError || !property) return <div className="p-6 text-red-500">Failed to load property</div>;
+  const handleCopyUrl = async () => {
+    try {
+      if (currentUrl) {
+        await navigator.clipboard.writeText(currentUrl);
+        toast.success("URL copied to clipboard!");
+        setShowShareDialog(false);
+      }
+    } catch (err) {
+      toast.error("Failed to copy URL");
+    }
+  };
+
+  const handleShareWhatsApp = () => {
+    if (currentUrl) {
+      const url = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${currentUrl}`)}`;
+      window.open(url, "_blank");
+      setShowShareDialog(false);
+    }
+  };
+
+  const handleShareInstagram = () => {
+    // Instagram doesn't support direct URL sharing, so we'll copy URL and show message
+    handleCopyUrl();
+    toast.info("URL copied! You can paste it in your Instagram post/story");
+  };
+
+  const handleShareFacebook = () => {
+    if (currentUrl) {
+      const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`;
+      window.open(url, "_blank");
+      setShowShareDialog(false);
+    }
+  };
 
   const imageUrls =
     property.images?.length
@@ -346,8 +395,12 @@ const onToggleStatus = async () => {
                 </div>
 
                 <div className="hidden sm:flex items-center gap-3">
-                    <button className="text-sm underline">Share</button>
-                    <button className="text-sm underline">Save</button>
+                    <button 
+                      onClick={() => setShowShareDialog(true)}
+                      className="text-sm underline hover:text-primary transition-colors"
+                    >
+                      Share
+                    </button>
 
                     {canToggleStatus && (
                       <button
@@ -779,6 +832,49 @@ const onToggleStatus = async () => {
           </div>
         </div>
       </div>
+
+      {/* Share Dialog */}
+      <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Share this property</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-4 py-4">
+            <Button
+              variant="outline"
+              className="flex flex-col items-center gap-2 h-auto py-4"
+              onClick={handleCopyUrl}
+            >
+              <Copy className="h-6 w-6" />
+              <span>Copy URL</span>
+            </Button>
+            <Button
+              variant="outline"
+              className="flex flex-col items-center gap-2 h-auto py-4"
+              onClick={handleShareWhatsApp}
+            >
+              <MessageCircle className="h-6 w-6 text-green-600" />
+              <span>WhatsApp</span>
+            </Button>
+            <Button
+              variant="outline"
+              className="flex flex-col items-center gap-2 h-auto py-4"
+              onClick={handleShareInstagram}
+            >
+              <Instagram className="h-6 w-6 text-pink-600" />
+              <span>Instagram</span>
+            </Button>
+            <Button
+              variant="outline"
+              className="flex flex-col items-center gap-2 h-auto py-4"
+              onClick={handleShareFacebook}
+            >
+              <Facebook className="h-6 w-6 text-blue-600" />
+              <span>Facebook</span>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

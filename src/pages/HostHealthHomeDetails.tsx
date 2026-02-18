@@ -53,6 +53,57 @@ const Skeleton = ({ className = "" }: { className?: string }) => (
   <div className={`animate-pulse bg-muted/60 ${className}`} />
 );
 
+const LoadingOverlay = () => (
+  <div className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm flex items-start justify-center overflow-y-auto pt-20 pb-8">
+    <div className="w-full max-w-4xl mx-auto px-3 sm:px-4 lg:px-6">
+      <div className="bg-card rounded-xl shadow-lg p-6 space-y-6">
+        {/* Header skeleton */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="h-5 w-5 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+            <Skeleton className="h-5 w-48 rounded" />
+          </div>
+          <Skeleton className="h-6 w-3/4 rounded-lg" />
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-4 w-32 rounded-full" />
+            <Skeleton className="h-4 w-24 rounded-full" />
+          </div>
+        </div>
+
+        {/* Image skeleton */}
+        <div className="relative overflow-hidden rounded-xl">
+          <Skeleton className="h-[280px] md:h-[380px] w-full rounded-xl" />
+        </div>
+
+        {/* Stats strip skeleton */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="rounded-xl border p-4">
+              <Skeleton className="h-10 w-10 rounded-lg mb-3" />
+              <Skeleton className="h-4 w-16 rounded mb-1" />
+              <Skeleton className="h-6 w-12 rounded" />
+            </div>
+          ))}
+        </div>
+
+        {/* Cards skeleton */}
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="rounded-xl border p-5 space-y-3">
+              <Skeleton className="h-5 w-32 rounded" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-full rounded" />
+                <Skeleton className="h-4 w-5/6 rounded" />
+                <Skeleton className="h-4 w-4/6 rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 const HostHealthHomeDetailsSkeleton = () => (
   <div className="min-h-screen bg-background">
     <Header activePage="health-homes" />
@@ -121,10 +172,68 @@ const HostHealthHomeDetails = () => {
     "inactive"
   );
 
+  // Refs for calculating Medical Amenities max-height
+  const overviewRef = React.useRef<HTMLDivElement>(null);
+  const amenitiesContainerRef = React.useRef<HTMLDivElement>(null);
+  const [medicalAmenitiesMaxHeight, setMedicalAmenitiesMaxHeight] = React.useState<string>("500px");
+
   React.useEffect(() => {
     const s = (property?.status ?? "inactive").toLowerCase();
     setLocalStatus(s === "active" ? "active" : "inactive");
   }, [property?.status]);
+
+  // Calculate max-height for Medical Amenities based on Overview section
+  React.useEffect(() => {
+    const calculateMaxHeight = () => {
+      if (!overviewRef.current || !amenitiesContainerRef.current) return;
+
+      // Get document positions (not viewport positions)
+      const overviewTop = overviewRef.current.offsetTop;
+      const overviewHeight = overviewRef.current.offsetHeight;
+      const overviewBottom = overviewTop + overviewHeight;
+      
+      const amenitiesTop = amenitiesContainerRef.current.offsetTop;
+      
+      // Calculate the height from amenities container top to overview bottom
+      const maxHeight = overviewBottom - amenitiesTop;
+      
+      if (maxHeight > 0) {
+        // Subtract the amenities card height and add some padding
+        // Account for the amenities card header (~60px) and spacing (~12px)
+        const calculatedHeight = Math.max(200, maxHeight - 80);
+        setMedicalAmenitiesMaxHeight(`${calculatedHeight}px`);
+      }
+    };
+
+    // Calculate on mount and when property data loads
+    if (property) {
+      // Small delay to ensure DOM is fully rendered
+      const timer = setTimeout(calculateMaxHeight, 100);
+      
+      // Also recalculate after images load
+      const images = document.querySelectorAll('img');
+      let loadedCount = 0;
+      const checkImages = () => {
+        loadedCount++;
+        if (loadedCount >= images.length) {
+          setTimeout(calculateMaxHeight, 50);
+        }
+      };
+      images.forEach(img => {
+        if (img.complete) checkImages();
+        else img.addEventListener('load', checkImages);
+      });
+
+      return () => {
+        clearTimeout(timer);
+        images.forEach(img => img.removeEventListener('load', checkImages));
+      };
+    }
+
+    // Recalculate on window resize
+    window.addEventListener('resize', calculateMaxHeight);
+    return () => window.removeEventListener('resize', calculateMaxHeight);
+  }, [property]);
 
   if (isLoading) return <HostHealthHomeDetailsSkeleton />;
 
@@ -195,12 +304,16 @@ const HostHealthHomeDetails = () => {
     <div className="min-h-screen bg-background">
       <Header activePage="health-homes" />
       {isFetching && (
-        <div className="fixed top-0 left-0 right-0 z-[90]">
-          <div className="h-1 w-full bg-primary/30 animate-pulse" />
-        </div>
+        <>
+          <div className="fixed top-0 left-0 right-0 z-[90]">
+            <div className="h-1 w-full bg-primary/30 animate-pulse" />
+          </div>
+          {/* Skeleton overlay for slow network/refetch */}
+          {property && <LoadingOverlay />}
+        </>
       )}
 
-      <div className="w-full flex flex-col lg:flex-row justify-center gap-0 lg:gap-4 px-3 sm:px-4 lg:px-6">
+      <div className="w-[80%] max-w-[80%] mx-auto flex flex-col lg:flex-row justify-center gap-0 lg:gap-4 px-3 sm:px-4 lg:px-6">
         <div className="w-full lg:w-[70%]">
           <section className="relative">
             <div className="w-full mx-auto px-3 sm:px-4 lg:px-6 pt-4">
@@ -529,7 +642,7 @@ const HostHealthHomeDetails = () => {
                   )}
 
                   {/* Overview */}
-                  <Card className="rounded-xl">
+                  <Card ref={overviewRef} className="rounded-xl">
                     <CardContent className="p-4 sm:p-5">
                       <h2 className="text-base font-semibold flex items-center gap-2 mb-3">
                         <Building2 className="h-4 w-4" />
@@ -649,7 +762,7 @@ const HostHealthHomeDetails = () => {
         </div>
 
         {/* Amenities card - always visible for host */}
-        <div className="w-full lg:w-[25%] pt-0 lg:pt-[125px] self-start">
+        <div ref={amenitiesContainerRef} className="w-full lg:w-[25%] pt-0 lg:pt-[125px] self-start">
           <div className="lg:sticky top-4 space-y-3">
             <Card className="rounded-xl">
               <CardContent className="p-4 sm:p-5">
@@ -672,16 +785,16 @@ const HostHealthHomeDetails = () => {
             </Card>
 
             {/* Medical amenities */}
-            <Card className="rounded-xl">
-              <CardContent className="p-4 sm:p-5">
-                <h2 className="text-base font-semibold flex items-center gap-2 mb-3">
+            <Card className="rounded-xl flex flex-col" style={{ maxHeight: medicalAmenitiesMaxHeight }}>
+              <CardContent className="p-4 sm:p-5 flex flex-col flex-1 min-h-0">
+                <h2 className="text-base font-semibold flex items-center gap-2 mb-3 shrink-0">
                   <Shield className="h-4 w-4" />
                   Medical amenities
                 </h2>
                 {property.medicalAmenities?.length ? (
-                  <div className="space-y-2">
+                  <div className="space-y-2 overflow-y-auto flex-1 pr-1" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgb(156 163 175 / 0.3) transparent' }}>
                     {property.medicalAmenities.map((ma) => (
-                      <div key={ma.medicalAmenityId} className="flex items-start justify-between gap-2 rounded-lg border p-3 text-sm">
+                      <div key={ma.medicalAmenityId} className="flex items-start justify-between gap-2 rounded-lg border p-3 text-sm shrink-0">
                         <div>
                           <p className="font-medium">{ma.medicalAmenity?.title}</p>
                           {ma.notes && <p className="text-xs text-muted-foreground mt-0.5">{ma.notes}</p>}

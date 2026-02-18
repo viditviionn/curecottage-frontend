@@ -110,7 +110,7 @@ function AirbnbDateInput({
       onChange={(e) => onChange(e.target.value)}
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
-      className="w-full bg-transparent text-base text-muted-foreground outline-none placeholder:text-muted-foreground/80"
+      className="w-full bg-transparent text-xs text-muted-foreground outline-none placeholder:text-muted-foreground/80"
     />
   );
 }
@@ -192,262 +192,266 @@ export default function ReserveBooking() {
     <div className="min-h-screen bg-background">
       <Header activePage="health-homes" />
 
-      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-10">
-        {/* top header row */}
-        <div className="flex items-start justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold">Choose your recovery plan</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Select a plan and confirm your booking.
-            </p>
-          </div>
+      <div className="w-full flex justify-center">
+        <div className="w-[90%] origin-top scale-90">
+          <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-5">
+            {/* top header row */}
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <div>
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Choose your recovery plan</h1>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Select a plan and confirm your booking.
+                </p>
+              </div>
 
-          <Button variant="outline" onClick={() => navigate(-1)}>
-            Back
-          </Button>
-        </div>
+              <Button variant="outline" onClick={() => navigate(-1)} className="h-8 text-xs px-3">
+                Back
+              </Button>
+            </div>
 
-        {/* MAIN GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* LEFT: Plans (cards) */}
-          <div className="lg:col-span-2 space-y-4">
-            {plansWithActualPrice.map((plan) => {
-              const active = plan.id === selectedPlanId;
+            {/* MAIN GRID */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
+              {/* LEFT: Plans (cards) */}
+              <div className="lg:col-span-2 space-y-3">
+                {plansWithActualPrice.map((plan) => {
+                  const active = plan.id === selectedPlanId;
 
-              return (
-                <button
-                  key={plan.id}
-                  type="button"
-                  onClick={() => setSelectedPlanId(plan.id)}
-                  className="w-full text-left"
-                >
-                  <Card
-                    className={[
-                      "rounded-2xl border transition-all",
-                      active ? "border-primary shadow-lg" : "hover:shadow-md",
-                    ].join(" ")}
-                  >
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <div className="text-lg sm:text-xl font-bold text-foreground">
-                            {plan.title}
+                  return (
+                    <button
+                      key={plan.id}
+                      type="button"
+                      onClick={() => setSelectedPlanId(plan.id)}
+                      className="w-full text-left"
+                    >
+                      <Card
+                        className={[
+                          "rounded-xl border transition-all",
+                          active ? "border-primary shadow-lg" : "hover:shadow-md",
+                        ].join(" ")}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <div className="text-base sm:text-lg font-bold text-foreground">
+                                {plan.title}
+                              </div>
+                              <div className="text-xs text-muted-foreground mt-0.5 italic">
+                                {plan.subtitle}
+                              </div>
+                            </div>
+
+                            {plan.badge && (
+                              <Badge className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 text-[10px] px-2 py-0.5">
+                                {plan.badge}
+                              </Badge>
+                            )}
                           </div>
-                          <div className="text-sm text-muted-foreground mt-1 italic">
-                            {plan.subtitle}
+
+                          <div className="mt-3 space-y-1.5">
+                            {plan.points.map((p) => (
+                              <div
+                                key={p}
+                                className="flex items-start gap-1.5 text-xs text-muted-foreground"
+                              >
+                                <CheckCircle2 className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" />
+                                <span>{p}</span>
+                              </div>
+                            ))}
+                          </div>
+
+                          {active && (
+                            <div className="mt-3 text-xs font-medium text-red-600">
+                              Selected
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* RIGHT: Trip Details (Airbnb) + Booking Summary + Add-ons */}
+              <div className="space-y-3">
+                <div className="lg:sticky lg:top-20 space-y-3">
+                  {/* ✅ Airbnb Trip Details on RIGHT */}
+                  <Card className="rounded-xl">
+                    <CardContent className="p-4 space-y-3">
+                      <div className="text-base font-bold">Add dates for prices</div>
+
+                      {/* Airbnb inner box */}
+                      <div className="rounded-lg border-2 border-foreground/80 overflow-hidden">
+                        <div className="grid grid-cols-2">
+                          <div className="p-2.5 border-r border-foreground/80">
+                            <div className="text-[10px] font-semibold tracking-wide text-foreground uppercase">
+                              Check-in
+                            </div>
+                            <AirbnbDateInput value={checkIn} onChange={setCheckIn} />
+                          </div>
+
+                          <div className="p-2.5">
+                            <div className="text-[10px] font-semibold tracking-wide text-foreground uppercase">
+                              Checkout
+                            </div>
+                            <AirbnbDateInput value={checkOut} onChange={setCheckOut} />
                           </div>
                         </div>
 
-                        {plan.badge && (
-                          <Badge className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
-                            {plan.badge}
-                          </Badge>
-                        )}
-                      </div>
+                        <div className="border-t border-foreground/80 p-2.5">
+                          <div className="flex items-center justify-between gap-2">
+                            <div>
+                              <div className="text-[10px] font-semibold tracking-wide text-foreground uppercase">
+                                Guests
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {guests} guest{guests > 1 ? "s" : ""}
+                              </div>
+                            </div>
 
-                      <div className="mt-4 space-y-2">
-                        {plan.points.map((p) => (
-                          <div
-                            key={p}
-                            className="flex items-start gap-2 text-sm text-muted-foreground"
-                          >
-                            <CheckCircle2 className="h-4 w-4 text-primary mt-0.5" />
-                            <span>{p}</span>
+                            <div className="relative">
+                              <select
+                                value={guests}
+                                onChange={(e) => setGuests(Number(e.target.value))}
+                                className="appearance-none bg-transparent pr-6 pl-1.5 py-1 text-xs outline-none cursor-pointer"
+                                aria-label="Guests"
+                              >
+                                {[1, 2, 3, 4, 5, 6].map((g) => (
+                                  <option key={g} value={g}>
+                                    {g} guest{g > 1 ? "s" : ""}
+                                  </option>
+                                ))}
+                              </select>
+                              <ChevronDown className="h-3.5 w-3.5 absolute right-0.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                            </div>
                           </div>
-                        ))}
+                        </div>
                       </div>
 
-                      {active && (
-                        <div className="mt-4 text-sm font-medium text-red-600">
-                          Selected
-                        </div>
+                      {checkIn && checkOut && nightsSelected === 0 && (
+                        <p className="text-[10px] text-red-500">
+                          Checkout must be after check-in.
+                        </p>
                       )}
                     </CardContent>
                   </Card>
-                </button>
-              );
-            })}
-          </div>
 
-          {/* RIGHT: Trip Details (Airbnb) + Booking Summary + Add-ons */}
-          <div className="space-y-4">
-            <div className="lg:sticky lg:top-24 space-y-4">
-              {/* ✅ Airbnb Trip Details on RIGHT */}
-              <Card className="rounded-2xl">
-                <CardContent className="p-6 space-y-4">
-                  <div className="text-xl font-bold">Add dates for prices</div>
+                  {/* Booking Summary */}
+                  <Card className="rounded-xl">
+                    <CardContent className="p-4 space-y-3">
+                      <div className="text-base font-bold">Booking Summary</div>
 
-                  {/* Airbnb inner box */}
-                  <div className="rounded-xl border-2 border-foreground/80 overflow-hidden">
-                    <div className="grid grid-cols-2">
-                      <div className="p-4 border-r border-foreground/80">
-                        <div className="text-[11px] font-semibold tracking-wide text-foreground uppercase">
-                          Check-in
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">
+                            {selectedPlan ? "Selected plan" : "Plan"}
+                          </span>
+                          <span className={`font-semibold ${!selectedPlan ? "text-muted-foreground" : ""}`}>
+                            {displayPlan.title}
+                            {!selectedPlan && " (Default)"}
+                          </span>
                         </div>
-                        <AirbnbDateInput value={checkIn} onChange={setCheckIn} />
+
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Price</span>
+                          <span className={`font-semibold ${!selectedPlan ? "text-muted-foreground" : ""}`}>
+                            {money(displayPlan.pricePerNight)}/night
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Nights</span>
+                          <span className="font-semibold">{nightsSelected || 0}</span>
+                        </div>
+
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Add-ons</span>
+                          <span className="font-semibold">{money(addOnTotal)}</span>
+                        </div>
+
+                        <div className="border-t pt-2 flex items-center justify-between">
+                          <span className="font-semibold text-sm">Total</span>
+                          <span className={`font-semibold text-sm ${!selectedPlan ? "text-muted-foreground" : ""}`}>
+                            {money(total)}
+                          </span>
+                        </div>
+
+                        {!selectedPlan && (
+                          <p className="text-[10px] text-muted-foreground pt-1.5 border-t">
+                            Select a plan to confirm booking
+                          </p>
+                        )}
                       </div>
 
-                      <div className="p-4">
-                        <div className="text-[11px] font-semibold tracking-wide text-foreground uppercase">
-                          Checkout
-                        </div>
-                        <AirbnbDateInput value={checkOut} onChange={setCheckOut} />
-                      </div>
-                    </div>
+                      <Button
+                        className="w-full h-10 rounded-full font-semibold text-sm"
+                        onClick={onConfirm}
+                        disabled={!canConfirm || confirming}
+                      >
+                        {confirming ? (
+                          <>
+                            <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                            Confirming...
+                          </>
+                        ) : (
+                          "Confirm Booking"
+                        )}
+                      </Button>
 
-                    <div className="border-t border-foreground/80 p-4">
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <div className="text-[11px] font-semibold tracking-wide text-foreground uppercase">
-                            Guests
-                          </div>
-                          <div className="text-base text-muted-foreground">
-                            {guests} guest{guests > 1 ? "s" : ""}
-                          </div>
-                        </div>
-
-                        <div className="relative">
-                          <select
-                            value={guests}
-                            onChange={(e) => setGuests(Number(e.target.value))}
-                            className="appearance-none bg-transparent pr-8 pl-2 py-2 text-sm outline-none cursor-pointer"
-                            aria-label="Guests"
-                          >
-                            {[1, 2, 3, 4, 5, 6].map((g) => (
-                              <option key={g} value={g}>
-                                {g} guest{g > 1 ? "s" : ""}
-                              </option>
-                            ))}
-                          </select>
-                          <ChevronDown className="h-4 w-4 absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {checkIn && checkOut && nightsSelected === 0 && (
-                    <p className="text-xs text-red-500">
-                      Checkout must be after check-in.
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Booking Summary */}
-              <Card className="rounded-2xl">
-                <CardContent className="p-6 space-y-4">
-                  <div className="text-lg font-bold">Booking Summary</div>
-
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        {selectedPlan ? "Selected plan" : "Plan"}
-                      </span>
-                      <span className={`font-semibold ${!selectedPlan ? "text-muted-foreground" : ""}`}>
-                        {displayPlan.title}
-                        {!selectedPlan && " (Default)"}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Price</span>
-                      <span className={`font-semibold ${!selectedPlan ? "text-muted-foreground" : ""}`}>
-                        {money(displayPlan.pricePerNight)}/night
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Nights</span>
-                      <span className="font-semibold">{nightsSelected || 0}</span>
-                    </div>
-
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Add-ons</span>
-                      <span className="font-semibold">{money(addOnTotal)}</span>
-                    </div>
-
-                    <div className="border-t pt-3 flex items-center justify-between">
-                      <span className="font-semibold">Total</span>
-                      <span className={`font-semibold ${!selectedPlan ? "text-muted-foreground" : ""}`}>
-                        {money(total)}
-                      </span>
-                    </div>
-
-                    {!selectedPlan && (
-                      <p className="text-xs text-muted-foreground pt-2 border-t">
-                        Select a plan to confirm booking
+                      <p className="text-center text-[10px] text-muted-foreground">
+                        You won't be charged yet
                       </p>
-                    )}
-                  </div>
+                    </CardContent>
+                  </Card>
 
-                  <Button
-                    className="w-full h-11 rounded-xl font-semibold"
-                    onClick={onConfirm}
-                    disabled={!canConfirm || confirming}
-                  >
-                    {confirming ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Confirming...
-                      </>
-                    ) : (
-                      "Confirm Booking"
-                    )}
-                  </Button>
+                  {/* Add-On Services */}
+                  <Card className="rounded-xl">
+                    <CardContent className="p-4">
+                      <div className="text-base font-bold mb-3">Add-On Services</div>
 
-                  <p className="text-center text-xs text-muted-foreground">
-                    You won’t be charged yet
-                  </p>
-                </CardContent>
-              </Card>
+                      <div className="space-y-2">
+                        {ADDONS.map((a) => {
+                          const on = Boolean(selectedAddOns[a.id]);
+                          return (
+                            <button
+                              key={a.id}
+                              type="button"
+                              onClick={() => toggleAddon(a.id)}
+                              className={[
+                                "w-full rounded-lg border px-3 py-2 flex items-center justify-between transition",
+                                on ? "border-primary bg-primary/5" : "hover:bg-muted/40",
+                              ].join(" ")}
+                            >
+                              <div className="text-left">
+                                <div className="text-xs font-semibold">{a.title}</div>
+                                <div className="text-[10px] text-muted-foreground">
+                                  {money(a.price)}
+                                  {a.unit}
+                                </div>
+                              </div>
 
-              {/* Add-On Services */}
-              <Card className="rounded-2xl">
-                <CardContent className="p-6">
-                  <div className="text-lg font-bold mb-4">Add-On Services</div>
-
-                  <div className="space-y-3">
-                    {ADDONS.map((a) => {
-                      const on = Boolean(selectedAddOns[a.id]);
-                      return (
-                        <button
-                          key={a.id}
-                          type="button"
-                          onClick={() => toggleAddon(a.id)}
-                          className={[
-                            "w-full rounded-xl border px-4 py-3 flex items-center justify-between transition",
-                            on ? "border-primary bg-primary/5" : "hover:bg-muted/40",
-                          ].join(" ")}
-                        >
-                          <div className="text-left">
-                            <div className="text-sm font-semibold">{a.title}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {money(a.price)}
-                              {a.unit}
-                            </div>
-                          </div>
-
-                          <div
-                            className={[
-                              "h-5 w-5 rounded-full border flex items-center justify-center",
-                              on
-                                ? "border-primary bg-primary text-primary-foreground"
-                                : "border-muted-foreground/30",
-                            ].join(" ")}
-                          >
-                            {on && <CheckCircle2 className="h-4 w-4" />}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
+                              <div
+                                className={[
+                                  "h-4 w-4 rounded-full border flex items-center justify-center",
+                                  on
+                                    ? "border-primary bg-primary text-primary-foreground"
+                                    : "border-muted-foreground/30",
+                                ].join(" ")}
+                              >
+                                {on && <CheckCircle2 className="h-3 w-3" />}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
             </div>
+
+            <div className="h-6" />
           </div>
         </div>
-
-        <div className="h-8" />
       </div>
     </div>
   );

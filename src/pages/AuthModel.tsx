@@ -15,7 +15,7 @@ export default function AuthModal() {
       <DialogContent
         onKeyDownCapture={(e) => e.stopPropagation()}
         onKeyUpCapture={(e) => e.stopPropagation()}
-        className="sm:max-w-[560px] p-0 overflow-hidden rounded-2xl"
+        className="sm:max-w-[560px] p-0 overflow-visible rounded-2xl bg-transparent border-none shadow-none [&>button]:hidden"
       >
         <Auth  />
       </DialogContent>

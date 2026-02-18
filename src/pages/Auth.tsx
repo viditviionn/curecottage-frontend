@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Shield, Eye, EyeOff, ArrowLeft, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -53,6 +53,7 @@ const Auth = () => {
   const locationState = location.state as {
     from?: string;
     reserveIntent?: boolean;
+    backgroundLocation?: Location;
     payload?: {
       checkIn?: string;
       checkOut?: string;
@@ -60,6 +61,10 @@ const Auth = () => {
       propertyId?: string;
     };
   } | null;
+  
+  // Check if Auth is rendered as a full page (not in a modal)
+  // If there's no backgroundLocation in state, it's a full page route
+  const isFullPage = !locationState?.backgroundLocation;
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -185,9 +190,19 @@ const Auth = () => {
   };
 
   return (
-    <div className="bg-gradient-to-br to-accent/5 flex items-center justify-center">
-      <div className="w-full max-w-md">
-        <Card className="border-border/50 shadow-lg max-h-[70vh] overflow-y-auto pr-2">
+    <div className={`${isFullPage ? 'fixed inset-0 bg-black/50 backdrop-blur-sm z-50' : 'bg-transparent'} flex items-center justify-center ${isFullPage ? 'p-4' : 'min-h-full w-full'}`}>
+      <div className="w-full max-w-md relative">
+        <Card className="border-border/50 shadow-lg max-h-[70vh] overflow-y-auto pr-2 bg-card relative">
+          {/* Close button - positioned inside Card for modal mode */}
+          {!isFullPage && (
+            <button
+              onClick={() => navigate(-1)}
+              className="absolute right-4 top-4 z-10 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-muted-foreground hover:text-foreground"
+              aria-label="Close"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
           <CardHeader className="text-center pb-2">
             <div className="flex items-center justify-between mb-4">
               {/* Back Button */}
@@ -367,12 +382,13 @@ const Auth = () => {
                 </button>
               </p>
             </div>
+            <p className="text-center text-xs text-muted-foreground mt-4">
+          By continuing, you agree to our Terms of Service and Privacy Policy.
+        </p>
           </CardContent>
         </Card>
 
-        <p className="text-center text-xs text-muted-foreground mt-4">
-          By continuing, you agree to our Terms of Service and Privacy Policy.
-        </p>
+       
       </div>
     </div>
   );

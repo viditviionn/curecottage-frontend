@@ -126,14 +126,23 @@ const TermsOfService = () => {
       <div className="container mx-auto px-4 sm:px-6 md:px-6 pt-6 pb-8 max-w-7xl">
         {/* Back to Home Button */}
         <div className="mb-4">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/")}
-            className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span>Back to Home</span>
-          </Button>
+        <Button
+              onClick={() => navigate(-1)}
+              className="mb-4 h-9 text-sm px-4 flex items-center gap-2"
+              style={{
+                backgroundColor: 'hsl(176.84deg 50.26% 37.06%)',
+                color: 'white',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'hsl(42.69deg 77.34% 44.61%)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'hsl(176.84deg 50.26% 37.06%)';
+              }}
+            >
+              <ArrowLeft className="h-5 w-5" />
+              <span>Back</span>
+            </Button>
         </div>
 
         {/* Hero Section */}

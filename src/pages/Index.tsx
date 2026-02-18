@@ -163,8 +163,13 @@ const Index = () => {
     displayedHomes: Property[];
     hasSearched: boolean;
   }) => {
-    const autoplayPlugin = useRef(
-      Autoplay({ delay: 3000, stopOnInteraction: true }),
+    const mobileAutoplayPlugin = useMemo(
+      () => Autoplay({ delay: 3000, stopOnInteraction: true, playOnInit: true }),
+      []
+    );
+    const desktopAutoplayPlugin = useMemo(
+      () => Autoplay({ delay: 3000, stopOnInteraction: true, playOnInit: true }),
+      []
     );
 
     return (
@@ -194,11 +199,9 @@ const Index = () => {
               {/* Mobile Carousel */}
               <div className="md:hidden relative">
                 <Carousel
-                  plugins={[autoplayPlugin.current]}
+                  plugins={[mobileAutoplayPlugin]}
                   opts={{ align: "start", loop: displayedHomes.length > 1 }}
                   className="w-full relative"
-                  onMouseEnter={autoplayPlugin.current.stop}
-                  onMouseLeave={autoplayPlugin.current.reset}
                 >
                   <CarouselContent className="-ml-4">
                     {displayedHomes.map((home) => (
@@ -266,6 +269,7 @@ const Index = () => {
               {/* Desktop Carousel */}
               <div className="hidden md:block relative">
                 <Carousel
+                  plugins={[desktopAutoplayPlugin]}
                   opts={{ align: "start", loop: displayedHomes.length > 4 }}
                   className="w-full relative"
                 >

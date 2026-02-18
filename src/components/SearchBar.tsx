@@ -33,16 +33,16 @@ const SUGGESTIONS = [
     subtitle: "Because your wishlist has stays in Mumbai",
     icon: MapPin,
   },
-  {
-    title: "Delhi",
-    subtitle: "Because your wishlist has stays in Delhi",
-    icon: MapPin,
-  },
-  {
-    title: "Chennai",
-    subtitle: "Because your wishlist has stays in Chennai",
-    icon: MapPin,
-  },
+  // {
+  //   title: "Delhi",
+  //   subtitle: "Because your wishlist has stays in Delhi",
+  //   icon: MapPin,
+  // },
+  // {
+  //   title: "Chennai",
+  //   subtitle: "Because your wishlist has stays in Chennai",
+  //   icon: MapPin,
+  // },
   {
     title: "Hyderabad",
     subtitle: "Because your wishlist has stays in Hyderabad",

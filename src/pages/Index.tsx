@@ -124,7 +124,8 @@ const Index = () => {
     });
   }, [hasSearched, selectedCity]);
 
-  const cities = ["Bangalore", "Chennai", "Delhi", "Mumbai", "Hyderabad"];
+  const cities = ["Bangalore","Mumbai", "Hyderabad"];
+  // "Chennai", "Delhi", 
 
   const filteredHomes = useMemo(() => {
     if (!selectedCity || selectedCity === "All") return healthHomes;

@@ -200,8 +200,8 @@ const HostHealthHomeDetails = () => {
         </div>
       )}
 
-      <div className="w-full flex flex-col lg:flex-row justify-center gap-4 px-3 sm:px-4 lg:px-6">
-        <div className="w-full lg:w-[70%] origin-top scale-90 lg:scale-100">
+      <div className="w-full flex flex-col lg:flex-row justify-center gap-0 lg:gap-4 px-3 sm:px-4 lg:px-6">
+        <div className="w-full lg:w-[70%]">
           <section className="relative">
             <div className="w-full mx-auto px-3 sm:px-4 lg:px-6 pt-4">
               {/* Back button - always goes to profile */}
@@ -242,15 +242,7 @@ const HostHealthHomeDetails = () => {
                     <Pencil className="h-3.5 w-3.5" />
                     Edit
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 gap-1.5 text-xs"
-                    onClick={() => navigate(`/health-home/${property.id}`)}
-                  >
-                    <Eye className="h-3.5 w-3.5" />
-                    View as guest
-                  </Button>
+                
 
                   {canToggleStatus && (
                     <button
@@ -657,7 +649,7 @@ const HostHealthHomeDetails = () => {
         </div>
 
         {/* Amenities card - always visible for host */}
-        <div className="w-full lg:w-[25%] origin-top scale-90 lg:scale-100 pt-4 lg:pt-[110px] self-start">
+        <div className="w-full lg:w-[25%] pt-0 lg:pt-[125px] self-start">
           <div className="lg:sticky top-4 space-y-3">
             <Card className="rounded-xl">
               <CardContent className="p-4 sm:p-5">

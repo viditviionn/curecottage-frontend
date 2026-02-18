@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 interface HeaderProps {
-  activePage?: "health-homes" | "homes" | "about" | "terms" | "contact" | "faq";
+  activePage?: "health-homes" | "homes";
   hideCenterNav?: boolean; // when true => center switches to search bar
   centerContent?: React.ReactNode; // the searchbar rendered in header center
 }

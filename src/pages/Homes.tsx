@@ -304,7 +304,7 @@ const Homes = () => {
           ) : (
             <>
               {/* Mobile Carousel */}
-              <div className="md:hidden">
+              <div className="md:hidden relative">
             <Carousel
               plugins={[autoplayPlugin.current]}
               opts={{ align: "start", loop: cityHomes.length > 1 }}
@@ -320,17 +320,17 @@ const Homes = () => {
                 ))}
               </CarouselContent>
 
-              {cityHomes.length > 4 && (
+              {cityHomes.length > 1 && (
                 <>
-                  <CarouselPrevious className="left-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
-                  <CarouselNext className="right-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
+                  <CarouselPrevious className="-left-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
+                  <CarouselNext className="-right-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
                 </>
               )}
             </Carousel>
           </div>
 
           {/* Desktop Carousel */}
-          <div className="hidden md:block">
+          <div className="hidden md:block relative">
             <Carousel
               opts={{ align: "start", loop: cityHomes.length > 4 }}
               className="w-full relative"
@@ -345,8 +345,8 @@ const Homes = () => {
 
               {cityHomes.length > 4 && (
                 <>
-                  <CarouselPrevious className="left-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
-                  <CarouselNext className="right-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
+                  <CarouselPrevious className="-left-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
+                  <CarouselNext className="-right-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white shadow" />
                 </>
               )}
             </Carousel>

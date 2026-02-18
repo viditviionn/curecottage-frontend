@@ -147,8 +147,13 @@ const Homes = () => {
     cityHomes: Property[];
     hasSearched: boolean;
   }) => {
-    const autoplayPlugin = useRef(
-      Autoplay({ delay: 3000, stopOnInteraction: true }),
+    const mobileAutoplayPlugin = useMemo(
+      () => Autoplay({ delay: 3000, stopOnInteraction: false, playOnInit: true }),
+      []
+    );
+    const desktopAutoplayPlugin = useMemo(
+      () => Autoplay({ delay: 3000, stopOnInteraction: false, playOnInit: true }),
+      []
     );
 
     // Card component to reuse
@@ -306,11 +311,9 @@ const Homes = () => {
               {/* Mobile Carousel */}
               <div className="md:hidden relative">
             <Carousel
-              plugins={[autoplayPlugin.current]}
+              plugins={[mobileAutoplayPlugin]}
               opts={{ align: "start", loop: cityHomes.length > 1 }}
               className="w-full relative"
-              onMouseEnter={autoplayPlugin.current.stop}
-              onMouseLeave={autoplayPlugin.current.reset}
             >
               <CarouselContent className="-ml-4">
                 {cityHomes.map((home) => (
@@ -332,6 +335,7 @@ const Homes = () => {
           {/* Desktop Carousel */}
           <div className="hidden md:block relative">
             <Carousel
+              plugins={[desktopAutoplayPlugin]}
               opts={{ align: "start", loop: cityHomes.length > 4 }}
               className="w-full relative"
             >

@@ -4,7 +4,7 @@ import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Loader2, ChevronDown } from "lucide-react";
+import { CheckCircle2, Loader2, ChevronDown, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useGetPropertyByIdQuery } from "@/rtk/api/showproperty";
 
@@ -196,8 +196,22 @@ export default function ReserveBooking() {
         <div className="w-[90%] origin-top scale-90">
           <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-5">
             {/* Back button */}
-            <Button variant="outline" onClick={() => navigate(-1)} className="mb-4 h-9 text-sm px-4">
-              Back
+            <Button
+              onClick={() => navigate(-1)}
+              className="mb-4 h-9 text-sm px-4 flex items-center gap-2"
+              style={{
+                backgroundColor: 'hsl(176.84deg 50.26% 37.06%)',
+                color: 'white',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'hsl(42.69deg 77.34% 44.61%)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'hsl(176.84deg 50.26% 37.06%)';
+              }}
+            >
+              <ArrowLeft className="h-5 w-5" />
+              <span>Back</span>
             </Button>
 
             {/* top header row */}
@@ -447,7 +461,6 @@ export default function ReserveBooking() {
                 </div>
               </div>
             </div>
-
             <div className="h-6" />
           </div>
         </div>

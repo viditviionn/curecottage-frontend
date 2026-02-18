@@ -763,18 +763,41 @@ useEffect(() => {
       <Header />
       <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-6 sm:mb-8">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3 sm:mb-4">
-              {formData.serviceType === 'health-homes' ? 'Be the Host' : 'List Your Service'}
-            </h1>
-            <p className="text-sm sm:text-base md:text-xl text-muted-foreground px-2">
-              {formData.serviceType === 'health-homes' 
-                ? 'Join our network of health home hosts and help patients recover in comfort in your specialized facility.'
-                : formData.serviceType === 'home-conversion'
-                ? 'Join our network of medical equipment providers and help families convert their homes into safe medical care environments.'
-                : 'Join our network and help provide quality healthcare services across India'
-              }
-            </p>
+          <div className="mb-6 sm:mb-8">
+            <div className="flex items-center gap-4 mb-4">
+              <Button
+                type="button"
+                onClick={() => navigate(-1)}
+                className="flex-shrink-0 flex items-center gap-2"
+                style={{
+                  backgroundColor: 'hsl(176.84deg 50.26% 37.06%)',
+                  color: 'white',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'hsl(42.69deg 77.34% 44.61%)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'hsl(176.84deg 50.26% 37.06%)';
+                }}
+              >
+                <ArrowLeft className="h-5 w-5" />
+                <span>Back</span>
+              </Button>
+              <div className="flex-1 text-center">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3 sm:mb-4">
+                  {formData.serviceType === 'health-homes' ? 'Be the Host' : 'List Your Service'}
+                </h1>
+                <p className="text-sm sm:text-base md:text-xl text-muted-foreground px-2">
+                  {formData.serviceType === 'health-homes' 
+                    ? 'Join our network of health home hosts and help patients recover in comfort in your specialized facility.'
+                    : formData.serviceType === 'home-conversion'
+                    ? 'Join our network of medical equipment providers and help families convert their homes into safe medical care environments.'
+                    : 'Join our network and help provide quality healthcare services across India'
+                  }
+                </p>
+              </div>
+              <div className="w-10 flex-shrink-0"></div>
+            </div>
           </div>
 
           <Card>

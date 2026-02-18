@@ -593,9 +593,7 @@ const Profile = () => {
                                 variant="outline"
                                 size="sm"
                                 className="w-full mt-2"
-                                onClick={() => navigate(`/health-home/${p.id}`, {
-                                  state: { fromProfile: true }
-                                })}
+                                onClick={() => navigate(`/host/health-home/${p.id}`)}
                               >
                                 View Details
                               </Button>

@@ -865,25 +865,6 @@ const Index = () => {
           </section>
         </>
       )}
-
-      {/* Footer */}
-      {/* <footer className="py-8 md:py-12 border-t border-border">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center space-x-2">
-              <div className="bg-primary p-1.5 sm:p-2 rounded-lg">
-                <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-primary-foreground" />
-              </div>
-              <span className="text-lg sm:text-xl font-bold text-primary">
-                Cure Cottage
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-right">
-              © 2024 Cure Cottage. Bringing healthcare closer to you.
-            </p>
-          </div>
-        </div>
-      </footer> */}
       <Footer />
     </div>
   );

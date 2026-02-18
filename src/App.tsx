@@ -16,6 +16,7 @@ import Index from "./pages/Index";
 import BecomeProvider from "./pages/BecomeProvider";
 import HealthHomes from "./pages/HealthHomes";
 import HealthHomeDetails from "./pages/HealthHomeDetails";
+import HostHealthHomeDetails from "./pages/HostHealthHomeDetails";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
@@ -48,6 +49,7 @@ function AppRoutes() {
         <Route path="/browse" element={<HealthHomes />} />
         <Route path="/health-homes" element={<HealthHomes />} />
         <Route path="/health-home/:id" element={<HealthHomeDetails />} />
+        <Route path="/host/health-home/:id" element={<HostHealthHomeDetails />} />
         <Route path="/become-provider" element={<BecomeProvider />} />
 
         {/* ✅ direct /auth open => full page */}

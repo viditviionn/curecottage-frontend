@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   MapPin,
   Star,
@@ -24,8 +24,6 @@ import {
   User,
   BedDouble,
   FileText,
-  Pencil,
-  Eye,
   BookOpen,
 } from "lucide-react";
 import Header from "@/components/Header";
@@ -40,7 +38,6 @@ import {
 } from "@/components/ui/dialog";
 import { useGetPropertyByIdQuery } from "@/rtk/api/showproperty";
 import { toast } from "sonner";
-import { useUpdatePropertyStatusMutation } from "@/rtk/api/convertToHost";
 import { useSelector } from "react-redux";
 import { RootState } from "@/rtk/store";
 
@@ -233,7 +230,6 @@ function formatDate(iso: string | undefined): string {
 
 const HealthHomeDetails = () => {
   const navigate = useNavigate();
-  const routerLocation = useLocation();
   const { id } = useParams();
   const [showGallery, setShowGallery] = React.useState(false);
   const [activeIndex, setActiveIndex] = React.useState(0);
@@ -258,29 +254,9 @@ const HealthHomeDetails = () => {
 
   const authUser = useSelector((state: RootState) => state.auth.user);
 
-  const [updatePropertyStatus, { isLoading: isStatusUpdating }] =
-    useUpdatePropertyStatusMutation();
-
-  // local status for instant UI update
-  const [localStatus, setLocalStatus] = React.useState<"active" | "inactive">(
-    "inactive"
-  );
-
-  React.useEffect(() => {
-    const s = (property?.status ?? "inactive").toLowerCase();
-    setLocalStatus(s === "active" ? "active" : "inactive");
-  }, [property?.status]);
-
   if (isLoading) return <HealthHomeDetailsSkeleton />;
 
   if (isError || !property) return <div className="p-6 text-red-500">Failed to load property</div>;
-
-// Host view: from Profile or current user is the property host
-const fromProfile = (routerLocation.state as { fromProfile?: boolean })?.fromProfile ?? false;
-const isHostView =
-  fromProfile || (!!authUser?.id && authUser.id === property?.host?.id);
-const canToggleStatus =
-  !!authUser?.id && authUser.id === property?.host?.id && fromProfile;
 
   // Share functionality
   const currentUrl = typeof window !== "undefined" ? window.location.href : "";
@@ -415,31 +391,6 @@ const canToggleStatus =
 
   const oldTotal = total ? Math.round(total * 1.4) : 0;
 
-  const onToggleStatus = async () => {
-    if (!property?.id) return;
-
-    const nextStatus: "active" | "inactive" =
-      localStatus === "active" ? "inactive" : "active";
-
-    try {
-      await updatePropertyStatus({
-        propertyId: property.id,
-        status: nextStatus,
-      }).unwrap();
-
-      setLocalStatus(nextStatus);
-
-      toast.success("Status updated", {
-        description: `Property is now ${nextStatus.toUpperCase()}`,
-      });
-      refetch();
-      window.location.reload();
-    } catch (err) {
-      toast.error("Failed to update status");
-      console.error(err);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <Header activePage="health-homes" />
@@ -458,13 +409,7 @@ const canToggleStatus =
               {/* Back button */}
               <button
                 type="button"
-                onClick={() => {
-                  if (fromProfile) {
-                    navigate('/profile', { state: { activeTab: 'property' } });
-                  } else {
-                    navigate(-1);
-                  }
-                }}
+                onClick={() => navigate(-1)}
                 className="bg-primary text-white flex items-center gap-2 text-sm font-medium transition-colors mb-3 px-4 py-2 rounded-md hover:bg-primary/90"
               >
                 <ArrowLeft className="h-5 w-5" />
@@ -489,70 +434,13 @@ const canToggleStatus =
                 </div>
 
                 <div className="hidden sm:flex items-center gap-2">
-                    {isHostView ? (
-                      <>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 gap-1.5 text-xs"
-                          onClick={() => navigate(`/become-provider?edit=${property.id}`, { state: { property } })}
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                          Edit
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 gap-1.5 text-xs"
-                          onClick={() => navigate(`/health-home/${property.id}`)}
-                        >
-                          <Eye className="h-3.5 w-3.5" />
-                          View as guest
-                        </Button>
-                      </>
-                    ) : (
-                      <button
-                        onClick={() => setShowShareDialog(true)}
-                        className="flex items-center gap-1 text-xs underline hover:text-primary transition-colors"
-                      >
-                        <Share2 className="h-3.5 w-3.5" />
-                        Share
-                      </button>
-                    )}
-
-                    {canToggleStatus && (
-                      <button
-                        type="button"
-                        onClick={onToggleStatus}
-                        disabled={isStatusUpdating}
-                        aria-label="Toggle property status"
-                        className={[
-                          "relative w-[95px] h-7 rounded-full px-1.5 flex items-center border shadow-sm transition-colors",
-                          localStatus === "active"
-                            ? "bg-green-600 border-green-700"
-                            : "bg-red-600 border-red-700",
-                          isStatusUpdating ? "opacity-70 cursor-not-allowed" : "cursor-pointer",
-                        ].join(" ")}
-                      >
-                        {/* Label */}
-                        <span
-                          className={[
-                            "absolute text-[10px] font-semibold tracking-wide text-white",
-                            localStatus === "active" ? "left-3" : "right-3",
-                          ].join(" ")}
-                        >
-                          {localStatus === "active" ? "ACTIVE" : "INACTIVE"}
-                        </span>
-
-                      {/* Knob */}
-                      <span
-                        className={[
-                          "h-5 w-5 rounded-full bg-white shadow transition-all",
-                          localStatus === "active" ? "ml-auto" : "ml-0",
-                        ].join(" ")}
-                      />
-                    </button>
-                  )}
+                  <button
+                    onClick={() => setShowShareDialog(true)}
+                    className="flex items-center gap-1 text-xs underline hover:text-primary transition-colors"
+                  >
+                    <Share2 className="h-3.5 w-3.5" />
+                    Share
+                  </button>
                 </div>
               </div>
 
@@ -621,238 +509,8 @@ const canToggleStatus =
                 </button>
               </div>
 
-              {/* Main Content: same width as image div, directly under it */}
+              {/* Main Content: Guest view only */}
               <div className="pt-4 sm:pt-5 pb-6">
-                {isHostView ? (
-              /* ——— Host view: property details dashboard ——— */
-              <div className="w-full space-y-6">
-                {/* Stats strip */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <Card className="rounded-xl">
-                    <CardContent className="p-4 flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <BookOpen className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Bookings</p>
-                        <p className="text-lg font-semibold">{property._count?.bookings ?? 0}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card className="rounded-xl">
-                    <CardContent className="p-4 flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                        <Star className="h-5 w-5 text-amber-600 fill-amber-500" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Reviews</p>
-                        <p className="text-lg font-semibold">{property._count?.reviews ?? 0}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card className="rounded-xl">
-                    <CardContent className="p-4 flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
-                        <BedDouble className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Rooms</p>
-                        <p className="text-lg font-semibold">{property.totalRooms}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card className="rounded-xl">
-                    <CardContent className="p-4 flex items-center gap-3">
-                      <Badge
-                        variant={localStatus === "active" ? "default" : "secondary"}
-                        className="text-xs"
-                      >
-                        {localStatus.toUpperCase()}
-                      </Badge>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Status</p>
-                        <p className="text-sm font-medium capitalize">{localStatus}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Host info */}
-                {property.host && (
-                  <Card className="rounded-xl">
-                    <CardContent className="p-4 sm:p-5">
-                      <h2 className="text-base font-semibold flex items-center gap-2 mb-3">
-                        <User className="h-4 w-4" />
-                        Host
-                      </h2>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                        <div>
-                          <p className="text-muted-foreground text-xs">Name</p>
-                          <p className="font-medium">{property.host.firstName} {property.host.lastName}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground text-xs">Email</p>
-                          <p className="font-medium">{property.host.email}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground text-xs">Phone</p>
-                          <p className="font-medium">{property.host.phoneNumber ?? "—"}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Location */}
-                <Card className="rounded-xl">
-                  <CardContent className="p-4 sm:p-5">
-                    <h2 className="text-base font-semibold flex items-center gap-2 mb-3">
-                      <MapPin className="h-4 w-4" />
-                      Location
-                    </h2>
-                    <div className="text-sm text-muted-foreground space-y-0.5">
-                      <p>{property.addressLine1}</p>
-                      {property.addressLine2 && <p>{property.addressLine2}</p>}
-                      <p>{[property.city, property.state, property.postalCode].filter(Boolean).join(", ")}</p>
-                      <p>{property.country}</p>
-                      {(property.latitude != null || property.longitude != null) && (
-                        <p className="pt-1 text-xs">Coordinates: {property.latitude}, {property.longitude}</p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Stay policy */}
-                <Card className="rounded-xl">
-                  <CardContent className="p-4 sm:p-5">
-                    <h2 className="text-base font-semibold flex items-center gap-2 mb-3">
-                      <Clock className="h-4 w-4" />
-                      Stay policy
-                    </h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                      <div className="flex justify-between py-1.5 border-b">
-                        <span className="text-muted-foreground">Check-in</span>
-                        <span className="font-medium">{formatTime(property.checkInTime)}</span>
-                      </div>
-                      <div className="flex justify-between py-1.5 border-b">
-                        <span className="text-muted-foreground">Check-out</span>
-                        <span className="font-medium">{formatTime(property.checkOutTime)}</span>
-                      </div>
-                      <div className="flex justify-between py-1.5 border-b">
-                        <span className="text-muted-foreground">Min stay</span>
-                        <span className="font-medium">{property.minStayNights} night(s)</span>
-                      </div>
-                      <div className="flex justify-between py-1.5 border-b">
-                        <span className="text-muted-foreground">Max stay</span>
-                        <span className="font-medium">{property.maxStayNights ?? "No limit"}</span>
-                      </div>
-                      <div className="flex justify-between py-1.5 border-b sm:col-span-2">
-                        <span className="text-muted-foreground">Cancellation (full refund)</span>
-                        <span className="font-medium">{property.cancellationPolicyDays} day(s) before</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Pricing */}
-                {activePricing && (
-                  <Card className="rounded-xl">
-                    <CardContent className="p-4 sm:p-5">
-                      <h2 className="text-base font-semibold flex items-center gap-2 mb-3">
-                        <DollarSign className="h-4 w-4" />
-                        Pricing
-                      </h2>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                        <div className="flex justify-between py-1.5 border-b">
-                          <span className="text-muted-foreground">Base price / night</span>
-                          <span className="font-medium">{activePricing.currency} {activePricing.basePricePerNight?.toLocaleString("en-IN")}</span>
-                        </div>
-                        {activePricing.cleaningFee != null && (
-                          <div className="flex justify-between py-1.5 border-b">
-                            <span className="text-muted-foreground">Cleaning fee</span>
-                            <span className="font-medium">{activePricing.currency} {activePricing.cleaningFee}</span>
-                          </div>
-                        )}
-                        {activePricing.weekendMultiplier != null && (
-                          <div className="flex justify-between py-1.5 border-b">
-                            <span className="text-muted-foreground">Weekend multiplier</span>
-                            <span className="font-medium">{activePricing.weekendMultiplier}x</span>
-                          </div>
-                        )}
-                        {activePricing.seasonMultiplier != null && (
-                          <div className="flex justify-between py-1.5 border-b">
-                            <span className="text-muted-foreground">Season multiplier</span>
-                            <span className="font-medium">{activePricing.seasonMultiplier}x</span>
-                          </div>
-                        )}
-                        {activePricing.serviceFeePercentage != null && (
-                          <div className="flex justify-between py-1.5 border-b">
-                            <span className="text-muted-foreground">Service fee</span>
-                            <span className="font-medium">{activePricing.serviceFeePercentage}%</span>
-                          </div>
-                        )}
-                        {activePricing.taxPercentage != null && (
-                          <div className="flex justify-between py-1.5 border-b">
-                            <span className="text-muted-foreground">Tax</span>
-                            <span className="font-medium">{activePricing.taxPercentage}%</span>
-                          </div>
-                        )}
-                        <div className="flex justify-between py-1.5 border-b sm:col-span-2">
-                          <span className="text-muted-foreground">Effective</span>
-                          <span className="font-medium">{formatDate(activePricing.effectiveFrom)} {activePricing.effectiveTo ? `– ${formatDate(activePricing.effectiveTo)}` : "– ongoing"}</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Overview */}
-                <Card className="rounded-xl">
-                  <CardContent className="p-4 sm:p-5">
-                    <h2 className="text-base font-semibold flex items-center gap-2 mb-3">
-                      <Building2 className="h-4 w-4" />
-                      Overview
-                    </h2>
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium">{property.name}</p>
-                      <p className="text-xs text-muted-foreground capitalize">{property.propertyType}</p>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{property.description}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Images */}
-                <Card className="rounded-xl">
-                  <CardContent className="p-4 sm:p-5">
-                    <h2 className="text-base font-semibold flex items-center gap-2 mb-3">
-                      <FileText className="h-4 w-4" />
-                      Photos ({property.images?.length ?? 0})
-                    </h2>
-                    {property.images?.length ? (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                        {property.images
-                          .slice()
-                          .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
-                          .map((img) => (
-                            <div key={img.id} className="relative rounded-lg overflow-hidden border aspect-square">
-                              <img src={img.imageUrl} alt={img.caption ?? "Property"} className="h-full w-full object-cover" />
-                              {img.isPrimary && (
-                                <span className="absolute top-1 right-1 bg-primary text-primary-foreground text-[10px] px-1.5 py-0.5 rounded">Primary</span>
-                              )}
-                              {img.caption && (
-                                <p className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] px-1.5 py-0.5 truncate">{img.caption}</p>
-                              )}
-                            </div>
-                          ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">No photos</p>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            ) : (
-              /* ——— Guest view: listing with reserve sidebar ——— */
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
                 <div className="lg:col-span-2 space-y-4">
                   <Card className="rounded-xl">
@@ -1024,7 +682,6 @@ const canToggleStatus =
                   </button>
                 </div>
               </div>
-            )}
               </div>
             </div>
           </section>
@@ -1099,66 +756,6 @@ const canToggleStatus =
             </div>
           )}
         </div>
-
-        {/* Amenities card - positioned in white space on the right */}
-        {isHostView && (
-          <div className="w-full lg:w-[25%] origin-top scale-90 lg:scale-100 pt-4 lg:pt-[110px] self-start">
-            <div className="lg:sticky top-4 space-y-3">
-              <Card className="rounded-xl">
-                <CardContent className="p-4 sm:p-5">
-                  <h2 className="text-base font-semibold flex items-center gap-2 mb-3">
-                    <Heart className="h-4 w-4" />
-                    Amenities
-                  </h2>
-                  {amenities.length ? (
-                    <div className="flex flex-wrap gap-2">
-                      {amenities.map((a) => (
-                        <Badge key={a} variant="secondary" className="text-xs">
-                          {a}
-                        </Badge>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">No amenities added</p>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Medical amenities */}
-              <Card className="rounded-xl">
-                <CardContent className="p-4 sm:p-5">
-                  <h2 className="text-base font-semibold flex items-center gap-2 mb-3">
-                    <Shield className="h-4 w-4" />
-                    Medical amenities
-                  </h2>
-                  {property.medicalAmenities?.length ? (
-                    <div className="space-y-2">
-                      {property.medicalAmenities.map((ma) => (
-                        <div key={ma.medicalAmenityId} className="flex items-start justify-between gap-2 rounded-lg border p-3 text-sm">
-                          <div>
-                            <p className="font-medium">{ma.medicalAmenity?.title}</p>
-                            {ma.notes && <p className="text-xs text-muted-foreground mt-0.5">{ma.notes}</p>}
-                          </div>
-                          <div className="text-right shrink-0">
-                            <p className="text-muted-foreground text-xs">Qty</p>
-                            <p className="font-medium">{ma.quantity}</p>
-                            {ma.isAvailable !== undefined && (
-                              <Badge variant={ma.isAvailable ? "default" : "secondary"} className="mt-1 text-[10px]">
-                                {ma.isAvailable ? "Available" : "Unavailable"}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">No medical amenities added</p>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        )}
       </div>
 
           {/* Share Dialog */}

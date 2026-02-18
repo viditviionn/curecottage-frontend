@@ -180,9 +180,10 @@ export default function ReserveBooking() {
     try {
       setConfirming(true);
       await new Promise((r) => setTimeout(r, 900));
-      toast.success("Booking confirmed (UI ready)", {
-        description: "Next: connect POST /bookings API",
+      toast.success("Booking confirmed successfully", {
+        // description: "Next: connect POST /bookings API",
       });
+      navigate("/");
     } finally {
       setConfirming(false);
     }

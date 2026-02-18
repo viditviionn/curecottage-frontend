@@ -99,6 +99,7 @@ export type PropertyDetails = Property & {
   amenities?: PropertyAmenity[];
   medicalAmenities?: PropertyMedicalAmenity[];
   pricing?: PropertyPricing[];
+  rooms?: unknown[];
   _count?: { bookings: number; reviews: number };
 };
 

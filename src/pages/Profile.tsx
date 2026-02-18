@@ -32,13 +32,13 @@ const Profile = () => {
   const [editForm, setEditForm] = useState({
     firstName: "",
     lastName: "",
-    dateOfBirth: "", 
+    dateOfBirth: "",
   });
 
   // Check if we should open property tab from navigation state
   const initialTab = (location.state as { activeTab?: ProfileTab })?.activeTab ?? 'about';
   const [activeTab, setActiveTab] = useState<ProfileTab>(initialTab);
-  
+
   // Update tab if location state changes
   useEffect(() => {
     const tabFromState = (location.state as { activeTab?: ProfileTab })?.activeTab;
@@ -64,22 +64,22 @@ const Profile = () => {
 
   const myProperties = myPropsData?.properties ?? [];
 
-const getCardImage = (p: PropertyDetails) =>
-  p.images?.find((img) => img.isPrimary)?.imageUrl;
+  const getCardImage = (p: PropertyDetails) =>
+    p.images?.find((img) => img.isPrimary)?.imageUrl;
 
- 
-useEffect(() => {
-  if (!isHost && activeTab === "property") {
-    setActiveTab("about");
-  }
-}, [isHost, activeTab]);
+
+  useEffect(() => {
+    if (!isHost && activeTab === "property") {
+      setActiveTab("about");
+    }
+  }, [isHost, activeTab]);
   useEffect(() => {
     if (!user) return;
-  
+
     const dob = user.dateOfBirth
       ? new Date(user.dateOfBirth).toISOString().slice(0, 10)
       : "";
-  
+
     setEditForm({
       firstName: user.firstName ?? "",
       lastName: user.lastName ?? "",
@@ -163,11 +163,11 @@ useEffect(() => {
 
   const getStatusBadgeClass = (status?: string) => {
     const s = (status || "").toLowerCase();
-  
+
     if (s === "active") return "bg-green-600 text-white";
     if (s === "inactive") return "bg-red-600 text-white";
     if (s === "draft") return "bg-white/90 text-black";
-  
+
     // fallback (in case some other status comes)
     return "bg-white/90 text-black";
   };
@@ -177,139 +177,138 @@ useEffect(() => {
       <Header />
 
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-  <DialogContent className="sm:max-w-xl rounded-2xl">
-    <DialogHeader>
-      <DialogTitle className="text-xl">Edit Profile</DialogTitle>
-      <DialogDescription>
-        Update your personal details.
-      </DialogDescription>
-    </DialogHeader>
+        <DialogContent className="sm:max-w-xl rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl">Edit Profile</DialogTitle>
+            <DialogDescription>
+              Update your personal details.
+            </DialogDescription>
+          </DialogHeader>
 
-    {/* Modal Body */}
-    <div className="flex items-start gap-4">
-      <Avatar className="h-14 w-14">
-        <AvatarImage src={user.profileImageUrl || undefined} />
-        <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
-          {getInitials()}
-        </AvatarFallback>
-      </Avatar>
+          {/* Modal Body */}
+          <div className="flex items-start gap-4">
+            <Avatar className="h-14 w-14">
+              <AvatarImage src={user.profileImageUrl || undefined} />
+              <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                {getInitials()}
+              </AvatarFallback>
+            </Avatar>
 
-      <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="space-y-1">
-          <Label>First Name</Label>
-          <Input
-            value={editForm.firstName}
-            onChange={(e) =>
-              setEditForm((p) => ({ ...p, firstName: e.target.value }))
-            }
-            placeholder="Enter first name"
-          />
-        </div>
+            <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label>First Name</Label>
+                <Input
+                  value={editForm.firstName}
+                  onChange={(e) =>
+                    setEditForm((p) => ({ ...p, firstName: e.target.value }))
+                  }
+                  placeholder="Enter first name"
+                />
+              </div>
 
-        <div className="space-y-1">
-          <Label>Last Name</Label>
-          <Input
-            value={editForm.lastName}
-            onChange={(e) =>
-              setEditForm((p) => ({ ...p, lastName: e.target.value }))
-            }
-            placeholder="Enter last name"
-          />
-        </div>
+              <div className="space-y-1">
+                <Label>Last Name</Label>
+                <Input
+                  value={editForm.lastName}
+                  onChange={(e) =>
+                    setEditForm((p) => ({ ...p, lastName: e.target.value }))
+                  }
+                  placeholder="Enter last name"
+                />
+              </div>
 
-        <div className="space-y-1 sm:col-span-2">
-          <Label>Date of Birth</Label>
-          <Input
-            type="date"
-            value={editForm.dateOfBirth}
-            onChange={(e) =>
-              setEditForm((p) => ({ ...p, dateOfBirth: e.target.value }))
-            }
-          />
-          <p className="text-xs text-muted-foreground">
-            This helps verify your identity and improves trust with hosts/guests.
-          </p>
-        </div>
-      </div>
-    </div>
+              <div className="space-y-1 sm:col-span-2">
+                <Label>Date of Birth</Label>
+                <Input
+                  type="date"
+                  value={editForm.dateOfBirth}
+                  onChange={(e) =>
+                    setEditForm((p) => ({ ...p, dateOfBirth: e.target.value }))
+                  }
+                />
+                <p className="text-xs text-muted-foreground">
+                  This helps verify your identity and improves trust with hosts/guests.
+                </p>
+              </div>
+            </div>
+          </div>
 
-    <DialogFooter className="gap-2 sm:gap-0">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={() => setIsEditOpen(false)}
-        disabled={isUpdating}
-      >
-        Cancel
-      </Button>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsEditOpen(false)}
+              disabled={isUpdating}
+            >
+              Cancel
+            </Button>
 
-      <Button
-        type="button"
-        disabled={isUpdating}
-        onClick={async () => {
-          // basic validation
-          if (!editForm.firstName.trim() || !editForm.lastName.trim()) {
-            toast.error("Required", {
-              description: "First name and last name are required.",
-            });
-            return;
-          }
+            <Button
+              type="button"
+              disabled={isUpdating}
+              onClick={async () => {
+                // basic validation
+                if (!editForm.firstName.trim() || !editForm.lastName.trim()) {
+                  toast.error("Required", {
+                    description: "First name and last name are required.",
+                  });
+                  return;
+                }
 
-          try {
-            const dobISO = editForm.dateOfBirth
-              ? `${editForm.dateOfBirth}T00:00:00.000Z`
-              : undefined;
+                try {
+                  const dobISO = editForm.dateOfBirth
+                    ? `${editForm.dateOfBirth}T00:00:00.000Z`
+                    : undefined;
 
-            const res = await updateUser({
-              userId: user.id,
-              body: {
-                firstName: editForm.firstName.trim(),
-                lastName: editForm.lastName.trim(),
-                ...(dobISO ? { dateOfBirth: dobISO } : {}),
-              },
-            }).unwrap();
+                  const res = await updateUser({
+                    userId: user.id,
+                    body: {
+                      firstName: editForm.firstName.trim(),
+                      lastName: editForm.lastName.trim(),
+                      ...(dobISO ? { dateOfBirth: dobISO } : {}),
+                    },
+                  }).unwrap();
 
-            toast.success("Profile updated", {
-              description: res?.message || "Updated successfully",
-            });
+                  toast.success("Profile updated", {
+                    description: res?.message || "Updated successfully",
+                  });
 
-            setIsEditOpen(false);
-          } catch (err: unknown) {
-            toast.error("Update failed", {
-              description:
-                err instanceof Error ? err.message : "Something went wrong",
-            });
-            console.error("Update failed", err);
-          }
-        }}
-      >
-        {isUpdating ? "Saving..." : "Save Changes"}
-      </Button>
-    </DialogFooter>
-  </DialogContent>
+                  setIsEditOpen(false);
+                } catch (err: unknown) {
+                  toast.error("Update failed", {
+                    description:
+                      err instanceof Error ? err.message : "Something went wrong",
+                  });
+                  console.error("Update failed", err);
+                }
+              }}
+            >
+              {isUpdating ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
 
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8">
           {/* Back button */}
           <Button
-              onClick={() => navigate(-1)}
-              className="mb-4 h-9 text-sm px-4 flex items-center gap-2"
-              style={{
-                backgroundColor: 'hsl(176.84deg 50.26% 37.06%)',
-                color: 'white',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'hsl(42.69deg 77.34% 44.61%)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'hsl(176.84deg 50.26% 37.06%)';
-              }}
-            >
-              <ArrowLeft className="h-5 w-5" />
-              <span>Back</span>
-            </Button>
-          
+            onClick={() => navigate('/')} className="mb-4 h-9 text-sm px-4 flex items-center gap-2"
+            style={{
+              backgroundColor: 'hsl(176.84deg 50.26% 37.06%)',
+              color: 'white',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'hsl(42.69deg 77.34% 44.61%)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'hsl(176.84deg 50.26% 37.06%)';
+            }}
+          >
+            <ArrowLeft className="h-5 w-5" />
+            <span>Back</span>
+          </Button>
+
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Sidebar */}
             <aside className="w-full lg:w-64 flex-shrink-0">
@@ -322,11 +321,10 @@ useEffect(() => {
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                        isActive
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
                           ? "bg-primary/10 text-primary font-medium"
                           : "text-foreground hover:bg-muted"
-                      }`}
+                        }`}
                     >
                       <Icon className="h-5 w-5" />
                       <span>{tab.label}</span>
@@ -345,7 +343,7 @@ useEffect(() => {
                     <h1 className="text-3xl font-bold">About me</h1>
 
                     {!isEditOpen ? (
-                        <Button
+                      <Button
                         variant="outline"
                         size="sm"
                         className="text-muted-foreground"
@@ -551,7 +549,7 @@ useEffect(() => {
                         <Card
                           key={p.id}
                           className="group cursor-pointer hover:shadow-xl transition-all duration-300 border overflow-hidden"
-                          
+
                         >
                           <div className="relative h-40 overflow-hidden">
                             <img
@@ -566,13 +564,13 @@ useEffect(() => {
                               </span>
                             </div>
                             <div className="absolute top-2 right-2 flex gap-2">
-                            <span
-                              className={`text-[10px] h-6 px-2 py-1 rounded-md ${getStatusBadgeClass(
-                                p.status
-                              )}`}
-                            >
-                              {(p.status || "draft").toUpperCase()}
-                            </span>
+                              <span
+                                className={`text-[10px] h-6 px-2 py-1 rounded-md ${getStatusBadgeClass(
+                                  p.status
+                                )}`}
+                              >
+                                {(p.status || "draft").toUpperCase()}
+                              </span>
                             </div>
                           </div>
 
@@ -590,31 +588,31 @@ useEffect(() => {
                               {p.addressLine1}, {p.city}
                             </p>
 
-                           <div className='flex gap-2'>
-                           <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full mt-2"
-                              onClick={() => navigate(`/health-home/${p.id}`, {
-                                state: { fromProfile: true }
-                              })}
-                            >
-                              View Details
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full mt-2"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/become-provider?edit=${p.id}`, {
-                                  state: { property: p }, 
-                                });
-                              }}
-                            >
-                              Edit
-                            </Button>
-                           </div>
+                            <div className='flex gap-2'>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full mt-2"
+                                onClick={() => navigate(`/health-home/${p.id}`, {
+                                  state: { fromProfile: true }
+                                })}
+                              >
+                                View Details
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full mt-2"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/become-provider?edit=${p.id}`, {
+                                    state: { property: p },
+                                  });
+                                }}
+                              >
+                                Edit
+                              </Button>
+                            </div>
                           </CardContent>
                         </Card>
                       ))}

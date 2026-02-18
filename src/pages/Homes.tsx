@@ -384,14 +384,23 @@ const Homes = () => {
 
       {/* Back Button */}
       <div className="container mx-auto px-4 pt-2 pb-2 max-w-7xl">
-        <Button
-          variant="ghost"
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span>Back</span>
-        </Button>
+      <Button
+              onClick={() => navigate(-1)}
+              className="mb-4 h-9 text-sm px-4 flex items-center gap-2"
+              style={{
+                backgroundColor: 'hsl(176.84deg 50.26% 37.06%)',
+                color: 'white',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'hsl(42.69deg 77.34% 44.61%)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'hsl(176.84deg 50.26% 37.06%)';
+              }}
+            >
+              <ArrowLeft className="h-5 w-5" />
+              <span>Back</span>
+            </Button>
       </div>
 
       {/* Results section ref for scrolling */}

@@ -292,14 +292,23 @@ useEffect(() => {
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8">
           {/* Back button */}
-          <button
-            type="button"
-            onClick={() => navigate('/')}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span>Back to Home</span>
-          </button>
+          <Button
+              onClick={() => navigate(-1)}
+              className="mb-4 h-9 text-sm px-4 flex items-center gap-2"
+              style={{
+                backgroundColor: 'hsl(176.84deg 50.26% 37.06%)',
+                color: 'white',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'hsl(42.69deg 77.34% 44.61%)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'hsl(176.84deg 50.26% 37.06%)';
+              }}
+            >
+              <ArrowLeft className="h-5 w-5" />
+              <span>Back</span>
+            </Button>
           
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Sidebar */}

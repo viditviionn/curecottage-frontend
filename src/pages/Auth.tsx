@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Eye, EyeOff } from 'lucide-react';
+import { Shield, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation,Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 import { useLoginMutation, useSignupMutation } from '@/rtk/api/authApi';
 import { useDispatch, useSelector } from 'react-redux';
 import { setCredentials } from '@/rtk/slices/authSlice';
 import { RootState } from '@/rtk/store';
+import logoWithName from "@/assets/logo_cure_name.png";
 
 const emailSchema = z.string().trim().email({ message: 'Invalid email address' });
 const passwordSchema = z.string().min(6, { message: 'Password must be at least 6 characters' });
@@ -38,6 +39,7 @@ const Auth = () => {
   }>({});
 
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const dispatch = useDispatch();
 
@@ -47,11 +49,39 @@ const Auth = () => {
 
   const loading = isLoginLoading || isSignupLoading;
 
+  // Get redirect state from location
+  const locationState = location.state as {
+    from?: string;
+    reserveIntent?: boolean;
+    payload?: {
+      checkIn?: string;
+      checkOut?: string;
+      guests?: number;
+      propertyId?: string;
+    };
+  } | null;
+
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/');
+      // Check if we need to redirect to a specific page
+      if (locationState?.reserveIntent && locationState?.payload?.propertyId) {
+        // Redirect to reserve page with the payload
+        navigate(`/health-home/${locationState.payload.propertyId}`, {
+          state: {
+            checkIn: locationState.payload.checkIn,
+            checkOut: locationState.payload.checkOut,
+            guests: locationState.payload.guests,
+          },
+        });
+      } else if (locationState?.from) {
+        // Redirect to the page user came from
+        navigate(locationState.from);
+      } else {
+        // Default redirect to home
+        navigate('/');
+      }
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, locationState]);
 
   const validateForm = () => {
     const newErrors: {
@@ -116,8 +146,7 @@ const Auth = () => {
             title: 'Welcome back!',
             description: result.message || 'You have successfully logged in.',
           });
-          // Navigate to home and force a full reload so app state resets
-          window.location.href = '/';
+          // Redirect logic is handled in useEffect when isAuthenticated changes
         }
       } else {
         const result = await signup({
@@ -156,15 +185,42 @@ const Auth = () => {
   };
 
   return (
-    <div className=" bg-gradient-to-br from-background via-background to-accent/5 flex items-center justify-center p-4">
+    <div className="bg-gradient-to-br to-accent/5 flex items-center justify-center">
       <div className="w-full max-w-md">
         <Card className="border-border/50 shadow-lg max-h-[70vh] overflow-y-auto pr-2">
           <CardHeader className="text-center pb-2">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <div className="bg-primary p-2 rounded-lg">
-                <Shield className="h-6 w-6 text-primary-foreground" />
+            <div className="flex items-center justify-between mb-4">
+              {/* Back Button */}
+              <Button
+                onClick={() => navigate(-1)}
+                className="h-9 text-sm px-4 flex items-center gap-2"
+                style={{
+                  backgroundColor: 'hsl(176.84deg 50.26% 37.06%)',
+                  color: 'white',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'hsl(42.69deg 77.34% 44.61%)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'hsl(176.84deg 50.26% 37.06%)';
+                }}
+              >
+                <ArrowLeft className="h-5 w-5" />
+                <span>Back</span>
+              </Button>
+              <div className="flex items-center justify-center gap-2 flex-1">
+                <Link
+                  to="/"
+                  className="flex items-center space-x-2 flex-shrink-0 ml-0 lg:-ml-2 group transition-transform duration-200 hover:scale-105"
+                >
+                  <img
+                    src={logoWithName}
+                    alt="QureHome"
+                    className="h-12 w-auto transition-opacity duration-200 group-hover:opacity-90"
+                  />
+                </Link>
               </div>
-              <span className="text-2xl font-bold text-primary">Cure Cottage</span>
+              <div className="w-[100px]"></div>
             </div>
             <CardTitle className="text-2xl">{isLogin ? 'Welcome back' : 'Create an account'}</CardTitle>
             <CardDescription>

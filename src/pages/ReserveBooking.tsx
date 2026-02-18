@@ -195,18 +195,17 @@ export default function ReserveBooking() {
       <div className="w-full flex justify-center">
         <div className="w-[90%] origin-top scale-90">
           <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-5">
-            {/* top header row */}
-            <div className="flex items-start justify-between gap-3 mb-4">
-              <div>
-                <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Choose your recovery plan</h1>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Select a plan and confirm your booking.
-                </p>
-              </div>
+            {/* Back button */}
+            <Button variant="outline" onClick={() => navigate(-1)} className="mb-4 h-9 text-sm px-4">
+              Back
+            </Button>
 
-              <Button variant="outline" onClick={() => navigate(-1)} className="h-8 text-xs px-3">
-                Back
-              </Button>
+            {/* top header row */}
+            <div className="mb-4">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Choose your recovery plan</h1>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Select a plan and confirm your booking.
+              </p>
             </div>
 
             {/* MAIN GRID */}

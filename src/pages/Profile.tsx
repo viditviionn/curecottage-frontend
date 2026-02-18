@@ -509,9 +509,9 @@ useEffect(() => {
                     <h1 className="text-3xl font-bold">My Properties</h1>
 
                     <div className="flex gap-2">
-                      <Button variant="outline" onClick={() => refetchMyProps()}>
+                      {/* <Button variant="outline" onClick={() => refetchMyProps()}>
                         Refresh
-                      </Button>
+                      </Button> */}
                       <Button onClick={() => navigate("/become-provider")}>
                         Add Property
                       </Button>

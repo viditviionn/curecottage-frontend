@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Upload, ArrowLeft, Heart, Info, Stethoscope, Users, Check } from 'lucide-react';
+import Header from "@/components/Header";
 import {
   Tooltip,
   TooltipContent,
@@ -759,30 +760,7 @@ useEffect(() => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border/40 bg-background/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center space-x-1.5 sm:space-x-2">
-              <div className="bg-primary p-1.5 sm:p-2 rounded-lg">
-                <Heart className="h-4 w-4 sm:h-6 sm:w-6 text-primary-foreground" />
-              </div>
-              <div className="flex flex-col">
-                <h1 className="text-lg sm:text-2xl font-bold text-primary leading-tight">Cure Cottage</h1>
-                <p className="text-[0.6rem] sm:text-xs text-muted-foreground hidden sm:block">Heal faster. Save more. Feel at home.</p>
-              </div>
-            </Link>
-            <Link to="/">
-              <Button variant="outline" size="sm" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4">
-                <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Back to Home</span>
-                <span className="sm:hidden">Back</span>
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
-
+      <Header />
       <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-6 sm:mb-8">

@@ -792,7 +792,7 @@ const HomeConversionDetails = () => {
                 <Shield className="h-6 w-6 text-primary-foreground" />
               </div>
               <div className="flex flex-col">
-                <h1 className="text-2xl font-bold text-primary leading-tight">Cure Cottage</h1>
+                <h1 className="text-2xl font-bold text-primary leading-tight">QureHome</h1>
                 <p className="text-xs text-muted-foreground">Heal faster. Save more. Feel at home.</p>
               </div>
             </div>

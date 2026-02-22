@@ -443,7 +443,7 @@ const Profile = () => {
                       <div>
                         <h3 className="text-xl font-bold mb-2">Complete your profile</h3>
                         <p className="text-muted-foreground mb-4">
-                          Your Cure Cottage profile is an important part of every reservation.
+                          Your QureHome profile is an important part of every reservation.
                           Create yours to help other hosts and guests get to know you.
                         </p>
                         <Button className="bg-primary hover:bg-primary/90">

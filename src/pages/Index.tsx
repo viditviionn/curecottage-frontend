@@ -218,7 +218,7 @@ const Index = () => {
                             />
 
 
-                            <div className="absolute top-2 left-2 bg-primary text-primary-foreground rounded-lg px-2 py-1">
+                            <div className="absolute top-2 left-2 bg-primary text-primary-foreground rounded-lg px-2 py-1 hidden md:block">
                               <span className="text-xs font-semibold">
                                 {home.propertyType.toUpperCase()}
                               </span>

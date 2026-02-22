@@ -7,7 +7,7 @@ const HealthCheck = () => {
 
   // useEffect(() => {
   //   if (isSuccess) {
-  //     toast.success("Cure Cottage Connected", {
+  //     toast.success("QureHome Connected", {
   //       description: "Backend is up and running!",
   //       duration: 3000,
   //     });

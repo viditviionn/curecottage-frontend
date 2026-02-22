@@ -342,7 +342,7 @@ const Header = ({
                       <div className="bg-primary p-1.5 rounded-lg">
                         <Shield className="h-5 w-5 text-primary-foreground" />
                       </div>
-                      <span className="text-primary">Cure Cottage hello</span>
+                      <span className="text-primary">QureHome</span>
                     </SheetTitle>
                   </SheetHeader>
 
